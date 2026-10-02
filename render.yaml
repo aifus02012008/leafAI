@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: DermAI
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn dermai.wsgi:application --workers 2 --timeout 120"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dermai-db
+          property: connectionString
+
+databases:
+  - name: dermai-db
+    region: singapore
+    plan: free

@@ -1,0 +1,36 @@
+# Core Django framework
+Django
+
+# Environment variables
+python-dotenv
+pillow
+
+# Database (PostgreSQL + connection URL)
+dj-database-url
+psycopg2-binary
+
+# Cloudinary (media storage)
+cloudinary
+django-cloudinary-storage
+
+# HTML editor and sanitization
+django-tinymce
+markdown2
+bleach
+
+# API & HTTP requests
+requests
+httpx
+gradio_client
+
+# Authentication and password hashing
+bcrypt
+django-allauth
+PyJWT
+
+# Static files and production server
+whitenoise
+gunicorn
+google-generativeai
+google-genai
+deep-translator
