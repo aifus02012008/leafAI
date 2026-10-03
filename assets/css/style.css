@@ -712,3 +712,38 @@ dialog.sheet::backdrop { background: rgba(18, 48, 31, .45); }
 }
 .auth-tab-btn.is-active { background: var(--ink); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
 .alert-danger { background: var(--tomato-soft); border: 1px solid rgba(212,69,42,0.25); color: #a8321b; padding: 10px 14px; border-radius: var(--r-md); }
+
+/* ===== Báo cáo AI (HTML sanitize từ backend — contract class: badge/pct/report-table/callout) ===== */
+.ai-report { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.65; }
+.ai-report h3 {
+  font-size: 1.05rem; font-weight: 700; color: var(--ink);
+  margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+.ai-report h3:first-child { margin-top: 0; }
+.ai-report h4 { font-size: .95rem; font-weight: 700; color: var(--ink); margin: 16px 0 6px; }
+.ai-report p { margin: 8px 0; }
+.ai-report ul, .ai-report ol { margin: 8px 0; padding-left: 20px; }
+.ai-report li { margin: 4px 0; }
+.ai-report strong, .ai-report b { color: var(--ink); }
+.ai-report hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+.ai-report a { color: var(--leaf); text-underline-offset: 2px; }
+.ai-report .pct { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--leaf); }
+.ai-report .badge {
+  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  font-size: .78em; font-weight: 700; line-height: 1.5; vertical-align: middle;
+}
+.ai-report .badge-high { background: var(--tomato-soft); color: #a8321b; }
+.ai-report .badge-mid { background: var(--sun-soft); color: #85600f; }
+.ai-report .badge-low { background: var(--leaf-soft); color: var(--leaf-deep); }
+.ai-report .report-table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: .93em; }
+.ai-report .report-table th,
+.ai-report .report-table td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.ai-report .report-table thead th { background: var(--surface-2); color: var(--ink); font-weight: 700; }
+.ai-report .report-table tbody tr:nth-child(odd) { background: rgba(18, 48, 31, .025); }
+.ai-report .callout { display: block; padding: 10px 14px; border-radius: var(--r-md); margin: 12px 0; border: 1px solid transparent; }
+.ai-report .callout-warn { background: var(--sun-soft); border-color: rgba(133, 96, 15, .25); color: #6f4f0b; }
+.ai-report .callout-info { background: var(--leaf-tint); border-color: var(--line); color: var(--leaf-deep); }
+@media (max-width: 640px) {
+  .ai-report .report-table { font-size: .85em; }
+  .ai-report .report-table th, .ai-report .report-table td { padding: 6px 7px; }
+}
