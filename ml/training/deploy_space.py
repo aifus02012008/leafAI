@@ -22,7 +22,7 @@ logger = logging.getLogger("deploy_space")
 
 HF_TOKEN = "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"
 SPACE_ID = "Hphuccoder28/leaf-ai-app"
-FRONTEND_DIR = Path("d:/LEAF_AI/leafAI/frontend")
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
 def deploy():
     api = HfApi(token=HF_TOKEN)

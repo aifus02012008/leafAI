@@ -10,7 +10,7 @@ from PIL import Image
 import io
 import os
 
-model_path = r"d:\LEAF_AI\leafAI\hf_space_leaf_ai\tomato_model.pt"
+model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tomato_model.pt")
 if not os.path.exists(model_path):
     print("Model not found yet")
     sys.exit(0)

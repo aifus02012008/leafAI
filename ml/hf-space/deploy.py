@@ -63,7 +63,7 @@ def deploy(token: str = None, space_name: str = "leaf-ai-tomato-engine"):
     except Exception as e:
         print(f"[NOTE] Lưu ý khi tạo repo: {e}")
 
-    # Đẩy mã nguồn từ thư mục hf_space_leaf_ai lên Space
+    # Đẩy mã nguồn từ thư mục ml/hf-space lên Space
     current_dir = Path(__file__).resolve().parent
     print(f"[UPLOAD] Đang tải các tệp từ {current_dir} lên Space...")
 

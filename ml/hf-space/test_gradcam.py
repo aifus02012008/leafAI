@@ -71,7 +71,8 @@ def apply_heatmap(img: Image.Image, cam: np.ndarray, alpha=0.45) -> str:
 
 
 # Run test
-model_path = r"d:\LEAF_AI\leafAI\hf_space_leaf_ai\tomato_model.pt"
+import os
+model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tomato_model.pt")
 checkpoint = torch.load(model_path, map_location="cpu")
 classes = checkpoint["classes"]
 

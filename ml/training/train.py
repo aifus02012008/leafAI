@@ -2,7 +2,7 @@
 """
 LEAF_AI - Tomato Leaf Disease Model Training Script
 Trains ResNet18 on 14,218 PlantVillage tomato leaf disease images using PyTorch + CUDA.
-Exports weights to hf_space_leaf_ai/tomato_model.pt for production deployment.
+Exports weights to ml/hf-space/tomato_model.pt for production deployment.
 """
 
 import os
@@ -138,7 +138,7 @@ def train_model(epochs: int = 5, batch_size: int = 64, lr: float = 5e-4):
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     best_acc = 0.0
-    output_dir = Path("d:/LEAF_AI/leafAI/hf_space_leaf_ai")
+    output_dir = Path(__file__).resolve().parents[1] / "hf-space"
     output_dir.mkdir(parents=True, exist_ok=True)
     model_save_path = output_dir / "tomato_model.pt"
 

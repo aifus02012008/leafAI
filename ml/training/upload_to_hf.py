@@ -10,6 +10,9 @@ import json
 import logging
 from pathlib import Path
 
+# ml/hf-space (tương đối theo vị trí file này)
+HF_SPACE_DIR = Path(__file__).resolve().parents[1] / "hf-space"
+
 if hasattr(sys.stdout, 'reconfigure'):
     try:
         sys.stdout.reconfigure(encoding='utf-8')
@@ -149,7 +152,7 @@ def upload_all():
     logger.info(f"[OK] Repository {REPO_ID} sẵn sàng.")
 
     # 1. Ghi và tải lên classes.json
-    classes_file = Path("d:/LEAF_AI/leafAI/hf_space_leaf_ai/classes.json")
+    classes_file = HF_SPACE_DIR / "classes.json"
     with open(classes_file, "w", encoding="utf-8") as f:
         json.dump({
             "classes": CLASSES,
@@ -166,7 +169,7 @@ def upload_all():
     logger.info("[OK] Đã tải lên classes.json")
 
     # 2. Ghi và tải lên README.md (Model Card)
-    readme_file = Path("d:/LEAF_AI/leafAI/hf_space_leaf_ai/README.md")
+    readme_file = HF_SPACE_DIR / "README.md"
     with open(readme_file, "w", encoding="utf-8") as f:
         f.write(MODEL_CARD)
 
@@ -180,7 +183,7 @@ def upload_all():
     logger.info("[OK] Đã tải lên README.md")
 
     # 3. Tải lên file trọng số tomato_model.pt
-    model_file = Path("d:/LEAF_AI/leafAI/hf_space_leaf_ai/tomato_model.pt")
+    model_file = HF_SPACE_DIR / "tomato_model.pt"
     if model_file.exists():
         size_mb = model_file.stat().st_size / (1024 * 1024)
         logger.info(f"Đang tải tomato_model.pt ({size_mb:.2f} MB) lên Hugging Face...")
@@ -195,7 +198,7 @@ def upload_all():
         logger.warning("Chưa tìm thấy tomato_model.pt để tải lên!")
 
     # 4. Tải lên training_metrics.json nếu có
-    metrics_file = Path("d:/LEAF_AI/leafAI/hf_space_leaf_ai/training_metrics.json")
+    metrics_file = HF_SPACE_DIR / "training_metrics.json"
     if metrics_file.exists():
         logger.info("Đang tải training_metrics.json lên Hugging Face...")
         api.upload_file(

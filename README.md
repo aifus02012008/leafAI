@@ -11,42 +11,25 @@ Toàn bộ dự án được tổ chức trong 1 repository duy nhất, phân t�
 
 ```text
 leafAI/
-├── api/
-│   └── index.py               # Vercel Serverless Function entrypoint (@vercel/python WSGI app)
-├── vercel.json                # Cấu hình routing & build chuẩn hóa cho Vercel
-├── requirements.txt           # Danh mục dependencies tối ưu, siêu nhẹ cho Vercel (< 40MB)
-│
-├── frontend/                  # Web Frontend Single-Page App (HTML5 + CSS3 + Vanilla JS ES)
-│   ├── assets/
-│   │   ├── css/style.css      # Giao diện nông nghiệp hiện đại, sạch sẽ, glassmorphism, responsive
-│   │   ├── js/
-│   │   │   ├── api.js         # REST API Client (Auth, Diagnose, History, Chat, Supabase)
-│   │   │   ├── camera.js      # Chụp ảnh trực tiếp từ camera vườn hoặc kéo thả
-│   │   │   ├── canvas_render.js # Vẽ Bounding Box & hiển thị bản đồ nhiệt Grad-CAM
-│   │   │   ├── core.js        # Layout dùng chung, Auth Modal (Login/Signup), Drawer di động
-│   │   │   └── disease_data.js # Tri thức 6 bệnh lá cà chua chuẩn hóa
-│   │   └── samples/           # Ảnh mẫu lá bệnh thực tế (Úa sớm, Sương mai, Đốm vi khuẩn...)
-│   ├── index.html             # Trang chủ giới thiệu
-│   ├── scan.html              # Chẩn đoán lá (YOLOv8 + ResNet-18 Grad-CAM)
-│   ├── library.html           # Thư viện bệnh
-│   ├── handbook.html          # Cẩm nang IPM (FAO)
-│   ├── history.html           # Nhật ký đồng ruộng (đồng bộ máy chủ & xuất CSV)
-│   └── assistant.html         # Trợ lý kỹ sư BVTV AI (Google Gemini)
-│
-├── backend/                   # Python Django REST Backend
-│   ├── dermai/                # Settings, URLs, WSGI
-│   ├── Dermal/                # REST API Views, Authentication, Database Models, Knowledge Base
-│   ├── db.sqlite3             # CSDL hạt giống (tự động sao chép sang /tmp/ khi chạy trên Vercel)
-│   └── manage.py              # CLI quản trị Django
-│
-├── hf_space_leaf_ai/          # Hugging Face Space AI Server (FastAPI + PyTorch + CUDA)
-│   ├── app.py                 # FastAPI AI Engine với ResNet-18 + Grad-CAM Heatmap
-│   ├── tomato_model.pt        # Trọng số mô hình Deep Learning đã train
-│   └── Dockerfile             # Container runtime cho Hugging Face Space
-│
-└── training/                  # Kịch bản thu thập dữ liệu & huấn luyện mô hình
-    ├── train.py               # Script fine-tuning ResNet-18 trên Kaggle PlantVillage
-    └── upload_to_hf.py        # Tự động đẩy weights lên Hugging Face Model Hub
+├── api/                  # Entry serverless cho Vercel (FastAPI) — Vercel yêu cầu nằm ở gốc
+│   └── index.py
+├── backend/              # Django: dermai/ (settings), Dermal/ (models, API, tri thức bệnh)
+│   ├── supabase/         # Cấu hình + migrations Supabase (chạy CLI trong thư mục backend/)
+│   ├── manage.py
+│   ├── requirements.txt
+│   └── build.sh, Procfile, render.yaml, runtime.txt   # Deploy Render (tùy chọn)
+├── frontend/             # Web + PWA đa trang (HTML/CSS/JS thuần)
+│   ├── index.html, scan.html, library.html, disease.html,
+│   │   handbook.html, history.html, assistant.html, about.html
+│   └── assets/           # css/, js/ (core, api, pages/*), images/, samples/
+├── ml/                   # Mọi thứ về mô hình AI
+│   ├── hf-space/         # AI server cho Hugging Face Space (app.py, Dockerfile, tomato_model.pt)
+│   └── training/         # Huấn luyện & đẩy mô hình (train.py, upload_to_hf.py, ...)
+├── docs/                 # Tài liệu bàn giao (FE-HANDOFF.md)
+├── .github/workflows/    # CI: chạy test Django trong backend/
+├── vercel.json           # Routing & build Vercel
+├── requirements.txt      # Dependencies cho hàm Python trên Vercel
+└── README.md
 ```
 
 ---
@@ -82,7 +65,7 @@ vercel
 
 ### 1. Khởi động AI Server (Tùy chọn nếu muốn chạy Grad-CAM cục bộ)
 ```bash
-cd hf_space_leaf_ai
+cd ml/hf-space
 python -m uvicorn app:app --host 127.0.0.1 --port 8001
 ```
 
