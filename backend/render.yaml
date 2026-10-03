@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: DermAI
+    name: leaf-ai
     env: python
     region: singapore
     plan: free
@@ -12,15 +12,29 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
-        value: False
+        value: "False"
       - key: ALLOWED_HOSTS
         sync: false
       - key: DATABASE_URL
         fromDatabase:
-          name: dermai-db
+          name: leaf-ai-db
           property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
 
 databases:
-  - name: dermai-db
+  - name: leaf-ai-db
     region: singapore
     plan: free

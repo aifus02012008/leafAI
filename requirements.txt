@@ -17,7 +17,6 @@ cloudinary
 django-cloudinary-storage
 
 # HTML editor and sanitization
-django-tinymce
 markdown2
 bleach
 
@@ -29,7 +28,6 @@ supabase
 
 # Authentication and password hashing
 bcrypt
-django-allauth
 PyJWT
 
 # Static files and production server

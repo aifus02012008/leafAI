@@ -1,35 +1,44 @@
 # 🍃 LEAF_AI — Tài liệu bàn giao Backend cho Frontend
 
-> **Phiên bản:** 2026-10-02
-> **Trạng thái BE:** ✅ `manage.py check` sạch, ✅ 32/32 test pass
-> **Stack hiện tại:** Django (Python) + PostgreSQL (Render/Neon) + Cloudinary (media) + Whitenoise (static)
-> **AI server:** service riêng (FastAPI + YOLOv8) — BE gọi qua HTTP, KHÔNG train model trong repo này
+> **Phiên bản:** 2026-10-03 (cập nhật pipeline Gemini Vision)
+> **Trạng thái BE:** ✅ `manage.py check` sạch, ✅ **49/49 test pass**
+> **Stack:** Django (Python) + Gemini Vision API (`google-genai`) + PostgreSQL/SQLite + Cloudinary (media) + Whitenoise (static)
+> **Pipeline AI:** ❌ KHÔNG còn AI server YOLOv8 (model không kịp bàn giao) →
+> **lấy link ảnh từ DB → đọc base64 → gửi Gemini API → nhận JSON + báo cáo HTML**
 
 ---
 
-## 1. Chạy dự án local
+## 1. Pipeline chẩn đoán mới (đọc kỹ)
+
+```
+Upload ảnh
+  └─ 1. Lưu Leaf_image vào DB  →  record.image.url  (link ảnh lấy TỪ DB)
+       · URL https (Cloudinary) → download qua requests (timeout 20s)
+       · URL /media/...         → đọc trực tiếp từ storage
+  └─ 2. bytes → base64 (SDK google-genai mã hoá inline_data) → Gemini API
+       · model: GEMINI_MODEL (mặc định gemini-2.5-flash), timeout 45s
+       · response_mime_type = application/json
+  └─ 3. JSON {healthy, diseases[], regions[], report_html}
+       · chuẩn hoá theo knowledge base 6 bệnh cà chua
+       · report_html được sanitize bằng bleach (whitelist tag/attr)
+  └─ 4. Lưu vào DB (result, primary_*, detections, explain=report_html) → trả FE
+```
+
+- **Không còn** `AI_SERVER_URL` / `fast_api()` / heatmap Grad-CAM — xóa khỏi env & docs.
+- Mọi biến đều **best-effort**: AI lỗi KHÔNG BAO GIỜ chặn upload hay làm 500.
+
+### `.env` tối thiểu
 
 ```bash
-python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt   # Windows; Linux/mac: .venv/bin/pip
-
-# .env tối thiểu
 SECRET_KEY=<khóa bí mật>
 DEBUG=True
 DATABASE_URL=sqlite:///db.sqlite3        # production: postgres://...
-GEMINI_API_KEY=...                       # optional (chatbot + báo cáo)
-AI_SERVER_URL=http://localhost:8000/predict   # optional, mặc định là HF space
-
-.venv/Scripts/python manage.py migrate
-.venv/Scripts/python manage.py runserver
+GEMINI_API_KEY=...                       # BẮT BUỘC nếu muốn chẩn đoán thật
+GEMINI_MODEL=gemini-2.5-flash            # optional, mặc định gemini-2.5-flash
 ```
 
-Test / kiểm tra:
-
-```bash
-python manage.py check
-python manage.py test Dermal
-```
+> Thiếu `GEMINI_API_KEY` → hệ thống **không bịa bệnh**: API trả `analysis_unavailable: true`
+> kèm `note` giải thích, FE hiển thị trạng thái "Chưa phân tích được" (xem §3.2).
 
 ---
 
@@ -39,207 +48,195 @@ python manage.py test Dermal
 
 | Field | Kiểu | Ý nghĩa |
 |---|---|---|
-| `id` | int | dùng trong URL `/result/<id>/` |
-| `image` | file | ảnh gốc (Cloudinary) |
-| `heatmap` | file \| null | heatmap (nếu AI server trả về) |
-| `result` | JSON list | kết quả detection, xem schema §3.2 |
-| `result_en` | — | **chưa tồn tại** — template đã guard `{% if ... result_en %}`, khi BE làm i18n sẽ thêm |
-| `explain` | HTML string | báo cáo phân tích (Gemini), đã sanitize bleach |
-| `more` | text | thông tin bổ sung người dùng nhập |
-| `gender`, `age` | text | giới tính / tuổi (bước chẩn đoán nâng cao) |
-| `symptom` | text | triệu chứng |
-| `illness_history` | text | tiền sử bệnh |
-| `drug_history` | text | tiền sử thuốc |
-| `uploaded_at` | datetime | thời điểm tải lên |
+| `id` | int | dùng trong URL `/result/<id>/` và `record.id` của API |
+| `image` | file | ảnh gốc — **link lấy từ đây** (`image.url`) |
+| `result` | JSON list | `[{class, probability}]` cho bảng kết quả (template) |
+| `detections` | JSON list | bbox pixel `[{class, name_vi, confidence, probability_percent, color, bbox:[x,y,w,h]}]` |
+| `primary_disease` / `primary_disease_vi` | text | mã bệnh + tên Việt (trống nếu healthy/unavailable) |
+| `confidence` | float | % bệnh chính (0-100) |
+| `severity` | text | `Nghiêm trọng` ≥60 / `Trung bình` 35-59 / `Nhẹ` <35 / `Khỏe` |
+| `is_coinfection` | bool | đồng nhiễm (nhiều bệnh) |
+| `secondary_diseases` | JSON list | bệnh phụ |
+| `explain` | HTML string | **báo cáo Gemini** (đã sanitize) — FE render bằng container `.ai-report` |
+| `model_version` | text | `v3` (3 bệnh) / `v4` (6 bệnh) |
+| `heatmap` | — | **không còn dữ liệu** — FE bỏ mọi UI Grad-CAM |
+| `more`, `gender`, `age`, `symptom`, `illness_history`, `drug_history` | text | thông tin người dùng (predict) |
 
-### 2.2 `Profile`
+### 2.26 bệnh cà chua (mã chuẩn hóa — `class` chỉ nhận đúng bộ này)
 
-`user` (OneToOne với User), `bio`, `title`, `location`, `avatar`, `birth_date`.
-Profile tự tạo khi User đăng ký (signal).
+`Bacterial_spot`, `Early_blight`, `Late_blight` (V3 mặc định)
+`+ Septoria_leaf_spot`, `Leaf_mold`, `Powdery_mildew` (V4)
 
 ---
 
 ## 3. API Contract
 
-Tất cả URL đã được test reverse được. base = `/`
+### 3.1 Upload (Django template flow)
 
-### 3.1 Auth
-
-| Method | URL | Body | Response |
-|---|---|---|---|
-| GET/POST | `/signup/` | `username`, `email`, `password` (+ optional `birth_date`, `avatar` file) | 302 → `/` hoặc render lại form + message lỗi |
-| GET/POST | `/login/` | `username` (hoặc `email`), `password` | 302 → `/` hoặc render + lỗi |
-| GET | `/logout/` | — | 302 → `/login/` |
-| — | `/accounts/google/login/` | OAuth (allauth) | redirect |
-
-- Password được validate bằng `AUTH_PASSWORD_VALIDATORS` của Django (mật khẩu yếu bị từ chối).
-- Đăng nhập **bằng email** đã hỗ trợ.
-
-### 3.2 Chẩn đoán (upload → kết quả)
-
-**POST `/upload/`** — camera capture (base64 trong form):
+**POST `/upload/`** (base64 trong form) · **POST `/upload/file/`** (multipart):
 
 ```
-image = "data:image/jpeg;base64,..."      # bắt buộc
-model_version = "v3" | "v4"               # optional, mặc định "v3"
-csrfmiddlewaretoken = ...                  # bắt buộc (form)
+image = "data:image/jpeg;base64,..." | <File>     # bắt buộc, ≤10MB, image/*
+model_version = "v3" | "v4"                       # optional, mặc định v3
 ```
 
-**POST `/upload/file/`** — upload file:
+| Response | Ý nghĩa |
+|---|---|
+| **302** → `/result/<id>/` | ảnh đã lưu (kèm chẩn đoán best-effort) |
+| **400** `{error}` | thiếu ảnh / sai MIME / base64 hỏng |
+| **429** `{error}` | rate-limit 10 request/phút/user |
+
+> **KHÔNG CÒN 502** — AI lỗi không chặn upload; nếu không tạo được báo cáo thì
+> trang kết quả sẽ hiển thị form "Thêm thông tin" (predict tạo báo cáo lần2).
+
+### 3.2 ⭐ POST `/api/diagnose/` — endpoint chính của SPA
+
+`Content-Type: multipart/form-data` (hoặc JSON body `{image: "<data-url>", model_version}`):
 
 ```
-image = <File>        # bắt buộc, image/*, ≤ 10MB
-model_version = "v3" | "v4"   # optional
+image = <File> | "data:image/jpeg;base64,..."    # bắt buộc
+model_version = "v3" | "v4"                      # optional
 ```
 
-Response (cả 2):
+**Response200:**
 
-- **302** → `/result/<id>/` khi thành công
-- **400** `{error}` — không có ảnh / ảnh sai loại / >10MB / base64 hỏng
-- **429** `{error}` — rate-limit: 10 request/phút/user
-- **502** `{error}` — AI server lỗi/timeout (60s)
-
-**Schema `result` (JSONField):**
-
-```json
-[
-  {"class": "Early_blight", "probability": 87.5},
-  {"class": "Bacterial_spot", "probability": 9.2}
-]
+```jsonc
+{
+  "success": true,
+  "id": 123,                          // record.id (null nếu lỗi lưu DB)
+  "model_version": "v3",
+  "model_badge": "Model V3 (Production)",
+  "is_coinfection": false,
+  "warning_banner": null,             // "Phát hiện đa bệnh (đồng nhiễm)" nếu true
+  "healthy": false,                   // true = lá không có dấu hiệu bệnh
+  "primary_disease": {                // null nếu healthy hoặc unavailable
+    "class": "Early_blight", "name_en": "Early Blight",
+    "name_vi": "Úa sớm (Đốm vòng)", "probability": 87.0,
+    "severity": "Nghiêm trọng", "color": "#f97316",
+    "treatment": {"cultural": "...", "biological": "...", "chemical": "..."},
+    "prevention": "..."
+  },
+  "secondary_diseases": [ { "class": "...", "name_vi": "...", "probability": 42.0,
+                            "severity": "Trung bình", "color": "#ef4444" } ],
+  "detections": [                     // bbox theo PIXEL ảnh gốc (canvas đã scale)
+    { "class": "Early_blight", "name_vi": "Úa sớm (Đốm vòng)",
+      "confidence": 0.87, "probability_percent": 87.0,
+      "color": "#f97316", "bbox": [40, 30, 200, 150] }
+  ],
+  "lesion_count": 3,
+  "report_html": "<h3>Kết luận nhanh</h3>...",   // BÁO CÁO — render nguyên khối, KHÔNG escape
+  "analysis_unavailable": false,      // true = AI không phân tích được
+  "note": "",                         // message tiếng Việt khi unavailable
+  "heatmap_available": false,         // luôn false (không còn Grad-CAM)
+  "heatmap_base64": null,
+  "heatmap_url": null,
+  "synced_to_supabase": false,
+  "supabase_id": null
+}
 ```
 
-> Khi AI server chuyển sang YOLOv8 trả bounding box, BE sẽ mở rộng schema
-> (dự kiến thêm `bbox: [x, y, w, h]` và `confidence`) — FE render theo §5.
+**Lỗi:**
 
-**GET `/result/<id>/`** — trang kết quả (HTML, cần đăng nhập;
-không thuộc về mình → 404).
+| Status | Body | Ghi chú |
+|---|---|---|
+| 400 | `{error}` | thiếu ảnh / >10MB |
+| 429 | `{error}` | **rate-limit 10/phút** (theo user hoặc IP) — FE nên hiện toast thân thiện |
 
-### 3.3 Chẩn đoán nâng cao (báo cáo Gemini)
+**Khi AI không khả dụng** (`analysis_unavailable: true`): response vẫn **200 + `success: true`**
+(ảnh đã lưu), nhưng `primary_disease: null`, `detections: []`, `report_html: null`,
+`note`: *"Dịch vụ AI chưa được cấu hình (thiếu biến GEMINI_API_KEY)..."*.
+→ **FE TUYỆT ĐỐNG không được hiển thị "Lá khỏe mạnh"** trong trường hợp này —
+hãy hiện "Chưa phân tích được ảnh" + `note` (SPA đã làm sẵn: nhánh `analysis_unavailable`
+trong `scan.js`).
 
-**POST `/predict/<id>/`**
+### 3.3 Predict (tạo/repair báo cáo + context người dùng)
 
-```
-gender = "Nam" | "Nữ"
-age = "30"
-symptom = "..."
-illness_history = "..."
-drug_history = ...
-```
+**POST `/predict/<id>/`** — form: `gender`, `age`, `symptom`, `illness_history`, `drug_history`
+→ backend gọi lại Gemini **kèm ảnh từ DB + context** → cập nhật `explain` → 302 `/result/<id>/`.
+AI lỗi → `explain` = HTML thông báo thân thiện (không trống, không gặp lỗi 500).
 
-- **302** → `/result/<id>/` — đã lưu info + `explain` (HTML)
-- **404** nếu ảnh không tồn tại / không thuộc user
-- Gemini lỗi → fallback text thân thiện, KHÔNG 500.
-
-### 3.4 Lịch sử chẩn đoán
+### 3.4 Các endpoint khác (giữ nguyên)
 
 | Method | URL | Ghi chú |
 |---|---|---|
-| GET | `/profile/` | danh sách bản ghi của user (mới nhất trước) |
-| POST | `/history/<id>/delete/` | **xóa bản ghi** (chỉ của mình), 404 nếu không phải, 405 nếu GET, 302 → `/profile/` |
+| GET | `/result/<id>/` | trang kết quả; report render trong `.ai-report` |
+| GET | `/profile/` | lịch sử |
+| POST | `/history/<id>/delete/` | xóa bản ghi (404 nếu không phải mình, 405 với GET) |
+| POST | `/chatbot/api/` | JSON `{message}` → `{reply, reply_html}` — 20/phút |
+| GET | `/api/history/?limit=50` | danh sách; bản ghi healthy trả `primary_disease: "Healthy"`, `primary_disease_vi: "Lá khỏe mạnh"` |
+| DELETE | `/api/history/<id>/delete/` | xóa1 bản ghi |
+| GET | `/api/diseases/`, `/api/handbook/`, `/api/models/`, `/api/stats/` | knowledge base (không đổi) |
+| POST | `/api/chat/` | chatbot tư vấn (Gemini + fallback nội tuyến) |
+| GET | `/health/` | `{status: "ok"}` |
 
-### 3.5 Chatbot
+---
 
-**POST `/chatbot/api/`** (JSON, cần đăng nhập + CSRF header `X-CSRFToken`):
+## 4. ⭐ Contract HTML của `report_html` (quan trọng cho styling)
 
-```json
-// request
-{"message": "Cách phòng bệnh đốm lá?"}
-// response 200
-{"reply": "markdown text...", "reply_html": "<p>...</p>"}
-```
+Backend **đã sanitize** (bleach) — FE render nguyên khối bằng `innerHTML` / `|safe`
+trong container **`.ai-report`**. Chỉ các tag và class sau được sống sót:
 
-- 400 `{error}` — thiếu message / JSON hỏng / message > 4000 ký tự
-- 429 `{error}` — 20 tin/phút/user
-- Gemini chết → reply thân thiện (không crash)
+**Tag:** `h3 h4 p ul ol li strong em b i small br hr div span table thead tbody tr th td a`
 
-### 3.6 Trang tĩnh / khác
+**Class (FE chỉ cần style đúng bộ này — SPA đã có sẵn trong `style.css`):**
 
-| URL | Ghi chú |
+| Class | Ý nghĩa |
 |---|---|
-| `/` | home (camera capture) — **cần đăng nhập** |
-| `/pharmacy/` | bản đồ cơ sở vật tư/nông nghiệp gần tôi (public) |
-| `/chatbot/` | trang chatbot |
-| `/health/` | health check: `{"status":"ok"}` (GET/HEAD) |
-| `/i18n/setlang/` | POST `language=vi\|en`, `next=<path>` |
+| `badge` + `badge-high` / `badge-mid` / `badge-low` | pill mức độ: Nghiêm trọng / Trung bình / Nhẹ |
+| `pct` | số % đậm (xanh lá) |
+| `report-table` | bảng (thường cột: Bệnh / Độ tin cậy / Mức độ) |
+| `callout` + `callout-warn` / `callout-info` | khung chú ý / thông tin |
 
-**i18n:** URL tiếng Anh có prefix `/en/...`, tiếng Việt **không prefix**
-(`/login/` thay vì `/vi/login/`) — đã sửa (`prefix_default_language=False`).
+**Cấu trúc6 phần** (prompt yêu cầu Gemini): Kết luận nhanh → Quan sát trên ảnh →
+Bệnh chính và mức độ → Nguyên nhân → Phác đồ xử lý → Phòng ngừa và lưu ý
+(khuyến cáo tham khảo chuyên gia BVTV).
 
----
+Nếu Gemini không trả HTML → backend tự sinh bảng tối giản (`render_basic_report`)
+nên `report_html` **gần như luôn có** khi phân tích thành công.
 
-## 4. Ràng buộc kỹ thuật cho FE
+### Nơi render
 
-- **CSRF:** mọi POST cần token (form: `{% csrf_token %}`; fetch:
-  header `X-CSRFToken` đọc cookie `csrftoken`).
-- **Auth:** đa số trang redirect `/login/` nếu chưa đăng nhập.
-- **Rate-limit:** upload 10/phút, chatbot 20/phút → UI nên hiện thông báo
-  thân thiện khi nhận 429.
-- **Lỗi server:** JSON `{error: "<tiếng Việt>"}` với mã 400/405/429/502.
-- **Upload ảnh:** ≤ 10MB, chỉ `image/*`.
+- **SPA:** `<section id="aiReportSection">` + `<div id="aiReport" class="ai-report">`
+  trong `scan.html`, điền bởi `scan.js` — đã có CSS sẵn trong `style.css`.
+- **Template:** `<div class="ai-report">{{ skin_image.explain|safe }}</div>` trong `result.html`
+  — đã có CSS sẵn trong `<style>` của trang.
 
 ---
 
-## 5. Việc FE cần làm (theo spec trong ảnh) — BE đã sẵn sàng cho phần này
+## 5. Ràng buộc kỹ thuật cho FE
 
-### ✅ FE đã có template tham chiếu (Django templates hiện tại)
-
-- Home (camera + upload modal) — `home.html`
-- Kết quả chẩn đoán — `result.html`
-- Lịch sử + **nút "Xóa bản ghi"** (mới thêm) — `profile.html`
-- Chatbot — `chatbot.html`
-- Login/Signup/Profile — có sẵn
-- Navbar dưới đã trỏ route `pharmacy` hợp lệ (bug cũ: 500 toàn trang)
-
-### ⚠️ Việc FE cần làm tiếp
-
-1. **Rebranding DermAI → LEAF_AI** — toàn bộ title/meta OG/nội dung vẫn còn
-   "DermAI / chẩn đoán bệnh da liễu". Các nơi cần sửa:
-   `home.html`, `login.html`, `signup.html`, `result.html`, `profile.html`,
-   `chatbot.html`, `pharmacy.html`, `socialaccount/*.html`.
-2. **Nội dung theo spec ảnh (chưa có, FE dựng tĩnh hoặc BE bổ sung sau):**
-   - Thư viện bệnh (6 bệnh cà chua: Bacterial Spot, Early Blight, Late Blight,
-     Septoria Leaf Spot, Leaf Mold, Powderly Mildew) — KHÔNG cần API, content tĩnh.
-   - Cẩm nang chăm sóc (8 nguyên tắc / 7 bước kiểm tra / 10 bước FAQ BVTV).
-   - Thống kê trang chủ (spec ghi *mock data* → FE tự render số giả).
-   - Panel "Thông số AI/Model": V3 (mặc định, 3 bệnh) / V4 (experimental, 6 bệnh) —
-     gửi `model_version` khi upload, số liệu hiển thị (mAP50 0.768, Recall 80.8%,
-     input 640×640, confidence 0.25) là content tĩnh.
-3. **Kết quả chẩn đoán theo spec:** khung YOLO scan, bounding box trên ảnh,
-   bệnh chính + %, mức độ nguy hiểm, danh sách bệnh phụ %.
-   - Hiện schema `result` mới có `{class, probability}` (classification).
-   - **Chờ BE nâng cấp schema bbox** (khi AI server YOLOv8 hoàn thiện) —
-     FE chuẩn bị component vẽ overlay canvas/SVG trên ảnh, đọc `bbox`.
-4. **Bước "Xem phác đồ / IPM & chăm sóc"** — nút sau khi có báo cáo;
-   nội dung phác đồ tĩnh (chưa có API).
-5. **Gọi cấp cứu 115** trong navbar → đổi thành hotline nông nghiệp / CSDL
-   (theo spec "nhà nông" không phải 115).
-6. **i18n:** thêm file `.po` cho `en` (hiện `LOCALE_PATHS/locale` chưa có
-   file dịch → tiếng Anh gần như bằng tiếng Việt). Dùng
-   `python manage.py makemessages -l en && compilemessages`.
-
-### 🔌 Khi nào cần nói chuyện với BE
-
-- Schema `result` mở rộng `bbox` + `confidence` (YOLOv8) — BE sẽ báo thêm.
-- API thống kê thật (nếu không muốn mock).
-- Endpoint gợi ý phác đồ theo bệnh (nếu không làm content tĩnh).
-- Thêm trường `result_en`/`explain_en` khi làm i18n kết quả (mẫu template
-  đã sẵn, chờ field).
+- **Rate-limit:** upload10/phút, `/api/diagnose/` **10/phút**, chatbot 20/phút → hiện toast khi 429.
+- **Ảnh mẫu (sample):** PHẢI gửi **data URL**, không gửi chuỗi đường dẫn.
+  `api.js` đã có `_toDataUrl()` chuyển tự động — đừng ghi đè.
+- **Service Worker:** sau khi sửa asset phải **bump `CACHE_NAME`** trong `sw.js`
+  (đã bump lên `leaf-ai-v2.1.0`) nếu không trình duyệt vẫn chạy bundle cũ.
+- **CSRF:** POST form cần token; `/api/*` là `csrf_exempt` (dùng `credentials: 'include'`).
+- **Không còn heatmap** — ẩn toggle "Bản đồ nhiệt" (SPA đã tự ẩn khi `heatmap_url === null`).
+- **Timeout:** backend gọi Gemini tối đa45s; `api.js` timeout60s — OK.
 
 ---
 
-## 6. Changes BE đã fix (tóm tắt, để FE khỏi test lại chỗ chết)
+## 6. Checklist FE còn lại (ngoài phạm vi BE)
 
-- P0: `admin.py` register model không tồn tại → server không boot được.
-- P0: route `pharmacy` thiếu → 500 mọi trang (navbar).
-- P0: `predict` gán `more=None` → IntegrityError 500 → đã nhận đúng field
-  form (`gender/age/symptom/illness_history/drug_history`).
-- Thêm field cho model, migration `0001_initial` đã commit.
-- AI client: timeout 60s, validate response, param `model_version`,
-  exception riêng → không còn `output[...]` crash.
-- Upload: validate MIME + ≤10MB, rate-limit 10/phút, bỏ `csrf_exempt`.
-- Chatbot: rate-limit 20/phút, sanitize HTML, fallback khi Gemini lỗi.
-- Bỏ `print(api_key)` (rò rỉ secret), `DEBUG` đọc từ env, HTTPS cookie
-  production, `SITE_ID=1`, đăng nhập được bằng email,
-  `login()` sau signup chỉ định backend (bug 2 auth backend).
-- `i18n_patterns(prefix_default_language=False)` — hết redirect `/vi/`.
-- Thêm endpoint `POST /history/<id>/delete/` (spec "Xóa bản ghi").
+1. ~~Rebranding legacy templates DermAI → LEAF_AI~~ — **hoàn tất** (toàn bộ trang Django template đã LEAF_AI).
+2. ~~i18n / đa ngôn ngữ~~ — **đã gỡ khỏi dự án** (chỉ còn tiếng Việt, không còn switcher, route `/i18n/`, `{% trans %}`).
+3. ~~Hotline `tel:115`~~ — **đã thay** bằng link Thư viện bệnh & phác đồ; trang `pharmacy` + đăng nhập Google + allauth **đã gỡ**.
+4. Nếu FE muốn badge/severity đổi màu theo `severity` backend trả —
+   dùng đúng3 giá trị `Nghiêm trọng | Trung bình | Nhẹ` (+`Khỏe` cho bản ghi healthy).
+
+---
+
+## 7. Thay đổi BE trong lần cập nhật này (tóm tắt)
+
+- **Bỏ toàn bộ pipeline AI server** (`Dermal/fastapi.py` đã xóa; không còn `fast_api()`,
+  `AIServerError`, `AI_SERVER_URL`, phản hồi502).
+- Module mới **`Dermal/leaf_ai.py`**: đọc link ảnh từ DB → base64 → Gemini Vision →
+  JSON chuẩn hóa + HTML sanitize; throttle dùng chung; `FALLBACK_REPORT_HTML`.
+- `api_diagnose` (Django) & `/api/diagnose/` (FastAPI serverless Vercel) dùng **cùng**
+  `diagnose_leaf_image()` — không còn2 phiên bản lệch nhau; bịa kết quả theo tên file đã bỏ.
+- Thêm **rate-limit10/phút** cho `/api/diagnose/` (429).
+- `predict` gọi Gemini **kèm ảnh** (trước chỉ gửi text) — báo cáo sát thực tế hơn.
+- FE: container báo cáo `.ai-report` (SPA + `result.html`), nhánh
+  `analysis_unavailable` trung thực, fix ảnh mẫu gửi data URL, bump SW cache.
+- Fix dev: `dermai/urls.py` serve `/media/` khi DEBUG (trước đó ảnh upload404 local).
+- `test_full_suite.py` cập nhật theo contract mới; **49 unit test** trong `Dermal/tests.py`.

@@ -43,11 +43,16 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "*").split(",") i
 CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
     "https://*.hf.space",
+    "https://*.onrender.com",  # Render Web Service (bao gồm custom domain alias)
     "http://127.0.0.1:8000",
     "http://127.0.0.1:8001",
     "http://localhost:8000",
     "http://localhost:3000",
 ]
+# Cho phép bổ sung domain riêng (comma-separated), ví dụ: CSRF_TRUSTED_ORIGINS=https://leafai.example.com
+_extra_csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "").strip()
+if _extra_csrf:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _extra_csrf.split(",") if o.strip()] + CSRF_TRUSTED_ORIGINS
 
 # Bảo mật production
 if not DEBUG:
@@ -72,60 +77,18 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.sites',  # Required for allauth
     'Dermal',
-    'tinymce',
     'cloudinary',
     'cloudinary_storage',
     'django.contrib.staticfiles',
-    
-    # django-allauth
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
 ]
 
-# Required for django-allauth
-# DB mới create bằng migrate sẽ có Site id=1 (example.com) — đổi về 1 để
-# allauth không lỗi DoesNotExist. Đặt env SITE_ID nếu DB production dùng id khác.
-SITE_ID = int(os.getenv("SITE_ID", "1"))
-
-# Authentication backends
+# Authentication backend (chỉ dùng Django auth — đăng nhập/đăng ký custom trong Dermal/views)
 AUTHENTICATION_BACKENDS = [
-    # Django default
     'django.contrib.auth.backends.ModelBackend',
-    # Allauth specific authentication methods
-    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Allauth settings (bản mới: ACCOUNT_LOGIN_METHODS / ACCOUNT_SIGNUP_FIELDS)
-ACCOUNT_LOGIN_METHODS = {'username', 'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_ADAPTER = 'Dermal.adapters.MySocialAccountAdapter'
 LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/login/'
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
-            'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
-            'key': ''
-        },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    }
-}
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -164,11 +127,9 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',  # i18n language support
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -186,7 +147,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.request',  # Required by allauth
             ],
         },
     },
@@ -256,18 +216,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'vi'
-
-# Supported languages
-LANGUAGES = [
-    ('vi', 'Tiếng Việt'),
-    ('en', 'English'),
-]
-
-# Locale paths for translation files
-LOCALE_PATHS = [
-    BASE_DIR / 'locale',
-]
-# Trigger reload for content translation - final home fix v2
 
 TIME_ZONE = 'Asia/Ho_Chi_Minh'
 

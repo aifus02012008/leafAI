@@ -19,7 +19,14 @@ from django.views.decorators.http import require_http_methods
 from django.core.files.base import ContentFile
 from django.db.models import Count, Avg
 
-from .fastapi import fast_api, AIServerError, MODEL_V3, MODEL_V4, VALID_MODELS
+from .leaf_ai import (
+    MODEL_V3,
+    MODEL_V4,
+    VALID_MODELS,
+    apply_analysis,
+    run_diagnosis_for_record,
+    throttled,
+)
 from .leaf_knowledge import TOMATO_DISEASES, CARE_HANDBOOK, MODEL_METRICS, FAO_IPM_HANDBOOK
 from .models import Leaf_image, Profile, TomatoDisease, IPMHandbookItem
 from .supabase_client import (
@@ -172,64 +179,20 @@ def api_stats(request):
 
 
 # ==============================================================================
-# 2. CHẨN ĐOÁN YOLOV8 & ĐỒNG BỘ SUPABASE (DIAGNOSIS PIPELINE)
+# 2. CHẨN ĐOÁN GEMINI VISION & ĐỒNG BỘ SUPABASE (DIAGNOSIS PIPELINE)
 # ==============================================================================
 
-def _generate_bounding_boxes(results, img_width=640, img_height=640):
+def _extract_image_payload(request):
     """
-    Sinh tọa độ Bounding Box cho từng bệnh được phát hiện trên ảnh lá.
-    Mỗi box có class, name_vi, confidence, bbox: [x, y, w, h], color.
+    Đọc ảnh từ Multipart, form base64 hoặc JSON body.
+    Trả về (img_bytes, file_name, body_model):
+      - img_bytes = None nếu request không có ảnh
+      - body_model = model_version đọc từ JSON body (None nếu không có)
     """
-    boxes = []
-    slot_positions = [
-        (int(img_width * 0.15), int(img_height * 0.18), int(img_width * 0.32), int(img_height * 0.28)),
-        (int(img_width * 0.52), int(img_height * 0.22), int(img_width * 0.35), int(img_height * 0.30)),
-        (int(img_width * 0.32), int(img_height * 0.55), int(img_width * 0.38), int(img_height * 0.32)),
-        (int(img_width * 0.12), int(img_height * 0.48), int(img_width * 0.28), int(img_height * 0.26)),
-    ]
-
-    for i, item in enumerate(results):
-        cls_name = item.get("class", "Early_blight")
-        prob_pct = float(item.get("probability", 65.0))
-        conf = round(prob_pct / 100.0, 2)
-
-        disease_info = TOMATO_DISEASES.get(cls_name, {})
-        name_vi = disease_info.get("name_vi", cls_name.replace("_", " ").title())
-        color = disease_info.get("color", "#ea580c")
-
-        slot = slot_positions[i % len(slot_positions)]
-        boxes.append({
-            "class": cls_name,
-            "name_vi": name_vi,
-            "confidence": conf,
-            "probability_percent": prob_pct,
-            "color": color,
-            "bbox": [slot[0], slot[1], slot[2], slot[3]]
-        })
-    return boxes
-
-
-@csrf_exempt
-@require_http_methods(["POST", "OPTIONS"])
-def api_diagnose(request):
-    """
-    Endpoint chẩn đoán ảnh lá cây cà chua.
-    - Nhận diện đa bệnh cùng lúc bằng YOLOv8 (Model V3 / Model V4)
-    - Nhận diện đồng nhiễm (Co-infection)
-    - Lưu trữ bản ghi vào cơ sở dữ liệu SQLite
-    - Tự động đồng bộ lên Supabase Cloud Database nếu cấu hình
-    """
-    if request.method == "OPTIONS":
-        return _cors_json_response({"status": "ok"})
-
-    model_version = request.POST.get("model_version") or MODEL_V3
-    if model_version not in VALID_MODELS:
-        model_version = MODEL_V3
-
     img_bytes = None
     file_name = "leaf_scan.jpg"
+    body_model = None
 
-    # 1. Đọc ảnh từ Multipart hoặc Base64
     if request.FILES.get("image"):
         f = request.FILES["image"]
         img_bytes = f.read()
@@ -241,7 +204,7 @@ def api_diagnose(request):
         try:
             img_bytes = base64.b64decode(b64_clean)
         except Exception:
-            return _cors_json_response({"error": "Dữ liệu ảnh base64 không hợp lệ"}, status=400)
+            img_bytes = None
     else:
         try:
             body = json.loads(request.body.decode("utf-8")) if request.body else {}
@@ -251,174 +214,133 @@ def api_diagnose(request):
                 b64_clean = match.group(1) if match else raw_b64
                 img_bytes = base64.b64decode(b64_clean)
             if body.get("model_version"):
-                model_version = body.get("model_version")
+                body_model = body.get("model_version")
         except Exception:
             pass
+    return img_bytes, file_name, body_model
 
-    # Nếu không có ảnh, dùng ảnh mẫu 1x1 trong suốt
-    if not img_bytes:
-        img_bytes = base64.b64decode(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-        )
 
-    # 2. Gọi Engine suy luận YOLOv8 (fast_api adapter)
-    ai_results = []
-    heatmap_b64 = None
+def diagnose_leaf_image(img_bytes, file_name="leaf_scan.jpg", model_version=MODEL_V3,
+                        user_profile=None):
+    """
+    Pipeline chẩn đoán dùng CHUNG cho Django view và FastAPI serverless (Vercel):
+    1. Lưu ảnh vào DB (Leaf_image)
+    2. Lấy link ảnh từ DB -> đọc base64 -> gửi Gemini API (leaf_ai)
+    3. Chuẩn hoá kết quả + sanitize báo cáo HTML -> lưu vào bản ghi
+    4. Đồng bộ Supabase (nếu cấu hình)
+    Trả về response dict cho FE — không ném exception ra caller.
+    """
+    if model_version not in VALID_MODELS:
+        model_version = MODEL_V3
+
+    record = None
     try:
-        raw_res = fast_api(img_bytes, model_version=model_version)
-        ai_results = raw_res.get("results", [])
-        heatmap_b64 = raw_res.get("heatmap_base64")
-    except AIServerError as e:
-        logger.warning(f"AI server offline, generating realistic fallback: {e}")
-        ai_results = []
-
-    # Kiểm tra tính hợp lệ: Chỉ chấp nhận các lớp bệnh cà chua trong TOMATO_DISEASES
-    valid_classes = set(TOMATO_DISEASES.keys())
-    has_valid_tomato_class = any(item.get("class") in valid_classes for item in ai_results)
-    if not has_valid_tomato_class:
-        # Nếu AI server trả về lớp bệnh lạ/da liễu cũ hoặc offline, suy luận mô phỏng nông nghiệp chuẩn xác
-        fn_lower = file_name.lower()
-        if "late" in fn_lower or "suong_mai" in fn_lower:
-            target_cls = "Late_blight"
-            prob = 78.5
-        elif "bacterial" in fn_lower or "vi_khuan" in fn_lower:
-            target_cls = "Bacterial_spot"
-            prob = 72.0
-        elif "septoria" in fn_lower:
-            target_cls = "Septoria_leaf_spot"
-            prob = 66.0
-        elif "mold" in fn_lower or "moc_la" in fn_lower:
-            target_cls = "Leaf_mold"
-            prob = 64.0
-        elif "powdery" in fn_lower or "phan_trang" in fn_lower:
-            target_cls = "Powdery_mildew"
-            prob = 62.0
-        else:
-            target_cls = "Early_blight"
-            prob = 68.0
-
-        if model_version == MODEL_V4:
-            sec_cls = "Septoria_leaf_spot" if target_cls != "Septoria_leaf_spot" else "Bacterial_spot"
-            tri_cls = "Bacterial_spot" if target_cls != "Bacterial_spot" and sec_cls != "Bacterial_spot" else "Early_blight"
-            ai_results = [
-                {"class": target_cls, "probability": prob},
-                {"class": sec_cls, "probability": 34.0},
-                {"class": tri_cls, "probability": 28.0}
-            ]
-        else:
-            sec_cls = "Bacterial_spot" if target_cls != "Bacterial_spot" else "Septoria_leaf_spot"
-            ai_results = [
-                {"class": target_cls, "probability": prob},
-                {"class": sec_cls, "probability": 42.0}
-            ]
-
-    # 3. Tính toán đồng nhiễm & phân loại bệnh chính/phụ
-    is_coinfection = len(ai_results) > 1
-
-    primary_item = ai_results[0]
-    primary_cls = primary_item.get("class", "Early_blight")
-    primary_prob = float(primary_item.get("probability", 65.0))
-    primary_info = TOMATO_DISEASES.get(primary_cls, {})
-
-    primary_severity = "Nghiêm trọng" if primary_prob >= 60 else ("Trung bình" if primary_prob >= 35 else "Nhẹ")
-
-    primary_disease = {
-        "class": primary_cls,
-        "name_en": primary_info.get("name_en", primary_cls),
-        "name_vi": primary_info.get("name_vi", primary_cls),
-        "probability": primary_prob,
-        "severity": primary_severity,
-        "color": primary_info.get("color", "#ea580c"),
-        "treatment": primary_info.get("treatment", {}),
-        "prevention": primary_info.get("prevention", "")
-    }
-
-    secondary_diseases = []
-    for item in ai_results[1:]:
-        s_cls = item.get("class")
-        s_prob = float(item.get("probability", 30.0))
-        s_info = TOMATO_DISEASES.get(s_cls, {})
-        s_sev = "Nghiêm trọng" if s_prob >= 60 else ("Trung bình" if s_prob >= 35 else "Nhẹ")
-        secondary_diseases.append({
-            "class": s_cls,
-            "name_en": s_info.get("name_en", s_cls),
-            "name_vi": s_info.get("name_vi", s_cls),
-            "probability": s_prob,
-            "severity": s_sev,
-            "color": s_info.get("color", "#ef4444")
-        })
-
-    detections = _generate_bounding_boxes(ai_results)
-    treatment_summary = json.dumps(primary_disease.get("treatment", {}), ensure_ascii=False)
-
-    # 4. Lưu bản ghi vào SQLite
-    record_id = None
-    supabase_id = None
-    try:
-        user_profile = None
-        if request.user.is_authenticated:
-            user_profile = Profile.objects.filter(user=request.user).first()
-        if not user_profile and Profile.objects.exists():
-            user_profile = Profile.objects.first()
-
-        image_file = ContentFile(img_bytes, name=file_name)
         record = Leaf_image.objects.create(
-            image=image_file,
-            result=detections,
+            image=ContentFile(img_bytes, name=file_name or "leaf_scan.jpg"),
             user=user_profile,
             model_version=model_version,
             plant_type="tomato",
-            primary_disease=primary_cls,
-            primary_disease_vi=primary_disease["name_vi"],
-            confidence=primary_prob,
-            severity=primary_severity,
-            is_coinfection=is_coinfection,
-            secondary_diseases=secondary_diseases,
-            detections=detections,
-            treatment_summary=treatment_summary,
-            more=f"Model {model_version.upper()} - {'Đồng nhiễm' if is_coinfection else 'Đơn bệnh'}"
+            more=f"Model {model_version.upper()} - LEAF_AI Gemini",
         )
-        record_id = record.id
+    except Exception as e:
+        logger.warning(f"Không lưu được bản ghi chẩn đoán: {e}")
 
-        # 5. Đồng bộ lên Supabase Cloud (nếu được cấu hình)
+    # Lấy link ảnh từ DB -> base64 -> Gemini (fallback bytes upload nếu không đọc được link)
+    analysis = run_diagnosis_for_record(
+        record, fallback_bytes=img_bytes, model_version=model_version)
+    if record is not None:
+        apply_analysis(record, analysis)
+
+    unavailable = bool(analysis.get("analysis_unavailable"))
+    supabase_id = None
+    if record is not None and not unavailable:
+        primary = analysis.get("primary_disease") or {}
         sync_payload = {
             "id": record.id,
             "model_version": model_version,
             "plant_type": "tomato",
-            "primary_disease": primary_cls,
-            "primary_disease_vi": primary_disease["name_vi"],
-            "confidence": primary_prob,
-            "severity": primary_severity,
-            "is_coinfection": is_coinfection,
-            "secondary_diseases": secondary_diseases,
-            "detections": detections,
-            "treatment_summary": treatment_summary
+            "primary_disease": primary.get("class", ""),
+            "primary_disease_vi": primary.get("name_vi", ""),
+            "confidence": primary.get("probability", 0.0),
+            "severity": primary.get("severity", ""),
+            "is_coinfection": bool(analysis.get("is_coinfection")),
+            "secondary_diseases": analysis.get("secondary_diseases") or [],
+            "detections": analysis.get("detections") or [],
+            "treatment_summary": analysis.get("treatment_summary") or "",
         }
-        supabase_id = save_diagnosis_to_supabase(sync_payload)
-        if supabase_id:
-            record.synced_to_supabase = True
-            record.supabase_id = supabase_id
-            record.save(update_fields=['synced_to_supabase', 'supabase_id'])
+        try:
+            supabase_id = save_diagnosis_to_supabase(sync_payload)
+            if supabase_id:
+                record.synced_to_supabase = True
+                record.supabase_id = supabase_id
+                record.save(update_fields=['synced_to_supabase', 'supabase_id'])
+        except Exception as e:
+            logger.warning(f"Đồng bộ Supabase thất bại: {e}")
 
-    except Exception as e:
-        logger.warning(f"Failed to persist diagnosis record: {e}")
-
-    return _cors_json_response({
+    is_coinfection = bool(analysis.get("is_coinfection"))
+    return {
         "success": True,
-        "id": record_id or 1,
+        "id": record.id if record is not None else None,
         "model_version": model_version,
         "model_badge": MODEL_METRICS.get(model_version, {}).get("name", "Model V3"),
         "is_coinfection": is_coinfection,
         "warning_banner": "Phát hiện đa bệnh (đồng nhiễm)" if is_coinfection else None,
-        "primary_disease": primary_disease,
-        "secondary_diseases": secondary_diseases,
-        "detections": detections,
-        "heatmap_available": bool(heatmap_b64),
-        "heatmap_base64": f"data:image/jpeg;base64,{heatmap_b64}" if heatmap_b64 else None,
-        "heatmap_url": f"data:image/jpeg;base64,{heatmap_b64}" if heatmap_b64 else None,
+        "primary_disease": analysis.get("primary_disease"),
+        "secondary_diseases": analysis.get("secondary_diseases") or [],
+        "detections": analysis.get("detections") or [],
+        "lesion_count": analysis.get("lesion_count") or 0,
+        "healthy": bool(analysis.get("healthy")),
+        "report_html": analysis.get("report_html"),
+        "note": analysis.get("note") or "",
+        "analysis_unavailable": unavailable,
+        "heatmap_available": False,
+        "heatmap_base64": None,
+        "heatmap_url": None,
         "synced_to_supabase": bool(supabase_id),
-        "supabase_id": supabase_id
-    })
+        "supabase_id": supabase_id,
+    }
+
+
+@csrf_exempt
+@require_http_methods(["POST", "OPTIONS"])
+def api_diagnose(request):
+    """
+    Endpoint chẩn đoán ảnh lá cây cà chua (LEAF_AI — Gemini Vision):
+    - Lưu ảnh vào DB -> lấy link ảnh từ DB -> đọc base64 -> gửi Gemini API
+    - Trả JSON: bệnh chính/phụ, bounding box, báo cáo HTML (report_html)
+    - Rate-limit 10 request/phút để kiểm soát chi phí gọi AI (429)
+    """
+    if request.method == "OPTIONS":
+        return _cors_json_response({"status": "ok"})
+
+    img_bytes, file_name, body_model = _extract_image_payload(request)
+    if not img_bytes:
+        return _cors_json_response({"error": "Thiếu dữ liệu ảnh"}, status=400, request=request)
+    if len(img_bytes) > 10 * 1024 * 1024:
+        return _cors_json_response({"error": "Ảnh vượt quá giới hạn 10MB"}, status=400, request=request)
+
+    model_version = request.POST.get("model_version") or body_model or MODEL_V3
+    if model_version not in VALID_MODELS:
+        model_version = MODEL_V3
+
+    # chống lạm dụng gọi Gemini (chi phí API)
+    who = (f"u{request.user.id}" if request.user.is_authenticated
+           else f"ip{request.META.get('REMOTE_ADDR', '?')}")
+    if throttled(f"diagnose:{who}", limit=10, seconds=60):
+        return _cors_json_response(
+            {"error": "Bạn quét quá nhanh. Vui lòng chờ khoảng 1 phút rồi thử lại."},
+            status=429, request=request)
+
+    user_profile = None
+    if request.user.is_authenticated:
+        user_profile = Profile.objects.filter(user=request.user).first()
+    if not user_profile:
+        user_profile = Profile.objects.first()
+
+    data = diagnose_leaf_image(
+        img_bytes, file_name=file_name, model_version=model_version,
+        user_profile=user_profile)
+    return _cors_json_response(data, request=request)
 
 
 # ==============================================================================
@@ -444,8 +366,8 @@ def api_history(request):
             "id": r.id,
             "timestamp": r.uploaded_at.strftime("%d/%m/%Y, %H:%M:%S") if r.uploaded_at else "",
             "model_version": r.model_version or "v3",
-            "primary_disease": r.primary_disease or "Early_blight",
-            "primary_disease_vi": r.primary_disease_vi or "Úa sớm",
+            "primary_disease": r.primary_disease or "Healthy",
+            "primary_disease_vi": r.primary_disease_vi or ("Lá khỏe mạnh" if not r.primary_disease else "Không rõ"),
             "confidence": round(r.confidence, 1),
             "severity": r.severity or "Nghiêm trọng",
             "is_coinfection": r.is_coinfection,

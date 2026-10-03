@@ -71,11 +71,33 @@ class LeafApiService {
     return json?.data || null;
   }
 
+  /**
+   * Chuẩn hoá nguồn ảnh trước khi gửi: ảnh mẫu (đường dẫn) -> data URL
+   * để backend nhận đủ bytes; data URL / File / Blob giữ nguyên.
+   */
+  async _toDataUrl(image) {
+    if (typeof image !== 'string' || image.startsWith('data:')) return image;
+    try {
+      const res = await fetch(image);
+      if (!res.ok) return image;
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return image; // để backend tự xử lý (400) và FE chuyển sang mô phỏng
+    }
+  }
+
   async diagnose(image, modelVersion = 'v3', confidence = 0.25) {
+    const payload = await this._toDataUrl(image);
     if (await this.isOnline()) {
       try {
         const formData = new FormData();
-        formData.append('image', image);
+        formData.append('image', payload);
         formData.append('model_version', modelVersion);
         formData.append('confidence', confidence);
         const res = await this._fetch('/api/diagnose/', { method: 'POST', body: formData }, 60000);

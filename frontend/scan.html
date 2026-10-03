@@ -127,6 +127,15 @@
         </section>
       </div>
 
+      <!-- Báo cáo AI chi tiết (HTML sanitize từ backend — Gemini) -->
+      <section id="aiReportSection" hidden style="margin-top:28px" aria-labelledby="aiReportTitle">
+        <div class="panel-title">
+          <h2 id="aiReportTitle" style="font-size:var(--fs-md)">Báo cáo chẩn đoán chi tiết</h2>
+          <span class="tag"><i class="bi bi-stars"></i> AI phân tích ảnh</span>
+        </div>
+        <div class="panel panel-pad ai-report" id="aiReport" aria-live="polite"></div>
+      </section>
+
       <section style="margin-top:28px" aria-labelledby="modelTitle">
         <div class="panel-title">
           <h2 id="modelTitle" style="font-size:var(--fs-md)">Thông số mô hình đang dùng</h2>

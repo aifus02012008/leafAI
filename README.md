@@ -53,11 +53,23 @@ vercel
    ```
 2. Mở [Vercel Dashboard](https://vercel.com/new) -> Chọn repository `leafAI`.
 3. Trong phần **Environment Variables**, thêm các biến môi trường:
-   - `SECRET_KEY`: Khóa bảo mật Django (tùy chọn)
-   - `GEMINI_API_KEY`: API Key trợ lý ảo Google Gemini
-   - `AI_SERVER_URL`: URL endpoint Hugging Face Space (`https://your-user-leaf-ai.hf.space`)
-   - `DATABASE_URL`: URL PostgreSQL nếu muốn dùng Supabase/Neon (mặc định dùng SQLite trong `/tmp`)
+   - `SECRET_KEY`: Khóa bảo mật Django (tùy chọn — nên set)
+   - `GEMINI_API_KEY`: API Key Google Gemini (bắt buộc để chẩn đoán thật)
+   - `DATABASE_URL`: URL PostgreSQL (khuyến nghị Neon — xem [docs/NEON.md](docs/NEON.md))
+   - `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET`: lưu trữ ảnh (xem [docs/CLOUDINARY.md](docs/CLOUDINARY.md))
 4. Bấm **Deploy**. Vercel sẽ tự động build frontend static và backend serverless function!
+
+---
+
+## 📚 Tài liệu hướng dẫn dịch vụ đám mây
+
+| Việc cần làm | Hướng dẫn |
+|---|---|
+| 🗄️ Lấy PostgreSQL free (Neon) | [docs/NEON.md](docs/NEON.md) |
+| ☁️ Lấy Cloudinary API (lưu ảnh) | [docs/CLOUDINARY.md](docs/CLOUDINARY.md) |
+| 🚀 Deploy backend lên Render | [docs/RENDER.md](docs/RENDER.md) |
+| 🧩 Contract API giữa FE và BE | [docs/FE-HANDOFF.md](docs/FE-HANDOFF.md) |
+| ⚙️ Biến môi trường (mẫu) | [backend/.env.example](backend/.env.example) |
 
 ---
 

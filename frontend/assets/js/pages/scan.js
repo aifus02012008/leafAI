@@ -88,9 +88,11 @@
 
       renderResult(result);
       setStep(4);
-      setStatus('done', result.healthy
-        ? 'Không phát hiện vết bệnh'
-        : `Đã khoanh vùng ${result.lesion_count ?? (result.detections || []).length} vết bệnh`);
+      setStatus('done', result.analysis_unavailable
+        ? 'Chưa phân tích được — hãy thử lại sau'
+        : result.healthy
+          ? 'Không phát hiện vết bệnh'
+          : `Đã khoanh vùng ${result.lesion_count ?? (result.detections || []).length} vết bệnh`);
 
       if (save) await saveRecord(result, src);
     } catch (err) {
@@ -119,6 +121,33 @@
     if (result.note) notes.push(result.note);
     $('noteAlert').hidden = notes.length === 0;
     $('noteText').textContent = notes.join(' ');
+
+    // Báo cáo HTML chi tiết từ AI (backend đã sanitize) — hiển thị nguyên khối
+    const reportSection = $('aiReportSection');
+    const reportBox = $('aiReport');
+    if (result.report_html) {
+      reportBox.innerHTML = result.report_html;
+      reportSection.hidden = false;
+    } else {
+      reportBox.innerHTML = '';
+      reportSection.hidden = true;
+    }
+
+    if (result.analysis_unavailable) {
+      // AI không phân tích được — không được láo "Lá khỏe mạnh"
+      $('primaryName').textContent = 'Chưa phân tích được ảnh';
+      $('primaryLatin').textContent = 'Dịch vụ AI đang gián đoạn hoặc chưa được cấu hình.';
+      $('primarySeverity').innerHTML = '';
+      $('primaryScore').textContent = '—';
+      $('primaryScore').style.color = 'var(--ink-3)';
+      $('primaryMeter').style.width = '0%';
+      $('primaryNote').textContent = result.note || 'Vui lòng thử lại sau ít phút.';
+      $('secondaryWrap').hidden = true;
+      $('btnProtocol').href = 'library.html';
+      $('btnProtocol').innerHTML = '<i class="bi bi-journal-medical"></i>Xem thư viện bệnh';
+      $('btnAsk').href = 'assistant.html';
+      return;
+    }
 
     if (healthy) {
       $('primaryName').textContent = 'Lá khỏe mạnh';
@@ -169,15 +198,16 @@
 
   async function saveRecord(result, src) {
     const p = result.primary_disease;
+    const failed = Boolean(result.analysis_unavailable);
     const thumb = await makeThumb(src);
     history.add({
       id: result.id || Date.now(),
       timestamp: new Date().toISOString(),
       model: result.model_version || state.model,
-      class: p ? p.class : 'Healthy',
-      primary_disease: p ? (p.name_vi || p.class) : 'Lá khỏe mạnh',
+      class: failed ? 'Unavailable' : (p ? p.class : 'Healthy'),
+      primary_disease: failed ? 'Chưa phân tích được' : (p ? (p.name_vi || p.class) : 'Lá khỏe mạnh'),
       probability: p ? Math.round(p.probability) : 0,
-      severity: p ? p.severity : 'Khỏe',
+      severity: failed ? '' : (p ? p.severity : 'Khỏe'),
       is_coinfection: Boolean(result.is_coinfection),
       secondary: (result.secondary_diseases || []).map((s) => s.name_vi || s.class),
       lesions: result.lesion_count ?? (result.detections || []).length,

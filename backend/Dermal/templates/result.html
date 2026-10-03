@@ -1,25 +1,19 @@
 <!doctype html>
-{% load i18n %}
-{% get_current_language as LANGUAGE_CODE %}
-<html lang="{{ LANGUAGE_CODE }}">
+<html lang="vi">
 
 <head>
-  <meta property="og:title" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+  <meta property="og:title" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
   <meta property="og:description"
-    content="Ứng dụng AI hỗ trợ chẩn đoán các bệnh về da liễu nhanh chóng và chính xác. Sử dụng trí tuệ nhân tạo và thị giác máy tính để phân tích hình ảnh da và cung cấp các chẩn đoán kịp thời.">
+      content="Chụp một chiếc lá cà chua, LEAF_AI phân tích vết bệnh, cho biết mức độ nguy hiểm và gợi ý phác đồ xử lý theo hướng IPM.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://litclub.pythonanywhere.com/">
-  <meta property="og:image"
-    content="https://scontent.fhan15-2.fna.fbcdn.net/v/t39.30808-6/517737809_122100053498943826_3327007350081078447_n.png?_nc_cat=107&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=edONUK9z7kkQ7kNvwGrcQv7&_nc_oc=AdkRdS-VL0_JPfxBJv-XMhR_XPRw6BcxfGIvM441XgvNj4YQEuV7E0WNzscIUV9WT8I&_nc_zt=23&_nc_ht=scontent.fhan15-2.fna&_nc_gid=oQXmcf39N5CEF7QDQIN0hw&oh=00_AfTGO5IfzsEbxFCqddWx-S-7SJlJnywSnTXyjgdq0DteCQ&oe=68801A5D">
-  <meta property="og:site_name" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+  <meta property="og:image" content="/assets/images/icon-512.png">
+  <meta property="og:site_name" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
 
-  <link rel="shortcut icon"
-    href="https://github.com/Codedr-edu/DermAI/blob/main/media/Thi%E1%BA%BFt%20k%E1%BA%BF%20ch%C6%B0a%20c%C3%B3%20t%C3%AAn.png?raw=true"
-    type="image/x-icon">
+  <link rel="shortcut icon" href="/assets/images/icon-192.png" type="image/png">
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% trans 'Kết quả phân tích' %} - DermAI</title>
+  <title>Kết quả phân tích - LEAF_AI</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -59,6 +53,58 @@
       height: auto;
       border-radius: 8px;
     }
+
+    /* Báo cáo AI (HTML sanitize từ backend — contract class: badge/pct/report-table/callout) */
+    .ai-report {
+      text-align: left;
+      font-size: .95rem;
+      color: #334155;
+      line-height: 1.65;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+
+    .ai-report h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 20px 0 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .ai-report h3:first-child { margin-top: 0; }
+
+    .ai-report h4 { font-size: .95rem; font-weight: 700; color: #0f172a; margin: 14px 0 6px; }
+    .ai-report p { margin: 8px 0; }
+    .ai-report ul, .ai-report ol { margin: 8px 0; padding-left: 20px; }
+    .ai-report li { margin: 4px 0; }
+    .ai-report strong, .ai-report b { color: #0f172a; }
+    .ai-report hr { border: 0; border-top: 1px solid #e2e8f0; margin: 16px 0; }
+    .ai-report a { color: #1e7a4c; }
+    .ai-report .pct { font-weight: 700; font-variant-numeric: tabular-nums; color: #1e7a4c; }
+    .ai-report .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: .78em;
+      font-weight: 700;
+      line-height: 1.5;
+      vertical-align: middle;
+    }
+    .ai-report .badge-high { background: #fde8e0; color: #a8321b; }
+    .ai-report .badge-mid { background: #fdf3d7; color: #85600f; }
+    .ai-report .badge-low { background: #ddefd8; color: #135c37; }
+    .ai-report .report-table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: .93em; }
+    .ai-report .report-table th,
+    .ai-report .report-table td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; vertical-align: top; }
+    .ai-report .report-table thead th { background: #eef2f6; color: #0f172a; font-weight: 700; }
+    .ai-report .report-table tbody tr:nth-child(odd) { background: rgba(15, 23, 42, .02); }
+    .ai-report .callout { display: block; padding: 10px 14px; border-radius: 8px; margin: 12px 0; border: 1px solid transparent; }
+    .ai-report .callout-warn { background: #fdf3d7; border-color: #f3dfb3; color: #6f4f0b; }
+    .ai-report .callout-info { background: #eef7eb; border-color: #d5ead6; color: #135c37; }
   </style>
 </head>
 
@@ -66,72 +112,53 @@
   <div class="result-container w-100">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <div class="d-flex align-items-center">
-        <div class="brand fs-4 fw-bold me-3">DermAI</div>
-        <div class="hint text-muted">{% trans 'Kết quả phân tích da' %}</div>
+        <div class="brand fs-4 fw-bold me-3">LEAF_AI</div>
+        <div class="hint text-muted">Kết quả phân tích lá</div>
       </div>
 
       <!-- Language Switcher -->
-      <div class="dropdown">
-        <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="languageDropdown"
-          data-bs-toggle="dropdown" aria-expanded="false">
-          {% get_current_language as LANGUAGE_CODE %}
-          {% if LANGUAGE_CODE == 'vi' %}🇻🇳{% else %}🇬🇧{% endif %}
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-          <li><a class="dropdown-item" href="#" onclick="switchLanguage('vi'); return false;">🇻🇳 Tiếng Việt</a></li>
-          <li><a class="dropdown-item" href="#" onclick="switchLanguage('en'); return false;">🇬🇧 English</a></li>
-        </ul>
-      </div>
     </div>
 
     <div class="result-card text-center">
-      <h5 class="mb-3">{% trans 'Ảnh đã tải lên' %}</h5>
-      <img src="{{ skin_image.image.url }}" alt="Uploaded Skin Image" class="img-fluid mb-3 rounded"
+      <h5 class="mb-3">Ảnh đã tải lên</h5>
+      <img src="{{ skin_image.image.url }}" alt="Uploaded Leaf Image" class="img-fluid mb-3 rounded"
         style="max-width: 300px; height: 300px;">
       {% if skin_image.explain %}
-      <h5 class="mb-3">{% trans 'Kết quả chẩn đoán sơ bộ' %}</h5>
+      <h5 class="mb-3">Kết quả chẩn đoán sơ bộ</h5>
       <table class="table table-striped table-hover">
         <thead class="table-dark">
           <tr>
-            <th>{% trans 'Tên bệnh' %}</th>
-            <th>{% trans 'Phần trăm dự đoán' %}</th>
+            <th>Tên bệnh</th>
+            <th>Phần trăm dự đoán</th>
           </tr>
         </thead>
         <tbody>
         <tbody>
-          {% get_current_language as LANGUAGE_CODE %}
-          {% if LANGUAGE_CODE == 'en' and skin_image.result_en %}
-          {% for pred in skin_image.result_en %}
+
+          {% for pred in skin_image.result %}
           <tr>
             <td><strong>{{ pred.class }}</strong></td>
             <td>{{ pred.probability|floatformat:2 }}%</td>
           </tr>
           {% endfor %}
-          {% else %}
-          {% for pred in skin_image.result %}
-          <tr>
-            <td><strong>{% trans pred.class %}</strong></td>
-            <td>{{ pred.probability|floatformat:2 }}%</td>
-          </tr>
-          {% endfor %}
-          {% endif %}
+          
         </tbody>
         </tbody>
       </table>
 
-      <p class="text-danger mb-3">{% blocktrans trimmed %}*DermAI có thể có những nhầm lẫn trong việc chẩn đoán. Vui
-        lòng tham khảo ý kiến bác sĩ để có chẩn đoán chính xác.{% endblocktrans %}</p>
-      <p class="text-danger mb-3">{% blocktrans trimmed %}*Nếu bạn có chuyên môn y khoa. Hãy kiểm tra thật kĩ tình trạng
-        bệnh nhân bằng các biện pháp y khoa chuẩn. DermAI chỉ có khả năng hỗ trợ tốt nhất trong quá trình tiền chẩn
-        đoán{% endblocktrans %}</p>
+      <p class="text-danger mb-3">*LEAF_AI có thể có những nhầm lẫn trong việc chẩn đoán. Vui
+        lòng tham khảo ý kiến chuyên gia bảo vệ thực vật để có chẩn đoán chính xác.</p>
+      <p class="text-danger mb-3">*Nếu bạn có chuyên môn nông nghiệp. Hãy kiểm tra thật kĩ tình trạng
+        cây trồng bằng các biện pháp bảo vệ thực vật chuẩn. LEAF_AI chỉ có khả năng hỗ trợ tốt nhất trong quá trình tiền chẩn
+        đoán</p>
       <br>
       {% if skin_image.heatmap %}
       <div class="w-100 rounded" style="height:3px;background-color: gray;"></div>
       <br>
 
-      <h5 class="mb-3">{% trans 'Heatmap giải thích' %}</h5>
-      <p class="text-muted small">{% blocktrans trimmed %}Heatmap hiển thị các vùng ảnh mà AI tập trung để đưa ra dự
-        đoán. Dữ liệu này có thể tham khảo bởi những người có chuyên môn y khoa{% endblocktrans %}</p>
+      <h5 class="mb-3">Heatmap giải thích</h5>
+      <p class="text-muted small">Heatmap hiển thị các vùng ảnh mà AI tập trung để đưa ra dự
+        đoán. Dữ liệu này có thể tham khảo bởi những người có chuyên môn nông nghiệp</p>
 
       <img src="{{ skin_image.heatmap.url }}" alt="Grad-CAM Heatmap" class="heatmap-img">
       <br>
@@ -155,7 +182,7 @@
                 <div class="mb-3">
                   <div class="row">
                     <div class="col-lg">
-                      <label>Giới tính bệnh nhân</label>
+                      <label>Giới tính</label>
                       <select class="form-select w-100" name="gender" aria-label="Default select example" required>
                         <option selected>---</option>
                         <option value="Nam">Nam</option>
@@ -163,7 +190,7 @@
                       </select>
                     </div>
                     <div class="col-lg">
-                      <label>Độ tuổi bệnh nhân</label>
+                      <label>Độ tuổi</label>
                       <input class="form-control w-100" name="age" type="number" required />
                     </div>
                   </div>
@@ -180,14 +207,14 @@
                 <div class="mb-3">
                   <div class="row">
                     <div class="col-lg">
-                      <label>Tiền sử bệnh</label>
+                      <label>Bệnh đã từng mắc</label>
                       <textarea class="form-control w-100" name="illness_history" rows="3"
-                        placeholder="Mô tả các bệnh đã từng mắc..." required></textarea>
+                        placeholder="Mô tả bệnh cây đã từng mắc..." required></textarea>
                     </div>
                     <div class="col-lg">
-                      <label>Tiền sử thuốc</label>
+                      <label>Thuốc BVTV đã dùng</label>
                       <textarea class="form-control w-100" name="drug_history" rows="3"
-                        placeholder="Mô tả các loại thuốc từng dùng gần đây..." required></textarea>
+                        placeholder="Mô tả thuốc bảo vệ thực vật đã dùng gần đây..." required></textarea>
                     </div>
                   </div>
                 </div>
@@ -206,31 +233,31 @@
       <br>
       {% else %}-->
       <a class="btn btn-primary w-100 shadow-lg" data-bs-toggle="modal" data-bs-target="#exampleModal1"
-        style="margin-top:20px;">{% blocktrans trimmed %}Sửa dữ liệu để chẩn
-        đoán nâng cao{% endblocktrans %}</a>
+        style="margin-top:20px;">Sửa dữ liệu để chẩn
+        đoán nâng cao</a>
       <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">{% trans 'Sửa thông tin' %}</h1>
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Sửa thông tin</h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <h3 class="text-center mb-3">{% trans 'Sửa thông tin' %}</h3>
+              <h3 class="text-center mb-3">Sửa thông tin</h3>
               <form method="post" action="{% url 'predict' id=skin_image.id %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-3">
                   <div class="row">
                     <div class="col-lg">
-                      <label>{% trans 'Giới tính bệnh nhân' %}</label>
+                      <label>Giới tính</label>
                       <select class="form-select w-100" name="gender" aria-label="Default select example" required>
-                        <!--<option selected>{% trans skin_image.gender %}</option>-->
-                        <option value="Nam">{% trans 'Nam' %}</option>
-                        <option value="Nữ">{% trans 'Nữ' %}</option>
+                        <!--<option selected>{{ skin_image.gender }}</option>-->
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
                       </select>
                     </div>
                     <div class="col-lg">
-                      <label>{% trans 'Độ tuổi bệnh nhân' %}</label>
+                      <label>Độ tuổi</label>
                       <input class="form-control w-100" name="age" type="number" value="{{skin_image.age}}"
                         placeholder="{{skin_image.age}}" required />
                     </div>
@@ -239,24 +266,24 @@
                 <div class="mb-3">
                   <div class="row">
                     <div class="col-lg">
-                      <label>{% trans 'Triệu chứng' %}</label>
+                      <label>Triệu chứng</label>
                       <textarea class="form-control w-100" name="symptom" rows="3"
-                        placeholder="{% trans 'Mô tả triệu chứng...' %}" required>{{skin_image.symptom}}</textarea>
+                        placeholder="Mô tả triệu chứng..." required>{{skin_image.symptom}}</textarea>
                     </div>
                   </div>
                 </div>
                 <div class="mb-3">
                   <div class="row">
                     <div class="col-lg">
-                      <label>{% trans 'Tiền sử bệnh' %}</label>
+                      <label>Bệnh đã từng mắc</label>
                       <textarea class="form-control w-100" name="illness_history" rows="3"
-                        placeholder="{% trans 'Mô tả các bệnh đã từng mắc...' %}"
+                        placeholder="Mô tả bệnh cây đã từng mắc..."
                         required>{{skin_image.illness_history}}</textarea>
                     </div>
                     <div class="col-lg">
-                      <label>{% trans 'Tiền sử thuốc' %}</label>
+                      <label>Thuốc BVTV đã dùng</label>
                       <textarea class="form-control w-100" name="drug_history" rows="3"
-                        placeholder="{% trans 'Mô tả các loại thuốc từng dùng gần đây...' %}"
+                        placeholder="Mô tả thuốc bảo vệ thực vật đã dùng gần đây..."
                         required>{{skin_image.drug_history}}</textarea>
                     </div>
                   </div>
@@ -264,7 +291,7 @@
                 <div class="mb-3">
                   <div class="row">
                     <div class="col-lg">
-                      <button type="submit" class="w-100 btn btn-success">{% trans 'Gửi thông tin' %}</button>
+                      <button type="submit" class="w-100 btn btn-success">Gửi thông tin</button>
                     </div>
                   </div>
                 </div>
@@ -274,77 +301,71 @@
         </div>
       </div>
       <br>
-      <h5 class="text-center mb-3 mt-3">{% trans 'Các thông tin liên quan' %}</h5>
+      <h5 class="text-center mb-3 mt-3">Các thông tin liên quan</h5>
       <table class="table table-striped table-hover">
         <thead class="table-dark">
           <tr>
-            <td><strong>{% trans 'Loại thông tin' %}</strong></td>
-            <td><strong>{% trans 'Chi tiết' %}</strong></td>
+            <td><strong>Loại thông tin</strong></td>
+            <td><strong>Chi tiết</strong></td>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>{% trans 'Giới tính' %}</td>
-            <td>{% trans skin_image.gender %}</td>
+            <td>Giới tính</td>
+            <td>{{ skin_image.gender }}</td>
           </tr>
           <tr>
-            <td>{% trans 'Độ tuổi' %}</td>
+            <td>Độ tuổi</td>
             <td>{{ skin_image.age }}</td>
           </tr>
           <tr>
-            <td>{% trans 'Triệu chứng' %}</td>
+            <td>Triệu chứng</td>
             <td>
-              {% if LANGUAGE_CODE == 'en' and skin_image.symptom_en %}
-              {{ skin_image.symptom_en }}
-              {% else %}
+
               {{ skin_image.symptom }}
-              {% endif %}
+              
             </td>
           </tr>
           <tr>
-            <td>{% trans 'Tiền sử thuốc' %}</td>
+            <td>Thuốc BVTV đã dùng</td>
             <td>
-              {% if LANGUAGE_CODE == 'en' and skin_image.drug_history_en %}
-              {{ skin_image.drug_history_en }}
-              {% else %}
+
               {{ skin_image.drug_history}}
-              {% endif %}
+              
             </td>
           </tr>
           <tr>
-            <td>{% trans 'Tiền sử bệnh' %}</td>
+            <td>Bệnh đã từng mắc</td>
             <td>
-              {% if LANGUAGE_CODE == 'en' and skin_image.illness_history_en %}
-              {{ skin_image.illness_history_en }}
-              {% else %}
+
               {{ skin_image.illness_history }}
-              {% endif %}
+              
             </td>
           </tr>
         </tbody>
       </table>
       {% endif %}
       <br>
-      {% if LANGUAGE_CODE == 'en' and skin_image.explain_en %}
-      {{ skin_image.explain_en|safe }}
+      <div class="ai-report" style="margin-top:16px;">
+
+        {{ skin_image.explain|safe }}
+        
+      </div>
       {% else %}
-      {{ skin_image.explain|safe }}
-      {% endif %}
-      {% else %}
-      <h3 class="text-center mb-3">{% trans 'Thêm thông tin để chẩn đoán' %}</h3>
+      <h3 class="text-center mb-3">Thêm thông tin để chẩn đoán</h3>
       <form method="post" action="{% url 'predict' id=skin_image.id %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
           <div class="row">
             <div class="col-lg">
-              <label>{% trans 'Giới tính bệnh nhân' %}</label>
+              <label>Giới tính</label>
               <select class="form-select w-100" name="gender" aria-label="Default select example" required>
-                <option value="Nam">{% trans 'Nam' %}</option>
-                <option value="Nữ">{% trans 'Nữ' %}</option>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
               </select>
             </div>
             <div class="col-lg">
-              <label>{% trans 'Độ tuổi bệnh nhân' %}</label>
+              <label>Độ tuổi</label>
               <input class="form-control w-100" name="age" type="number" required />
             </div>
           </div>
@@ -352,30 +373,30 @@
         <div class="mb-3">
           <div class="row">
             <div class="col-lg">
-              <label>{% trans 'Triệu chứng' %}</label>
+              <label>Triệu chứng</label>
               <textarea class="form-control w-100" name="symptom" rows="3"
-                placeholder="{% trans 'Mô tả triệu chứng...' %}" required></textarea>
+                placeholder="Mô tả triệu chứng..." required></textarea>
             </div>
           </div>
         </div>
         <div class="mb-3">
           <div class="row">
             <div class="col-lg">
-              <label>{% trans 'Tiền sử bệnh' %}</label>
+              <label>Bệnh đã từng mắc</label>
               <textarea class="form-control w-100" name="illness_history" rows="3"
-                placeholder="{% trans 'Mô tả các bệnh đã từng mắc...' %}" required></textarea>
+                placeholder="Mô tả bệnh cây đã từng mắc..." required></textarea>
             </div>
             <div class="col-lg">
-              <label>{% trans 'Tiền sử thuốc' %}</label>
+              <label>Thuốc BVTV đã dùng</label>
               <textarea class="form-control w-100" name="drug_history" rows="3"
-                placeholder="{% trans 'Mô tả các loại thuốc từng dùng gần đây...' %}" required></textarea>
+                placeholder="Mô tả thuốc bảo vệ thực vật đã dùng gần đây..." required></textarea>
             </div>
           </div>
         </div>
         <div class="mb-3">
           <div class="row">
             <div class="col-lg">
-              <button type="submit" class="w-100 btn btn-success">{% trans 'Gửi thông tin' %}</button>
+              <button type="submit" class="w-100 btn btn-success">Gửi thông tin</button>
             </div>
           </div>
         </div>
@@ -384,8 +405,8 @@
     </div>
 
     <div class="text-center" style="margin-bottom: 10vh;">
-      <a href="{% url 'home' %}" class="btn btn-primary">{% trans 'Quay lại trang chủ' %}</a>
-      <a href="{% url 'your_profile' %}" class="btn btn-secondary">{% trans 'Xem hồ sơ' %}</a>
+      <a href="{% url 'home' %}" class="btn btn-primary">Quay lại trang chủ</a>
+      <a href="{% url 'your_profile' %}" class="btn btn-secondary">Xem hồ sơ</a>
     </div>
   </div>
 
@@ -414,21 +435,16 @@
         </svg>
       </a>
 
-      <a href="{% url 'pharmacy' %}" class="d-flex flex-column align-items-center text-decoration-none text-muted">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-capsule-pill"
-          viewBox="0 0 16 16">
-          <path
-            d="M11.02 5.364a3 3 0 0 0-4.242-4.243L1.121 6.778a3 3 0 1 0 4.243 4.243l5.657-5.657Zm-6.413-.657 2.878-2.879a2 2 0 1 1 2.829 2.829L7.435 7.536zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8m-.5 1.042a3 3 0 0 0 0 5.917zm1 5.917a3 3 0 0 0 0-5.917z" />
-        </svg>
-      </a>
 
-      <a href="tel:115" class="d-flex flex-column align-items-center text-decoration-none text-danger">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mb-1"
-          viewBox="0 0 16 16">
-          <path
-            d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.298c-.483.48-.661 1.18-.45 1.803.35 1.098 1.07 2.78 2.65 4.36 1.58 1.58 3.262 2.3 4.36 2.65.623.211 1.323.033 1.803-.45l1.033-1.033a.678.678 0 00-.063-1.015l-2.07-1.552a.678.678 0 00-.58-.087l-1.52.507a.678.678 0 01-.657-.148L6.9 6.1a.678.678 0 00-.148-.657L6.255 4.9a.678.678 0 00-.087-.58L4.616 2.25z" />
-        </svg>
-        <!--<small class="d-block">Gọi cấp cứu</small>-->
+      
+      <a href="{% url 'spa_page' page='library' %}"
+          class="d-flex flex-column align-items-center text-decoration-none text-muted"
+          title="Thư viện bệnh và phác đồ">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mb-1"
+              viewBox="0 0 16 16">
+              <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1H7v12H2.5A1.5 1.5 0 0 1 1 13.5v-11zM15 2.5A1.5 1.5 0 0 0 13.5 1H9v12h4.5A1.5 1.5 0 0 0 15 13.5v-11z" />
+          </svg>
+          <!--<small class="d-block">Thư viện</small>-->
       </a>
 
       <a href="{% url 'your_profile' %}" class="d-flex flex-column align-items-center text-decoration-none text-muted">
@@ -441,33 +457,6 @@
       </a>
     </div>
   </nav>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function switchLanguage(langCode) {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/i18n/setlang/';
-      const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrfmiddlewaretoken';
-      csrfInput.value = csrfToken || '';
-      const langInput = document.createElement('input');
-      langInput.type = 'hidden';
-      langInput.name = 'language';
-      langInput.value = langCode;
-      const nextInput = document.createElement('input');
-      nextInput.type = 'hidden';
-      nextInput.name = 'next';
-      nextInput.value = window.location.pathname;
-      form.appendChild(csrfInput);
-      form.appendChild(langInput);
-      form.appendChild(nextInput);
-      document.body.appendChild(form);
-      form.submit();
-    }
-  </script>
 </body>
 
 </html>

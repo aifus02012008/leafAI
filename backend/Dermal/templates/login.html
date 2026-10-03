@@ -1,24 +1,19 @@
 <!doctype html>
-{% load i18n %}
 <html lang="vi">
 
 <head>
-  <meta property="og:title" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+  <meta property="og:title" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
   <meta property="og:description"
-    content="Ứng dụng AI hỗ trợ chẩn đoán các bệnh về da liễu nhanh chóng và chính xác. Sử dụng trí tuệ nhân tạo và thị giác máy tính để phân tích hình ảnh da và cung cấp các chẩn đoán kịp thời.">
+      content="Chụp một chiếc lá cà chua, LEAF_AI phân tích vết bệnh, cho biết mức độ nguy hiểm và gợi ý phác đồ xử lý theo hướng IPM.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://litclub.pythonanywhere.com/">
-  <meta property="og:image"
-    content="https://scontent.fhan15-2.fna.fbcdn.net/v/t39.30808-6/517737809_122100053498943826_3327007350081078447_n.png?_nc_cat=107&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=edONUK9z7kkQ7kNvwGrcQv7&_nc_oc=AdkRdS-VL0_JPfxBJv-XMhR_XPRw6BcxfGIvM441XgvNj4YQEuV7E0WNzscIUV9WT8I&_nc_zt=23&_nc_ht=scontent.fhan15-2.fna&_nc_gid=oQXmcf39N5CEF7QDQIN0hw&oh=00_AfTGO5IfzsEbxFCqddWx-S-7SJlJnywSnTXyjgdq0DteCQ&oe=68801A5D">
-  <meta property="og:site_name" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+  <meta property="og:image" content="/assets/images/icon-512.png">
+  <meta property="og:site_name" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
 
-  <link rel="shortcut icon"
-    href="https://github.com/Codedr-edu/DermAI/blob/main/media/Thi%E1%BA%BFt%20k%E1%BA%BF%20ch%C6%B0a%20c%C3%B3%20t%C3%AAn.png?raw=true"
-    type="image/x-icon">
+  <link rel="shortcut icon" href="/assets/images/icon-192.png" type="image/png">
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% trans 'Đăng nhập' %} - DermAI</title>
+  <title>Đăng nhập - LEAF_AI</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -61,22 +56,10 @@
               <path
                 d="M10.5 2a1 1 0 0 0-.832.445L8.94 4H7.06L6.332 2.445A1 1 0 0 0 5.5 2h-3A1.5 1.5 0 0 0 1 3.5v9A1.5 1.5 0 0 0 2.5 14h11A1.5 1.5 0 0 0 15 12.5v-9A1.5 1.5 0 0 0 13.5 2h-3zM8 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
             </svg>
-            <div class="brand">DermAI</div>
-          </div>
-          <div class="dropdown">
-            <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="languageDropdown"
-              data-bs-toggle="dropdown" aria-expanded="false">
-              {% get_current_language as LANGUAGE_CODE %}
-              {% if LANGUAGE_CODE == 'vi' %}🇻🇳{% else %}🇬🇧{% endif %}
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-              <li><a class="dropdown-item" href="#" onclick="switchLanguage('vi'); return false;">🇻🇳 Tiếng Việt</a>
-              </li>
-              <li><a class="dropdown-item" href="#" onclick="switchLanguage('en'); return false;">🇬🇧 English</a></li>
-            </ul>
+            <div class="brand">LEAF_AI</div>
           </div>
         </div>
-        <div class="hint">{% trans 'Đăng nhập để sử dụng các tính năng' %}</div>
+        <div class="hint">Đăng nhập để sử dụng các tính năng</div>
       </div>
 
       {% if messages %}
@@ -91,30 +74,21 @@
       <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-          <input type="text" name="username" class="form-control" placeholder="{% trans 'Tên đăng nhập hoặc Email' %}" value="{{ data.username|default:'' }}"
+          <input type="text" name="username" class="form-control" placeholder="Tên đăng nhập hoặc Email" value="{{ data.username|default:'' }}"
             required>
         </div>
         <div class="mb-3">
-          <input type="password" name="password" class="form-control" placeholder="{% trans 'Mật khẩu' %}" required>
+          <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required>
         </div>
-        <button type="submit" class="btn btn-primary w-100">{% trans 'Đăng nhập' %}</button>
+        <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
       </form>
 
       <div class="mt-3 mb-3">
-        <div class="text-muted small">{% trans 'Hoặc đăng nhập với' %}</div>
       </div>
 
-      <div class="d-grid gap-2">
-        <a href="{% url 'google_login' %}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2" viewBox="0 0 16 16">
-            <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z"/>
-          </svg>
-          {% trans 'Tiếp tục với Google' %}
-        </a>
-      </div>
 
       <div class="mt-3">
-        <a href="{% url 'signup' %}" class="text-decoration-none">{% trans 'Chưa có tài khoản? Đăng ký' %}</a>
+        <a href="{% url 'signup' %}" class="text-decoration-none">Chưa có tài khoản? Đăng ký</a>
       </div>
     </div>
   </div>
@@ -144,21 +118,16 @@
         </svg>
       </a>
 
-      <a href="{% url 'pharmacy' %}" class="d-flex flex-column align-items-center text-decoration-none text-muted">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-capsule-pill"
-          viewBox="0 0 16 16">
-          <path
-            d="M11.02 5.364a3 3 0 0 0-4.242-4.243L1.121 6.778a3 3 0 1 0 4.243 4.243l5.657-5.657Zm-6.413-.657 2.878-2.879a2 2 0 1 1 2.829 2.829L7.435 7.536zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8m-.5 1.042a3 3 0 0 0 0 5.917zm1 5.917a3 3 0 0 0 0-5.917z" />
-        </svg>
-      </a>
 
-      <a href="tel:115" class="d-flex flex-column align-items-center text-decoration-none text-danger">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mb-1"
-          viewBox="0 0 16 16">
-          <path
-            d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.298c-.483.48-.661 1.18-.45 1.803.35 1.098 1.07 2.78 2.65 4.36 1.58 1.58 3.262 2.3 4.36 2.65.623.211 1.323.033 1.803-.45l1.033-1.033a.678.678 0 00-.063-1.015l-2.07-1.552a.678.678 0 00-.58-.087l-1.52.507a.678.678 0 01-.657-.148L6.9 6.1a.678.678 0 00-.148-.657L6.255 4.9a.678.678 0 00-.087-.58L4.616 2.25z" />
-        </svg>
-        <!--<small class="d-block">Gọi cấp cứu</small>-->
+      
+      <a href="{% url 'spa_page' page='library' %}"
+          class="d-flex flex-column align-items-center text-decoration-none text-muted"
+          title="Thư viện bệnh và phác đồ">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mb-1"
+              viewBox="0 0 16 16">
+              <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1H7v12H2.5A1.5 1.5 0 0 1 1 13.5v-11zM15 2.5A1.5 1.5 0 0 0 13.5 1H9v12h4.5A1.5 1.5 0 0 0 15 13.5v-11z" />
+          </svg>
+          <!--<small class="d-block">Thư viện</small>-->
       </a>
 
       <a href="{% url 'your_profile' %}" class="d-flex flex-column align-items-center text-decoration-none text-muted">
@@ -171,33 +140,6 @@
       </a>
     </div>
   </nav>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function switchLanguage(langCode) {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/i18n/setlang/';
-      const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrfmiddlewaretoken';
-      csrfInput.value = csrfToken || '';
-      const langInput = document.createElement('input');
-      langInput.type = 'hidden';
-      langInput.name = 'language';
-      langInput.value = langCode;
-      const nextInput = document.createElement('input');
-      nextInput.type = 'hidden';
-      nextInput.name = 'next';
-      nextInput.value = window.location.pathname;
-      form.appendChild(csrfInput);
-      form.appendChild(langInput);
-      form.appendChild(nextInput);
-      document.body.appendChild(form);
-      form.submit();
-    }
-  </script>
 </body>
 
 </html>

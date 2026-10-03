@@ -1,24 +1,19 @@
 <!doctype html>
-{% load i18n %}
 <html lang="vi">
 
 <head>
-    <meta property="og:title" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+    <meta property="og:title" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
     <meta property="og:description"
-        content="Ứng dụng AI hỗ trợ chẩn đoán các bệnh về da liễu nhanh chóng và chính xác. Sử dụng trí tuệ nhân tạo và thị giác máy tính để phân tích hình ảnh da và cung cấp các chẩn đoán kịp thời.">
+        content="Chụp một chiếc lá cà chua, LEAF_AI phân tích vết bệnh, cho biết mức độ nguy hiểm và gợi ý phác đồ xử lý theo hướng IPM.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://litclub.pythonanywhere.com/">
-    <meta property="og:image"
-        content="https://scontent.fhan15-2.fna.fbcdn.net/v/t39.30808-6/517737809_122100053498943826_3327007350081078447_n.png?_nc_cat=107&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=edONUK9z7kkQ7kNvwGrcQv7&_nc_oc=AdkRdS-VL0_JPfxBJv-XMhR_XPRw6BcxfGIvM441XgvNj4YQEuV7E0WNzscIUV9WT8I&_nc_zt=23&_nc_ht=scontent.fhan15-2.fna&_nc_gid=oQXmcf39N5CEF7QDQIN0hw&oh=00_AfTGO5IfzsEbxFCqddWx-S-7SJlJnywSnTXyjgdq0DteCQ&oe=68801A5D">
-    <meta property="og:site_name" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+    <meta property="og:image" content="/assets/images/icon-512.png">
+    <meta property="og:site_name" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
 
-    <link rel="shortcut icon"
-        href="https://github.com/Codedr-edu/DermAI/blob/main/media/Thi%E1%BA%BFt%20k%E1%BA%BF%20ch%C6%B0a%20c%C3%B3%20t%C3%AAn.png?raw=true"
-        type="image/x-icon">
+    <link rel="shortcut icon" href="/assets/images/icon-192.png" type="image/png">
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{% trans 'Hồ sơ' %} - DermAI</title>
+    <title>Hồ sơ - LEAF_AI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -76,105 +71,84 @@
     <div class="profile-container w-100">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div class="d-flex align-items-center">
-                <div class="brand fs-4 fw-bold me-3">DermAI</div>
-                <div class="hint text-muted">{% trans 'Hồ sơ cá nhân' %}</div>
+                <div class="brand fs-4 fw-bold me-3">LEAF_AI</div>
+                <div class="hint text-muted">Hồ sơ cá nhân</div>
             </div>
             <div class="d-flex align-items-center">
-                <div class="dropdown me-2">
-                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="languageDropdown"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        {% get_current_language as LANGUAGE_CODE %}
-                        {% if LANGUAGE_CODE == 'vi' %}🇻🇳{% else %}🇬🇧{% endif %}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-                        <li><a class="dropdown-item" href="#" onclick="switchLanguage('vi'); return false;">🇻🇳 Tiếng
-                                Việt</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="switchLanguage('en'); return false;">🇬🇧 English</a>
-                        </li>
-                    </ul>
-                </div>
                 <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
                         <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
                     </svg>
-                    {% trans 'Đăng xuất' %}
+                    Đăng xuất
                 </a>
             </div>
         </div>
 
         <!-- Profile Info -->
         <div class="profile-card">
-            <h5 class="section-title">{% trans 'Thông tin cá nhân' %}</h5>
+            <h5 class="section-title">Thông tin cá nhân</h5>
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>{% trans 'Tên người dùng' %}:</strong> {{ profile.user.username }}</p>
+                    <p><strong>Tên người dùng:</strong> {{ profile.user.username }}</p>
                     <p><strong>Email:</strong> {{ profile.user.email }}</p>
                 </div>
                 <div class="col-md-6">
                     {% if profile.birth_date %}
-                    <p><strong>{% trans 'Ngày sinh' %}:</strong> {{ profile.birth_date|date:"d/m/Y" }}</p>
+                    <p><strong>Ngày sinh:</strong> {{ profile.birth_date|date:"d/m/Y" }}</p>
                     {% endif %}
-                    <p><strong>{% trans 'Ngày tham gia' %}:</strong> {{ profile.user.date_joined|date:"d/m/Y" }}</p>
+                    <p><strong>Ngày tham gia:</strong> {{ profile.user.date_joined|date:"d/m/Y" }}</p>
                 </div>
             </div>
         </div>
 
         <!-- Classifications -->
         <div class="profile-card">
-            <h5 class="section-title">{% trans 'Lịch sử phân tích da' %}</h5>
+            <h5 class="section-title">Lịch sử phân tích lá</h5>
             {% if classifications %}
             {% for classification in classifications %}
             <div class="classification-item">
                 <div class="row">
                     <div class="col-md-4">
-                        <img src="{{ classification.image.url }}" alt="Skin Image" class="classification-img">
+                        <img src="{{ classification.image.url }}" alt="Leaf Image" class="classification-img">
                     </div>
                     <div class="col-md-8">
-                        <p><strong>{% trans 'Kết quả sơ bộ' %}:</strong></p>
+                        <p><strong>Kết quả sơ bộ:</strong></p>
                         <div class="table-responsive">
                             <table class="table table-sm">
                                 <tbody>
-                                    {% get_current_language as LANGUAGE_CODE %}
-                                    {% if LANGUAGE_CODE == 'en' and classification.result_en %}
-                                    {% for pred in classification.result_en %}
+
+                                    {% for pred in classification.result %}
                                     <tr>
                                         <td>{{ pred.class }}</td>
                                         <td>{{ pred.probability|floatformat:2 }}%</td>
                                     </tr>
                                     {% endfor %}
-                                    {% else %}
-                                    {% for pred in classification.result %}
-                                    <tr>
-                                        <td>{% trans pred.class %}</td>
-                                        <td>{{ pred.probability|floatformat:2 }}%</td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% endif %}
+                                    
                                 </tbody>
                             </table>
                         </div>
                         <br>
                         <a href="{% url 'result' image_id=classification.id %}"
-                            class="btn btn-sm btn-outline-primary w-100">{% trans 'Xem chi tiết' %}</a>
+                            class="btn btn-sm btn-outline-primary w-100">Xem chi tiết</a>
                         <form method="post" action="{% url 'delete_classification' image_id=classification.id %}"
                             style="margin-top:6px;"
-                            onsubmit="return confirm('{% trans 'Bạn có chắc chắn muốn xóa bản ghi này?' %}');">
+                            onsubmit="return confirm('Bạn có chắc chắn muốn xóa bản ghi này?');">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">{% trans 'Xóa bản ghi' %}</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Xóa bản ghi</button>
                         </form>
                         <br>
                         <!--{% if classification.explain %}
                             <p><strong>Heatmap giải thích:</strong></p>
                             <img src="data:image/png;base64,{{ classification.explain }}" alt="Grad-CAM Heatmap" class="heatmap-img">
                             {% endif %}-->
-                        <small class="text-muted">{% trans "Ngày tải lên" %}: {{ classification.uploaded_at|date:"d/m/Y H:i" }}</small>
+                        <small class="text-muted">Ngày tải lên: {{ classification.uploaded_at|date:"d/m/Y H:i" }}</small>
                     </div>
                 </div>
             </div>
             {% endfor %}
             {% else %}
-            <p class="text-muted">{% trans 'Chưa có lịch sử phân tích.' %}</p>
+            <p class="text-muted">Chưa có lịch sử phân tích.</p>
             {% endif %}
         </div>
 
@@ -210,7 +184,7 @@
         </div>-->
 
         <div class="text-center" style="margin-bottom: 10vh;">
-            <a href="{% url 'home' %}" class="btn btn-primary">{% trans 'Quay lại trang chủ' %}</a>
+            <a href="{% url 'home' %}" class="btn btn-primary">Quay lại trang chủ</a>
         </div>
     </div>
 
@@ -239,21 +213,16 @@
                 </svg>
             </a>
 
-            <a href="{% url 'pharmacy' %}" class="d-flex flex-column align-items-center text-decoration-none text-muted">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                    class="bi bi-capsule-pill" viewBox="0 0 16 16">
-                    <path
-                        d="M11.02 5.364a3 3 0 0 0-4.242-4.243L1.121 6.778a3 3 0 1 0 4.243 4.243l5.657-5.657Zm-6.413-.657 2.878-2.879a2 2 0 1 1 2.829 2.829L7.435 7.536zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8m-.5 1.042a3 3 0 0 0 0 5.917zm1 5.917a3 3 0 0 0 0-5.917z" />
-                </svg>
-            </a>
 
-            <a href="tel:115" class="d-flex flex-column align-items-center text-decoration-none text-danger">
+            
+            <a href="{% url 'spa_page' page='library' %}"
+                class="d-flex flex-column align-items-center text-decoration-none text-muted"
+                title="Thư viện bệnh và phác đồ">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mb-1"
                     viewBox="0 0 16 16">
-                    <path
-                        d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.298c-.483.48-.661 1.18-.45 1.803.35 1.098 1.07 2.78 2.65 4.36 1.58 1.58 3.262 2.3 4.36 2.65.623.211 1.323.033 1.803-.45l1.033-1.033a.678.678 0 00-.063-1.015l-2.07-1.552a.678.678 0 00-.58-.087l-1.52.507a.678.678 0 01-.657-.148L6.9 6.1a.678.678 0 00-.148-.657L6.255 4.9a.678.678 0 00-.087-.58L4.616 2.25z" />
+                    <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1H7v12H2.5A1.5 1.5 0 0 1 1 13.5v-11zM15 2.5A1.5 1.5 0 0 0 13.5 1H9v12h4.5A1.5 1.5 0 0 0 15 13.5v-11z" />
                 </svg>
-                <!--<small class="d-block">Gọi cấp cứu</small>-->
+                <!--<small class="d-block">Thư viện</small>-->
             </a>
 
             <a href="{% url 'your_profile' %}" class="d-flex flex-column align-items-center text-decoration-none text-primary">
@@ -266,33 +235,6 @@
             </a>
         </div>
     </nav>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function switchLanguage(langCode) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/i18n/setlang/';
-            const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = csrfToken || '';
-            const langInput = document.createElement('input');
-            langInput.type = 'hidden';
-            langInput.name = 'language';
-            langInput.value = langCode;
-            const nextInput = document.createElement('input');
-            nextInput.type = 'hidden';
-            nextInput.name = 'next';
-            nextInput.value = window.location.pathname;
-            form.appendChild(csrfInput);
-            form.appendChild(langInput);
-            form.appendChild(nextInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
-    </script>
 </body>
 
 </html>

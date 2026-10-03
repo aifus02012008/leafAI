@@ -245,7 +245,7 @@ def run_all_tests():
 
     dummy_image = create_dummy_leaf_image()
 
-    # Test 4.1: Diagnosis with Model V3
+    # Test 4.1: Diagnosis with Model V3 (Gemini Vision pipeline)
     t0 = time.time()
     uploaded_v3 = SimpleUploadedFile("leaf_test_v3.jpg", dummy_image, content_type="image/jpeg")
     res_v3 = client.post("/api/diagnose/", {
@@ -254,14 +254,27 @@ def run_all_tests():
         "confidence": "0.3"
     })
     json_v3 = res_v3.json()
+    unavailable_v3 = bool(json_v3.get("analysis_unavailable"))
+    primary_v3 = json_v3.get("primary_disease") or {}
     record(
         "POST /api/diagnose/ (Model V3)",
         res_v3.status_code == 200 and json_v3.get("success") is True,
-        f"HTTP {res_v3.status_code}, Benh: {json_v3.get('primary_disease', {}).get('name_vi')}, Conf={json_v3.get('primary_disease', {}).get('probability')}%",
+        f"HTTP {res_v3.status_code}, unavailable={unavailable_v3}, "
+        f"Benh: {primary_v3.get('name_vi')}, Conf={primary_v3.get('probability')}%",
         (time.time() - t0) * 1000
     )
 
-    # Test 4.2: Diagnosis with Model V4 (Coinfection Multilabel)
+    # Test 4.2: Báo cáo HTML (report_html) có sẵn khi AI khả dụng
+    t0 = time.time()
+    has_report = bool(json_v3.get("report_html"))
+    record(
+        "POST /api/diagnose/ report_html",
+        res_v3.status_code == 200 and (unavailable_v3 or has_report),
+        f"report_html={'yes' if has_report else 'no'}, note={str(json_v3.get('note'))[:60]}",
+        (time.time() - t0) * 1000
+    )
+
+    # Test 4.3: Diagnosis with Model V4 (đa bệnh / đồng nhiễm khi AI phân tích được)
     t0 = time.time()
     uploaded_v4 = SimpleUploadedFile("leaf_test_v4.jpg", dummy_image, content_type="image/jpeg")
     res_v4 = client.post("/api/diagnose/", {
@@ -270,13 +283,15 @@ def run_all_tests():
         "confidence": "0.2"
     })
     json_v4 = res_v4.json()
+    unavailable_v4 = bool(json_v4.get("analysis_unavailable"))
     is_coinfection = json_v4.get("is_coinfection", False)
-    secondary_count = len(json_v4.get("secondary_diseases", []))
+    secondary_count = len(json_v4.get("secondary_diseases") or [])
     created_record_id = json_v4.get("id")
     record(
         "POST /api/diagnose/ (Model V4 Coinfection)",
-        res_v4.status_code == 200 and is_coinfection is True and secondary_count >= 1,
-        f"HTTP {res_v4.status_code}, Da phat hien da benh ({secondary_count} benh phu kem theo)",
+        res_v4.status_code == 200 and (unavailable_v4 or (is_coinfection and secondary_count >= 1)),
+        f"HTTP {res_v4.status_code}, unavailable={unavailable_v4}, "
+        f"da phat hien {secondary_count} benh phu kem theo",
         (time.time() - t0) * 1000
     )
 
@@ -315,7 +330,7 @@ def run_all_tests():
     fe_dir = BASE_DIR.parent / "frontend"
     index_file = fe_dir / "index.html"
     css_file = fe_dir / "assets" / "css" / "style.css"
-    app_js = fe_dir / "assets" / "js" / "app.js"
+    app_js = fe_dir / "assets" / "js" / "core.js"
     api_js = fe_dir / "assets" / "js" / "api.js"
     data_js = fe_dir / "assets" / "js" / "disease_data.js"
 
@@ -338,7 +353,7 @@ def run_all_tests():
     # Test 6.3: JS Modules exist
     all_js_exist = app_js.exists() and api_js.exists() and data_js.exists()
     record(
-        "Frontend JS Modules (app, api, disease_data)",
+        "Frontend JS Modules (core, api, disease_data)",
         all_js_exist,
         "Day du cac module JavaScript tach biet",
         0

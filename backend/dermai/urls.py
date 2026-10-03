@@ -18,17 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [
-    path('i18n/', include('django.conf.urls.i18n')),
-]
-
-urlpatterns += i18n_patterns(
     path('admin/', admin.site.urls),
     path('', include('Dermal.urls')),
-    path('tinymce/', include('tinymce.urls')),
-    path('accounts/', include('allauth.urls')),  # OAuth URLs
-    # URL mặc định (tiếng Việt) không cần prefix /vi/ — tránh redirect mỗi request
-    prefix_default_language=False,
-) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Phục vụ ảnh media trong lúc dev (DEBUG=True) — static() tự trả [] khi DEBUG=False.
+# Production dùng CloudinaryStorage nên image.url là URL https tuyệt đối.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

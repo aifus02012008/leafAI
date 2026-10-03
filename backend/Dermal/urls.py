@@ -36,7 +36,6 @@ urlpatterns = [
     path('profile/', your_profile, name='your_profile'),
     path('upload/file/', upload_file, name='upload_file'),
     path('predict/<int:id>/', predict, name="predict"),
-    path('pharmacy/', pharmacy_view, name='pharmacy'),
     path('history/<int:image_id>/delete/', delete_classification, name='delete_classification'),
     path('health/', health, name="health"),
 

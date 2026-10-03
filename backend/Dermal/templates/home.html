@@ -1,24 +1,19 @@
 <!doctype html>
-{% load i18n %}
 <html lang="vi">
 
 <head>
-    <meta property="og:title" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+    <meta property="og:title" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
     <meta property="og:description"
-        content="Ứng dụng AI hỗ trợ chẩn đoán các bệnh về da liễu nhanh chóng và chính xác. Sử dụng trí tuệ nhân tạo và thị giác máy tính để phân tích hình ảnh da và cung cấp các chẩn đoán kịp thời.">
+        content="Chụp một chiếc lá cà chua, LEAF_AI phân tích vết bệnh, cho biết mức độ nguy hiểm và gợi ý phác đồ xử lý theo hướng IPM.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://litclub.pythonanywhere.com/">
-    <meta property="og:image"
-        content="https://scontent.fhan15-2.fna.fbcdn.net/v/t39.30808-6/517737809_122100053498943826_3327007350081078447_n.png?_nc_cat=107&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=edONUK9z7kkQ7kNvwGrcQv7&_nc_oc=AdkRdS-VL0_JPfxBJv-XMhR_XPRw6BcxfGIvM441XgvNj4YQEuV7E0WNzscIUV9WT8I&_nc_zt=23&_nc_ht=scontent.fhan15-2.fna&_nc_gid=oQXmcf39N5CEF7QDQIN0hw&oh=00_AfTGO5IfzsEbxFCqddWx-S-7SJlJnywSnTXyjgdq0DteCQ&oe=68801A5D">
-    <meta property="og:site_name" content="DermAI - Ứng dụng AI hỗ trợ chẩn đoán bệnh da liễu">
+    <meta property="og:image" content="/assets/images/icon-512.png">
+    <meta property="og:site_name" content="LEAF_AI - Phát hiện bệnh lá cà chua bằng AI">
 
-    <link rel="shortcut icon"
-        href="https://github.com/Codedr-edu/DermAI/blob/main/media/Thi%E1%BA%BFt%20k%E1%BA%BF%20ch%C6%B0a%20c%C3%B3%20t%C3%AAn.png?raw=true"
-        type="image/x-icon">
+    <link rel="shortcut icon" href="/assets/images/icon-192.png" type="image/png">
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{% trans 'Chụp ảnh' %} - DermAI</title>
+    <title>Chụp ảnh - LEAF_AI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -121,25 +116,12 @@
                             <path
                                 d="M10.5 2a1 1 0 0 0-.832.445L8.94 4H7.06L6.332 2.445A1 1 0 0 0 5.5 2h-3A1.5 1.5 0 0 0 1 3.5v9A1.5 1.5 0 0 0 2.5 14h11A1.5 1.5 0 0 0 15 12.5v-9A1.5 1.5 0 0 0 13.5 2h-3zM8 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
                         </svg>
-                        <div class="brand">DermAI</div>
+                        <div class="brand">LEAF_AI</div>
                     </div>
 
                     <!-- Right: Language Switcher -->
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="languageDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            {% get_current_language as LANGUAGE_CODE %}
-                            {% if LANGUAGE_CODE == 'vi' %}🇻🇳{% else %}🇬🇧{% endif %}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-                            <li><a class="dropdown-item" href="#" onclick="switchLanguage('vi'); return false;">🇻🇳
-                                    Tiếng Việt</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="switchLanguage('en'); return false;">🇬🇧
-                                    English</a></li>
-                        </ul>
-                    </div>
                 </div>
-                <div class="hint">{% trans 'Chụp vùng da để kiểm tra - camera 300×300' %}</div>
+                <div class="hint">Chụp chiếc lá để kiểm tra - camera 300×300</div>
             </div>
 
             <div class="camera-frame mb-3">
@@ -148,7 +130,7 @@
 
             <div class="d-flex justify-content-center align-items-center controls-row">
                 <button id="flipBtn" type="button" class="btn btn-light rounded-circle shadow"
-                    aria-label="{% trans 'Chuyển camera' %}" style="right:calc(50% - 36px);width:44px;height:44px;">
+                    aria-label="Chuyển camera" style="right:calc(50% - 36px);width:44px;height:44px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
@@ -158,7 +140,7 @@
                 </button>
                 <!-- Circular capture button with camera icon -->
                 <button id="snapBtn" class="btn btn-primary btn-circle" type="button"
-                    aria-label="{% trans 'Chụp ảnh' %}">
+                    aria-label="Chụp ảnh">
                     <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"
                         aria-hidden="true"></span>
                     <span id="cameraIcon" class="camera-icon" aria-hidden="true">
@@ -217,7 +199,7 @@
                                 uploadBtn.className = 'btn btn-light rounded-circle shadow';
                                 //uploadBtn.title = 'Tải ảnh từ thư viện';
                                 uploadBtn.style = 'right:calc(50% - 36px);width:44px;height:44px;';
-                                uploadBtn.setAttribute('aria-label', '{% trans "Tải ảnh từ thư viện" %}');
+                                uploadBtn.setAttribute('aria-label', 'Tải ảnh từ thư viện');
                                 uploadBtn.innerHTML = `
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-image-fill" viewBox="0 0 16 16" aria-hidden="true" style="margin-right:6px;">
                                         <path d="M4.502 1a1 1 0 0 0-.998 1v10a1 1 0 0 0 .998 1h7a1 1 0 0 0 .998-1V2a1 1 0 0 0-.998-1h-7zm1 3a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2z"/>
@@ -277,7 +259,7 @@
                     </form>
 
                     <button data-bs-toggle="modal" data-bs-target="#exampleModal" type="button"
-                        class="btn btn-light rounded-circle shadow" aria-label="{% trans 'Upload ảnh' %}"
+                        class="btn btn-light rounded-circle shadow" aria-label="Upload ảnh"
                         style="right:calc(50% - 36px);width:44px;height:44px;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="bi bi-upload" viewBox="0 0 16 16">
@@ -293,7 +275,7 @@
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">{% trans 'Upload ảnh để chẩn đoán' %}</h1>
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Upload ảnh để chẩn đoán</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
@@ -301,34 +283,34 @@
                                     <form method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data">
                                         {% csrf_token %}
                                         <div class="mb-3">
-                                            <label for="formFile" class="form-label">{% trans 'Chọn ảnh từ thiết bị của bạn' %}</label>
+                                            <label for="formFile" class="form-label">Chọn ảnh từ thiết bị của bạn</label>
                                             <input class="form-control" type="file" id="image" name="image"
                                                 accept="image/*" required onchange="handleFileSelect(this)">
                                         </div>
-                                        <button type="submit" class="btn btn-primary w-100">{% trans 'Upload' %}</button>
+                                        <button type="submit" class="btn btn-primary w-100">Upload</button>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Đóng' %}</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                                 </div>
                             </div>
                         </div>
                     </div>
             </div>
-            <button id="stopBtn" hidden class="btn btn-outline-secondary w-100">{% trans 'Dừng' %}</button>
+            <button id="stopBtn" hidden class="btn btn-outline-secondary w-100">Dừng</button>
             <div class="w-100 rounded"
                 style="height: 4px;background-color: #6b7280;margin-bottom: 10px;margin-top: 10px;"></div>
             <div class="d-flex justify-content-center align-items-center controls-row">
-                <a href="tel:115" class="btn btn-danger rounded w-100 shadow" aria-label="Chuyển camera"
+                <a href="{% url 'spa_page' page='library' %}" class="btn btn-success rounded w-100 shadow"
+                    aria-label="Thư viện bệnh và phác đồ"
                     style="right:calc(50% - 36px);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                        class="bi bi-telephone-fill" style="margin-right: 5px;" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd"
-                            d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z" />
-                    </svg> {% trans 'Gọi Cấp Cứu' %}
+                        class="bi bi-book" style="margin-right: 5px;" viewBox="0 0 16 16">
+                        <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1H7v12H2.5A1.5 1.5 0 0 1 1 13.5v-11zM15 2.5A1.5 1.5 0 0 0 13.5 1H9v12h4.5A1.5 1.5 0 0 0 15 13.5v-11z" />
+                    </svg> Thư viện bệnh & phác đồ
                 </a>
             </div>
 
-            <div class="mt-3 hint">{% trans "Ảnh sẽ được gửi để kiểm tra; nếu server xử lý sẽ chuyển trang kết quả tự động." %}</div>
+            <div class="mt-3 hint">Ảnh sẽ được gửi để kiểm tra; nếu server xử lý sẽ chuyển trang kết quả tự động.</div>
 
             <!-- hidden canvas for processing -->
         </div>
@@ -339,12 +321,12 @@
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body text-center">
-                    <h5 class="mb-2">{% trans 'Bạn chưa đăng nhập' %}</h5>
-                    <p class="mb-3 text-muted">{% trans 'Vui lòng đăng nhập để sử dụng tính năng chụp và gửi ảnh.' %}
+                    <h5 class="mb-2">Bạn chưa đăng nhập</h5>
+                    <p class="mb-3 text-muted">Vui lòng đăng nhập để sử dụng tính năng chụp và gửi ảnh.
                     </p>
                     <div class="d-flex justify-content-center gap-2">
-                        <a id="loginLink" href="{% url 'login' %}" class="btn btn-primary">{% trans 'Đăng nhập' %}</a>
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans 'Hủy' %}</button>
+                        <a id="loginLink" href="{% url 'login' %}" class="btn btn-primary">Đăng nhập</a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
                     </div>
                 </div>
             </div>
@@ -383,22 +365,16 @@
                 <!--<small class="d-block">Chatbot</small>-->
             </a>
 
-            <a href="{% url 'pharmacy' %}" class="d-flex flex-column align-items-center text-decoration-none text-muted">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                    class="bi bi-capsule-pill" viewBox="0 0 16 16">
-                    <path
-                        d="M11.02 5.364a3 3 0 0 0-4.242-4.243L1.121 6.778a3 3 0 1 0 4.243 4.243l5.657-5.657Zm-6.413-.657 2.878-2.879a2 2 0 1 1 2.829 2.829L7.435 7.536zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8m-.5 1.042a3 3 0 0 0 0 5.917zm1 5.917a3 3 0 0 0 0-5.917z" />
-                </svg>
-                <!--<small class="d-block">Nhà thuốc</small>-->
-            </a>
 
-            <a href="tel:115" class="d-flex flex-column align-items-center text-decoration-none text-danger">
+            
+            <a href="{% url 'spa_page' page='library' %}"
+                class="d-flex flex-column align-items-center text-decoration-none text-muted"
+                title="Thư viện bệnh và phác đồ">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mb-1"
                     viewBox="0 0 16 16">
-                    <path
-                        d="M3.654 1.328a.678.678 0 00-1.015-.063L1.605 2.298c-.483.48-.661 1.18-.45 1.803.35 1.098 1.07 2.78 2.65 4.36 1.58 1.58 3.262 2.3 4.36 2.65.623.211 1.323.033 1.803-.45l1.033-1.033a.678.678 0 00-.063-1.015l-2.07-1.552a.678.678 0 00-.58-.087l-1.52.507a.678.678 0 01-.657-.148L6.9 6.1a.678.678 0 00-.148-.657L6.255 4.9a.678.678 0 00-.087-.58L4.616 2.25z" />
+                    <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1H7v12H2.5A1.5 1.5 0 0 1 1 13.5v-11zM15 2.5A1.5 1.5 0 0 0 13.5 1H9v12h4.5A1.5 1.5 0 0 0 15 13.5v-11z" />
                 </svg>
-                <!--<small class="d-block">Gọi cấp cứu</small>-->
+                <!--<small class="d-block">Thư viện</small>-->
             </a>
 
             <a href="{% url 'your_profile' %}" class="d-flex flex-column align-items-center text-decoration-none text-muted">
@@ -467,7 +443,7 @@
                         stopBtn.disabled = false;
                     } catch (e) {
                         console.error('Fallback camera error:', e);
-                        alert('{% trans "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập hoặc thiết bị." %}');
+                        alert('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập hoặc thiết bị.');
                         stopBtn.disabled = true;
                     }
                 }
@@ -570,7 +546,7 @@
 
                     // Ensure stop button stops camera while processing
                     stopBtn.disabled = false;
-                    stopBtn.textContent = '{% trans "Dừng" %}';
+                    stopBtn.textContent = 'Dừng';
                     stopBtn.onclick = function () {
                         stopCamera();
                         setProcessingState(false);
@@ -617,7 +593,7 @@
                                 // ignore parse errors silently
                             }
                             // make stop button reopen camera
-                            stopBtn.textContent = '{% trans "Mở camera" %}';
+                            stopBtn.textContent = 'Mở camera';
                             stopBtn.disabled = false;
                             stopBtn.onclick = async function () {
                                 await startCamera();
@@ -648,19 +624,19 @@
                 }
 
                 if (!stream || !stream.active) {
-                    alert('{% trans "Camera không hoạt động. Vui lòng khởi động lại." %}');
+                    alert('Camera không hoạt động. Vui lòng khởi động lại.');
                     return;
                 }
 
                 if (!video || !video.srcObject || video.readyState < 4) {
-                    alert('{% trans "Camera chưa sẵn sàng, vui lòng chờ và thử lại." %}');
+                    alert('Camera chưa sẵn sàng, vui lòng chờ và thử lại.');
                     console.error('Video element not ready:', video);
                     return;
                 }
 
                 // Additional check: ensure video has dimensions loaded
                 if (video.videoWidth === 0 || video.videoHeight === 0) {
-                    alert('{% trans "Video chưa tải đầy đủ, vui lòng chờ và thử lại." %}');
+                    alert('Video chưa tải đầy đủ, vui lòng chờ và thử lại.');
                     setProcessingState(false);
                     console.error('Video dimensions not available yet.');
                     return;
@@ -668,7 +644,7 @@
                 }
 
                 if (video.paused || video.ended) {
-                    alert('{% trans "Video không đang phát. Vui lòng thử lại." %}');
+                    alert('Video không đang phát. Vui lòng thử lại.');
                     return;
                     console.error('Video element is paused or ended.');
                 }
@@ -683,7 +659,7 @@
                     console.log('Image captured and form submitted.');
                 } catch (err) {
                     console.error('Error in captureAndSend:', err);
-                    alert('{% trans "Lỗi khi xử lý ảnh. Vui lòng thử lại." %}');
+                    alert('Lỗi khi xử lý ảnh. Vui lòng thử lại.');
                     setProcessingState(false);
                 }
             }
@@ -739,35 +715,6 @@
         })();
 
         // Language switcher function
-        function switchLanguage(langCode) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/i18n/setlang/';
-
-            // Get CSRF token from cookie
-            const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = csrfToken || '';
-
-            const langInput = document.createElement('input');
-            langInput.type = 'hidden';
-            langInput.name = 'language';
-            langInput.value = langCode;
-
-            const nextInput = document.createElement('input');
-            nextInput.type = 'hidden';
-            nextInput.name = 'next';
-            nextInput.value = window.location.pathname;
-
-            form.appendChild(csrfInput);
-            form.appendChild(langInput);
-            form.appendChild(nextInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
     </script>
     <!--<script>
         const video = document.getElementById("video");
@@ -828,8 +775,6 @@
             }
         };
     </script>-->
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

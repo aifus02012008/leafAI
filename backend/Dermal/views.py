@@ -20,7 +20,14 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_POST
 from google import genai
 
-from .fastapi import AIServerError, MODEL_V3, VALID_MODELS, fast_api
+from .leaf_ai import (
+    FALLBACK_REPORT_HTML,
+    MODEL_V3,
+    VALID_MODELS,
+    apply_analysis,
+    run_diagnosis_for_record,
+    throttled,
+)
 from .models import *
 
 logger = logging.getLogger(__name__)
@@ -69,8 +76,10 @@ def _validate_image_bytes(img_bytes, content_type=None):
 
 
 def _run_diagnosis(request, img_bytes, file_name):
-    """Gọi AI server, lưu kết quả.
+    """Lưu ảnh vào DB rồi chẩn đoán bằng Gemini (đọc lại link ảnh từ DB).
 
+    Không còn phụ thuộc AI server: lỗi AI không chặn upload — bản ghi vẫn được
+    lưu và trang kết quả sẽ hiển thị form/chờ phân tích lại.
     Trả về (skin_img, error_message): chỉ một trong hai khác None.
     """
     # Kiểm tra MIME theo phần mở rộng file
@@ -80,41 +89,32 @@ def _run_diagnosis(request, img_bytes, file_name):
     else:
         return None, _("Định dạng ảnh không được hỗ trợ")
 
-    image_b64 = base64.b64encode(img_bytes).decode("utf-8")
-
     model_version = request.POST.get('model_version') or MODEL_V3
     if model_version not in VALID_MODELS:
         model_version = MODEL_V3
 
-    # chống lặp máy gọi AI liên tục
-    if _throttled(f"upload:{request.user.id}", limit=10, seconds=60):
+    # chống lặp máy gọi AI liên tục (chi phí API Gemini)
+    if throttled(f"upload:{request.user.id}", limit=10, seconds=60):
         raise Throttled(_("Bạn đang gửi quá nhiều yêu cầu. Vui lòng chờ ít phút rồi thử lại."))
 
-    try:
-        output = fast_api(image_b64, model_version=model_version)
-    except AIServerError as e:
-        logger.error("AI server error: %s", e)
-        return None, _("Không thể kết nối dịch vụ chẩn đoán. Vui lòng thử lại sau.")
-
-    heat_b64 = output.get('heatmap_base64')
-    heatmap_file = None
-    if heat_b64:
-        try:
-            heatmap_file = ContentFile(
-                base64.b64decode(heat_b64), name="heatmap_" + (file_name or 'capture.jpg'))
-        except Exception:
-            logger.warning("Không decode được heatmap base64")
-            heatmap_file = None
-
     image_file = ContentFile(img_bytes, name=file_name)
-
     skin_img = Leaf_image.objects.create(
         image=image_file,
-        result=output.get('results'),
-        heatmap=heatmap_file,
         user=Profile.objects.get(user=request.user),
         more='',
+        model_version=model_version,
     )
+
+    # Chẩn đoán best-effort: đọc link ảnh từ DB -> base64 -> Gemini -> báo cáo HTML
+    try:
+        analysis = run_diagnosis_for_record(
+            skin_img, fallback_bytes=img_bytes, model_version=model_version)
+    except Exception:  # run_diagnosis_for_record đã nuốt lỗi — đây là lưới an toàn cuối
+        logger.exception("run_diagnosis_for_record bất thường")
+        analysis = None
+    if analysis:
+        apply_analysis(skin_img, analysis)
+
     return skin_img, None
 
 
@@ -187,18 +187,6 @@ class Throttled(Exception):
         self.message = message
 
 
-def _throttled(key, limit, seconds):
-    """Đếm đơn giản bằng cache. Trả về True nếu vượt limit."""
-    try:
-        hits = cache.get(key, 0)
-        if hits >= limit:
-            return True
-        cache.set(key, hits + 1, seconds)
-    except Exception:
-        logger.warning("cache throttle unavailable")
-    return False
-
-
 @login_required
 def chatbot_api(request):
     """POST JSON {message} -> {reply, reply_html}."""
@@ -214,7 +202,7 @@ def chatbot_api(request):
             return JsonResponse({"error": _("Tin nhắn quá dài (tối đa 4000 ký tự)")}, status=400)
 
         # chống lạm dụng gọi Gemini (chi phí API)
-        if _throttled(f"chatbot:{request.user.id}", limit=20, seconds=60):
+        if throttled(f"chatbot:{request.user.id}", limit=20, seconds=60):
             return JsonResponse(
                 {"error": _("Bạn gửi quá nhanh. Vui lòng chờ khoảng 1 phút rồi thử lại.")},
                 status=429,
@@ -347,11 +335,6 @@ def chatbot_view(request):
     return render(request, 'chatbot.html')
 
 
-def pharmacy_view(request):
-    """Bản đồ cơ sở vật tư / cửa hàng vật tư nông nghiệp gần tôi."""
-    return render(request, 'pharmacy.html')
-
-
 @login_required
 def your_profile(request):
     profile = get_object_or_404(Profile, user=request.user)
@@ -409,38 +392,16 @@ def predict(request, id):
     ]))
     image.save()
 
-    prompt = f"""
-        Bạn là một chuyên gia hỗ trợ phân tích bệnh cây trồng.
-        DỮ LIỆU ĐẦU VÀO:
-        - Kết quả từ mô hình (JSON): {json.dumps(image.result, ensure_ascii=False) if image.result else '{}'}
-        - Thông tin bổ sung từ người dùng: {image.more}
-
-        YÊU CẦU QUAN TRỌNG: Phân tích tình trạng và trả về kết quả dưới định dạng JSON duy nhất, không có văn bản thừa bên ngoài.
-        Cấu trúc JSON yêu cầu:
-        {{
-            "vi": "Nội dung phân tích chi tiết bằng tiếng Việt...",
-            "en": "Detailed analysis content in English..."
-        }}
-
-        HƯỚNG DẪN NỘI DUNG (Áp dụng cho cả 2 ngôn ngữ):
-        1. Đoạn 1 - Nhận diện tình trạng: Giải thích kết quả mô hình, cho biết hệ thống nghiêng về khả năng nào nhất.
-        2. Đoạn 2 - Phân tích nguyên nhân: Liên hệ tổn thương lá cây với các thông tin khác.
-        3. Đoạn 3 - Hướng dẫn theo dõi: Các bước kiểm tra lâm sàng đơn giản tại nhà.
-        4. Đoạn 4 - Lời khuyên & Hành động: Khuyên nhờ sự trợ giúp của chuyên gia nông nghiệp, nhấn mạnh AI không thay thế chuyên gia.
-
-        LƯU Ý: Không dùng Markdown phức tạp (#), chỉ dùng văn bản thuần, xuống dòng rõ ràng giữa các đoạn.
-    """
-    raw_reply = call_gemini(prompt, user=request.user)
-
-    try:
-        json_str = re.sub(r'^```json\s*|\s*```$', '', raw_reply.strip(), flags=re.MULTILINE)
-        content_data = json.loads(json_str)
-        reply_vi = content_data.get('vi', '') or raw_reply
-    except Exception:
-        logger.warning("Gemini không trả JSON hợp lệ, dùng text thô")
-        reply_vi = raw_reply
-
-    image.explain = sanitize_markdown(reply_vi)
+    # Chẩn đoán lại bằng Gemini: lấy link ảnh từ DB -> đọc base64 -> ảnh + context -> báo cáo HTML
+    analysis = run_diagnosis_for_record(
+        image,
+        context_text=image.more or '',
+        model_version=image.model_version or MODEL_V3,
+    )
+    apply_analysis(image, analysis)
+    if not image.explain:
+        # AI không tạo được báo cáo -> thông báo thân thiện thay vì để trống
+        image.explain = FALLBACK_REPORT_HTML
     image.save()
     return redirect('result', image_id=image.id)
 
