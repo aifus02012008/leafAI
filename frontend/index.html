@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>LEAF_AI — Phát hiện bệnh lá cà chua bằng AI</title>
+  <meta name="description" content="Chụp một chiếc lá cà chua, LEAF_AI khoanh vùng vết bệnh bằng YOLOv8 và gợi ý cách xử lý theo hướng IPM: canh tác, sinh học trước, hóa học sau cùng.">
+  <meta property="og:title" content="LEAF_AI — Phát hiện bệnh lá cà chua bằng AI">
+  <meta property="og:description" content="Khoanh vùng vết bệnh trên lá, đọc kết quả và nhận phác đồ IPM ngay tại vườn.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e7a4c">
+  <link rel="icon" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+  <script src="assets/js/core.js"></script>
+
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <h1>Chụp một chiếc lá. Biết ngay cây đang mắc bệnh gì.</h1>
+          <p class="hero-lead">LEAF_AI khoanh vùng từng vết bệnh trên lá cà chua, cho biết mức độ nguy hiểm và cách xử lý bắt đầu từ canh tác, sinh học. Thuốc hóa học chỉ là bước cuối.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="scan.html"><i class="bi bi-camera"></i>Quét lá ngay</a>
+            <a class="btn btn-lg" href="library.html"><i class="bi bi-journal-text"></i>Tra cứu 6 bệnh</a>
+          </div>
+          <div class="hero-trust">
+            <span><i class="bi bi-phone"></i>Dùng được trên điện thoại</span>
+            <span><i class="bi bi-wifi-off"></i>Xem cẩm nang khi mất sóng</span>
+            <span><i class="bi bi-patch-check"></i>Phác đồ theo FAO</span>
+          </div>
+        </div>
+
+        <figure class="demo" aria-label="Minh họa: AI khoanh vùng 4 vết bệnh úa sớm trên lá cà chua" style="margin:0">
+          <div class="demo-bar">
+            <span class="demo-live"><strong>Đang phân tích</strong><span class="demo-sub">ảnh chụp tại vườn</span></span>
+            <button class="btn btn-ghost btn-sm" id="btnReplay" type="button"><i class="bi bi-arrow-repeat"></i>Xem lại</button>
+          </div>
+          <div class="demo-stage" id="demoStage">
+            <img src="assets/samples/sample_early_blight.jpg" alt="Lá cà chua có các đốm vòng đồng tâm" width="800" height="600">
+            <div class="demo-boxes">
+              <div class="demo-box label-below" style="left:70%;top:5%;width:14%;height:18.5%;--d:1.15s"><b>Úa sớm 91%</b></div>
+              <div class="demo-box" style="left:49%;top:20.5%;width:11.5%;height:15.5%;--d:1.35s"><b>Úa sớm 87%</b></div>
+              <div class="demo-box label-below" style="left:66%;top:38%;width:10.5%;height:14%;--d:1.6s"><b>Úa sớm 78%</b></div>
+              <div class="demo-box label-below" style="left:35.5%;top:42.5%;width:10%;height:13%;--d:1.85s"><b>Úa sớm 74%</b></div>
+            </div>
+            <div class="demo-scanline" aria-hidden="true"></div>
+          </div>
+          <figcaption class="demo-result">
+            <div>
+              <div class="name">Úa sớm (Alternaria solani)</div>
+              <div class="meta">4 vết bệnh, mức nghiêm trọng. Nên tỉa lá gốc và bổ sung kali trước khi tính đến thuốc.</div>
+            </div>
+            <div class="demo-score">91%</div>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ DISEASE STRIP ============ -->
+    <div class="strip">
+      <div class="container strip-inner">
+        <span class="strip-label">Nhận diện được</span>
+        <a href="disease.html?id=early_blight"><span class="dot" style="--dot:#f97316"></span>Úa sớm</a>
+        <a href="disease.html?id=late_blight"><span class="dot" style="--dot:#dc2626"></span>Sương mai</a>
+        <a href="disease.html?id=bacterial_spot"><span class="dot" style="--dot:#ef4444"></span>Đốm vi khuẩn</a>
+        <a href="disease.html?id=septoria_leaf_spot"><span class="dot" style="--dot:#eab308"></span>Đốm lá Septoria</a>
+        <a href="disease.html?id=leaf_mold"><span class="dot" style="--dot:#10b981"></span>Nấm mốc lá</a>
+        <a href="disease.html?id=powdery_mildew"><span class="dot" style="--dot:#06b6d4"></span>Phấn trắng</a>
+      </div>
+    </div>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Ba bước, chưa tới một phút ngoài ruộng</h2>
+          <p>Không cần gửi mẫu đi xét nghiệm. Bà con chỉ cần điện thoại có camera, kỹ sư có thể dùng thêm bản đầy đủ trên máy tính.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <h3>Chụp lá nghi bệnh</h3>
+            <p>Mở camera sau ngay tại luống, hoặc kéo thả ảnh có sẵn. Chụp cả mặt trên lẫn mặt dưới lá để AI nhìn rõ hơn.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <h3>AI khoanh vùng vết bệnh</h3>
+            <p>Mô hình YOLOv8 đánh dấu từng vết, ghi tên bệnh và độ tin cậy. Một lá nhiễm nhiều bệnh cũng được tách riêng.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <h3>Làm theo phác đồ</h3>
+            <p>Mỗi kết quả dẫn tới trang bệnh với triệu chứng 3 giai đoạn và cách xử lý từ nhẹ đến nặng.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ IPM LADDER ============ -->
+    <section class="section section-tight">
+      <div class="container ipm">
+        <div>
+          <h2 style="font-size:clamp(1.75rem,3.2vw,2.5rem);letter-spacing:-0.03em;max-width:18ch">Chữa đúng bệnh, phun ít thuốc hơn</h2>
+          <div class="prose">
+            <p>Phần lớn thiệt hại đến từ việc phát hiện muộn rồi phun thuốc phổ rộng cho chắc. Khi biết sớm và đúng tên bệnh, nhiều trường hợp chỉ cần thay đổi cách tưới, tỉa lá hay bổ sung vi sinh đối kháng.</p>
+            <p>LEAF_AI sắp xếp mọi phác đồ theo tháp quản lý dịch hại tổng hợp (IPM) của FAO: biện pháp an toàn nhất luôn được đề xuất trước.</p>
+          </div>
+          <a class="btn btn-soft" href="handbook.html" style="margin-top:24px"><i class="bi bi-shield-check"></i>Đọc cẩm nang IPM</a>
+        </div>
+        <div>
+          <div class="ladder" role="list" aria-label="Thứ tự ưu tiên xử lý">
+            <div class="rung rung-1" role="listitem"><i class="bi bi-flower2"></i><strong>Canh tác</strong><span>Tỉa lá gốc, tưới nhỏ giọt, bón cân đối, luân canh</span></div>
+            <div class="rung rung-2" role="listitem"><i class="bi bi-bug"></i><strong>Sinh học</strong><span>Trichoderma, Bacillus subtilis, dầu neem</span></div>
+            <div class="rung rung-3" role="listitem"><i class="bi bi-droplet-half"></i><strong>Hóa học</strong><span>Chỉ khi vượt ngưỡng, đúng 4 đúng và thời gian cách ly</span></div>
+          </div>
+          <p class="ladder-note">Độ rộng mỗi tầng thể hiện mức ưu tiên sử dụng.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Mọi thứ cần cho một lần thăm vườn</h2>
+          <p>Mỗi công cụ có trang riêng, dùng độc lập hoặc nối với nhau sau mỗi lần quét.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <i class="bi bi-camera"></i>
+            <h3>Chẩn đoán tại chỗ</h3>
+            <p>Chụp bằng camera trước hoặc sau, chọn giữa mô hình V3 ổn định và V4 nhận diện đủ 6 bệnh.</p>
+            <a href="scan.html">Mở trang chẩn đoán</a>
+          </div>
+          <div class="feature">
+            <i class="bi bi-journal-text"></i>
+            <h3>Thư viện bệnh cà chua</h3>
+            <p>Triệu chứng theo 3 giai đoạn, điều kiện phát sinh, cách phòng và phác đồ 3 cấp cho từng bệnh.</p>
+            <a href="library.html">Xem thư viện</a>
+          </div>
+          <div class="feature">
+            <i class="bi bi-clock-history"></i>
+            <h3>Nhật ký đồng ruộng</h3>
+            <p>Mỗi lần quét được lưu kèm ảnh, giúp theo dõi bệnh lan hay lui qua từng tuần.</p>
+            <a href="history.html">Xem lịch sử</a>
+          </div>
+          <div class="feature">
+            <i class="bi bi-chat-dots"></i>
+            <h3>Hỏi kỹ sư AI</h3>
+            <p>Hỏi bằng tiếng Việt về triệu chứng lạ, liều lượng, thời gian cách ly trước thu hoạch.</p>
+            <a href="assistant.html">Bắt đầu hỏi</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODEL ============ -->
+    <section class="section section-tight">
+      <div class="container">
+        <div class="section-head">
+          <h2>Hai mô hình, chọn theo nhu cầu</h2>
+          <p>Cả hai đều là YOLOv8n, đủ nhẹ để chạy nhanh trên thiết bị phổ thông. Số liệu đo trên tập kiểm thử của dự án.</p>
+        </div>
+        <div class="spec-wrap">
+          <table class="spec-table">
+            <thead>
+              <tr><th scope="col">Thông số</th><th scope="col">V3, mặc định</th><th scope="col">V4, thử nghiệm</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Số bệnh nhận diện</td><td class="num">3</td><td class="num">6</td></tr>
+              <tr><td>mAP@50</td><td class="num">0.768</td><td class="num">0.742</td></tr>
+              <tr><td>Recall với đốm nhỏ</td><td class="num">80.8%</td><td class="num">79.1%</td></tr>
+              <tr><td>Kích thước ảnh đầu vào</td><td class="num">640 × 640</td><td class="num">640 × 640</td></tr>
+              <tr><td>Thời gian suy luận</td><td class="num">~18 ms</td><td class="num">~24 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="section section-tight">
+      <div class="container">
+        <div class="cta-band">
+          <svg class="vein" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+            <path d="M180 20C90 22 30 62 22 140c-2 20 6 34 18 40C70 120 110 86 150 64 118 90 86 126 64 172c14 6 30 6 46-2 64-30 74-90 70-150Z" stroke="#fff" stroke-width="3"/>
+            <path d="M40 180C80 120 120 80 176 24" stroke="#fff" stroke-width="3"/>
+          </svg>
+          <div>
+            <h2>Thấy lá lạ trên luống cà chua?</h2>
+            <p>Chụp ngay khi vết bệnh còn nhỏ. Phát hiện ở giai đoạn 1 giúp xử lý dễ nhất và tốn ít thuốc nhất.</p>
+          </div>
+          <a class="btn btn-lg" href="scan.html"><i class="bi bi-camera"></i>Quét lá ngay</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/pages/landing.js"></script>
+</body>
+</html>

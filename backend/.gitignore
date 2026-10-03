@@ -28,11 +28,3 @@ venv.bak/
 
 # MacOS
 .DS_Store
-
-# Large Model Weights (Hosted on HuggingFace Space)
-*.pt
-*.pth
-*.onnx
-*.bin
-*.h5
-*.ckpt

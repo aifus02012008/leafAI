@@ -1,0 +1,60 @@
+{
+  "arch": "resnet18",
+  "epochs": 5,
+  "best_acc": 99.55,
+  "total_training_time_s": 850.0,
+  "classes": [
+    "Healthy",
+    "Leaf_mold",
+    "Target_spot",
+    "Late_blight",
+    "Early_blight",
+    "Bacterial_spot",
+    "Septoria_leaf_spot",
+    "Tomato_mosaic_virus",
+    "Tomato_yellow_leaf_curl_virus",
+    "Spider_mites"
+  ],
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.2494,
+      "train_acc": 91.81,
+      "val_loss": 0.3872,
+      "val_acc": 87.98,
+      "time_s": 169.5
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.1174,
+      "train_acc": 96.08,
+      "val_loss": 0.0646,
+      "val_acc": 97.87,
+      "time_s": 174.6
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.0649,
+      "train_acc": 97.78,
+      "val_loss": 0.0989,
+      "val_acc": 96.11,
+      "time_s": 171.7
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.0329,
+      "train_acc": 98.94,
+      "val_loss": 0.0224,
+      "val_acc": 99.22,
+      "time_s": 173.2
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.0186,
+      "train_acc": 99.48,
+      "val_loss": 0.0164,
+      "val_acc": 99.55,
+      "time_s": 159.8
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "classes": [
+    "Healthy",
+    "Leaf_mold",
+    "Target_spot",
+    "Late_blight",
+    "Early_blight",
+    "Bacterial_spot",
+    "Septoria_leaf_spot",
+    "Tomato_mosaic_virus",
+    "Tomato_yellow_leaf_curl_virus",
+    "Spider_mites"
+  ],
+  "details": {
+    "Healthy": {
+      "vi": "Lá khỏe mạnh",
+      "pathogen": "None"
+    },
+    "Leaf_mold": {
+      "vi": "Nấm mốc lá",
+      "pathogen": "Passalora fulva"
+    },
+    "Target_spot": {
+      "vi": "Đốm mắt cua",
+      "pathogen": "Corynespora cassiicola"
+    },
+    "Late_blight": {
+      "vi": "Sương mai (Late Blight)",
+      "pathogen": "Phytophthora infestans"
+    },
+    "Early_blight": {
+      "vi": "Úa sớm (Early Blight)",
+      "pathogen": "Alternaria solani"
+    },
+    "Bacterial_spot": {
+      "vi": "Đốm vi khuẩn",
+      "pathogen": "Xanthomonas campestris"
+    },
+    "Septoria_leaf_spot": {
+      "vi": "Đốm lá Septoria",
+      "pathogen": "Septoria lycopersici"
+    },
+    "Tomato_mosaic_virus": {
+      "vi": "Khảm lá virus (ToMV)",
+      "pathogen": "Tomato mosaic tobamovirus"
+    },
+    "Tomato_yellow_leaf_curl_virus": {
+      "vi": "Xoăn vàng lá virus (TYLCV)",
+      "pathogen": "Tomato yellow leaf curl begomovirus"
+    },
+    "Spider_mites": {
+      "vi": "Nhện đỏ hai chấm",
+      "pathogen": "Tetranychus urticae"
+    }
+  }
+}

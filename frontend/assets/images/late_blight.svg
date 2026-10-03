@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <linearGradient id="leafGrad4" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="40%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="blightDecay" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#451a03"/>
+      <stop offset="50%" stop-color="#292524"/>
+      <stop offset="85%" stop-color="#3f3f46"/>
+      <stop offset="100%" stop-color="#52525b"/>
+    </linearGradient>
+    <filter id="shadow4" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="mildewBlur">
+      <feGaussianBlur stdDeviation="1.5"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="300" fill="url(#bgGrad4)" rx="12"/>
+  <path d="M0 50 H400 M0 100 H400 M0 150 H400 M0 200 H400 M0 250 H400 M50 0 V300 M100 0 V300 M150 0 V300 M200 0 V300 M250 0 V300 M300 0 V300 M350 0 V300" stroke="#fecdd3" stroke-width="0.8" opacity="0.6"/>
+
+  <!-- Stem -->
+  <path d="M85 260 Q135 200 190 150 T295 70" fill="none" stroke="#166534" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Main center leaf with massive necrotic blight -->
+  <g filter="url(#shadow4)">
+    <path d="M200 145 C135 105 130 50 200 30 C270 50 265 105 200 145 Z" fill="url(#leafGrad4)"/>
+    <path d="M200 145 L200 35 M200 120 L165 100 M200 120 L235 100 M200 90 L160 70 M200 90 L240 70 M200 65 L170 50 M200 65 L230 50" fill="none" stroke="#166534" stroke-width="1.8" opacity="0.6"/>
+  </g>
+
+  <!-- Left leaflet -->
+  <g filter="url(#shadow4)">
+    <path d="M145 185 C95 170 80 130 115 105 C160 115 160 155 145 185 Z" fill="url(#leafGrad4)"/>
+    <path d="M145 185 Q130 145 115 105" fill="none" stroke="#166534" stroke-width="1.8" opacity="0.6"/>
+  </g>
+
+  <!-- Right leaflet -->
+  <g filter="url(#shadow4)">
+    <path d="M255 185 C305 170 320 130 285 105 C240 115 240 155 255 185 Z" fill="url(#leafGrad4)"/>
+    <path d="M255 185 Q270 145 285 105" fill="none" stroke="#166534" stroke-width="1.8" opacity="0.6"/>
+  </g>
+
+  <!-- LATE BLIGHT NECROTIC COLLAPSE (Mảng úng nước xanh xám -> nâu đen thối nhũn) -->
+  <!-- Main leaf tip and right edge decay -->
+  <path d="M200 30 C230 35 255 55 245 85 C235 110 200 115 190 90 C185 70 180 50 200 30 Z" fill="url(#blightDecay)" opacity="0.95"/>
+  <!-- Water-soaked edge border -->
+  <path d="M185 70 Q175 90 200 120 Q235 115 245 85" fill="none" stroke="#84cc16" stroke-width="3" opacity="0.5"/>
+  <!-- White fungal downy mold margin (Tơ mốc trắng đặc trưng sáng sớm) -->
+  <path d="M188 72 Q178 92 202 118 Q232 112 242 84" fill="none" stroke="#f8fafc" stroke-width="2.5" stroke-dasharray="3 1.5" opacity="0.9" filter="url(#mildewBlur)"/>
+
+  <!-- Left leaflet decay patch -->
+  <path d="M115 105 C130 110 140 125 130 145 C120 160 100 150 95 135 C90 120 100 110 115 105 Z" fill="url(#blightDecay)" opacity="0.92"/>
+  <path d="M130 145 Q125 155 105 148" fill="none" stroke="#f8fafc" stroke-width="2" stroke-dasharray="2 1" filter="url(#mildewBlur)"/>
+
+  <!-- Right leaflet patch -->
+  <path d="M285 105 C270 115 260 135 270 150 C280 165 305 150 310 135 C315 120 300 110 285 105 Z" fill="url(#blightDecay)" opacity="0.92"/>
+  <path d="M265 140 Q275 155 295 145" fill="none" stroke="#f8fafc" stroke-width="2" stroke-dasharray="2 1" filter="url(#mildewBlur)"/>
+
+  <!-- Label Badge -->
+  <rect x="20" y="248" width="190" height="32" rx="16" fill="#ffffff" stroke="#dc2626" stroke-width="1.5"/>
+  <circle cx="36" cy="264" r="6" fill="#dc2626"/>
+  <text x="50" y="269" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#991b1b">Sương mai (Mốc sương)</text>
+  <text x="380" y="269" text-anchor="end" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#64748b">Phytophthora infestans</text>
+</svg>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Giới thiệu dự án — LEAF_AI</title>
+  <meta name="description" content="Mục tiêu, cách hoạt động và thông số mô hình YOLOv8 của LEAF_AI, nền tảng phát hiện bệnh lá cà chua.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e7a4c">
+  <link rel="icon" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="about">
+  <script src="assets/js/core.js"></script>
+
+  <main id="main" class="page">
+    <div class="container">
+      <div class="page-head">
+        <div>
+          <h1>Về LEAF_AI</h1>
+          <p>Một dự án ứng dụng thị giác máy tính để nhà nông phát hiện bệnh cà chua sớm hơn và dùng ít thuốc hơn.</p>
+        </div>
+      </div>
+
+      <div class="about-grid">
+        <section class="panel panel-pad" aria-labelledby="h-mission">
+          <h2 id="h-mission" style="font-size:var(--fs-lg)">Vì sao có LEAF_AI</h2>
+          <div class="prose" style="margin-top:12px">
+            <p>Bệnh lá trên cà chua lây rất nhanh: sương mai có thể làm tàn cả luống chỉ sau vài ngày mưa lạnh. Trong khi đó, nhiều bệnh trông khá giống nhau ở giai đoạn đầu, dễ dẫn tới phun nhầm thuốc hoặc phun thừa “cho chắc”.</p>
+            <p>LEAF_AI giúp người trồng nhận ra bệnh ngay tại vườn, rồi đưa ra cách xử lý theo thứ tự an toàn của IPM.</p>
+          </div>
+          <ul class="check-list">
+            <li><i class="bi bi-camera"></i><div><strong>Chẩn đoán tại đồng ruộng</strong>Chạy trên điện thoại, không cần gửi mẫu đi xét nghiệm.</div></li>
+            <li><i class="bi bi-bounding-box"></i><div><strong>Nhận diện nhiều bệnh trên một lá</strong>Mỗi vết bệnh được khoanh riêng, kể cả khi nấm và vi khuẩn cùng tấn công.</div></li>
+            <li><i class="bi bi-tree"></i><div><strong>Giảm thuốc hóa học</strong>Phác đồ luôn bắt đầu từ canh tác và sinh học, đúng tinh thần nông nghiệp bền vững.</div></li>
+          </ul>
+        </section>
+
+        <section class="panel panel-pad" aria-labelledby="h-how">
+          <h2 id="h-how" style="font-size:var(--fs-lg)">Hệ thống gồm những gì</h2>
+          <ul class="check-list">
+            <li><i class="bi bi-cpu"></i><div><strong>Máy chủ AI</strong>FastAPI chạy mô hình YOLOv8n đã huấn luyện trên ảnh lá cà chua.</div></li>
+            <li><i class="bi bi-hdd-stack"></i><div><strong>Backend Django</strong>Lưu lịch sử, đồng bộ Supabase, trợ lý hỏi đáp dùng Gemini.</div></li>
+            <li><i class="bi bi-phone"></i><div><strong>Web app cài được (PWA)</strong>Thư viện bệnh và cẩm nang vẫn xem được khi mất sóng.</div></li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="hb-section" id="mo-hinh" style="margin-top:48px" aria-labelledby="h-model">
+        <div class="section-head" style="margin-bottom:24px">
+          <h2 id="h-model" style="font-size:var(--fs-xl)">Mô hình YOLOv8n</h2>
+          <p>V3 là bản mặc định cho kết quả ổn định với 3 bệnh nguy hiểm nhất. V4 mở rộng thêm 3 bệnh, độ chính xác thấp hơn một chút.</p>
+        </div>
+        <div class="spec-wrap">
+          <table class="spec-table">
+            <thead><tr><th scope="col">Thông số</th><th scope="col">V3, mặc định</th><th scope="col">V4, thử nghiệm</th></tr></thead>
+            <tbody>
+              <tr><td>Bệnh nhận diện</td><td>Đốm vi khuẩn, úa sớm, sương mai</td><td>Thêm Septoria, nấm mốc lá, phấn trắng</td></tr>
+              <tr><td>mAP@50</td><td class="num">0.768</td><td class="num">0.742</td></tr>
+              <tr><td>Recall với đốm nhỏ</td><td class="num">80.8%</td><td class="num">79.1%</td></tr>
+              <tr><td>Ảnh đầu vào</td><td class="num">640 × 640 px</td><td class="num">640 × 640 px</td></tr>
+              <tr><td>Ngưỡng tin cậy</td><td class="num">0.25</td><td class="num">0.25</td></tr>
+              <tr><td>Thời gian suy luận</td><td class="num">~18 ms</td><td class="num">~24 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="hb-section" id="nguon" style="margin-top:48px" aria-labelledby="h-src">
+        <h2 id="h-src" style="font-size:var(--fs-xl);margin-bottom:16px">Nguồn tham khảo</h2>
+        <ul class="check-list" style="margin-top:0">
+          <li><i class="bi bi-book"></i><div><strong>FAO Plant Production and Protection</strong>Sổ tay IPM đồng ruộng, hướng dẫn an toàn thuốc BVTV.</div></li>
+          <li><i class="bi bi-book"></i><div><strong>UC Davis IPM, Tomato Pest Management Guidelines</strong>Triệu chứng và ngưỡng can thiệp cho từng bệnh.</div></li>
+          <li><i class="bi bi-book"></i><div><strong>Cornell University, Vegetable MD Online</strong>Hình ảnh và mô tả bệnh hại rau màu.</div></li>
+        </ul>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

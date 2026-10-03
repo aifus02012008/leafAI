@@ -1,0 +1,71 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/docs",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/openapi.json",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/health/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/login/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/logout/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/signup/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/profile/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "frontend/assets/$1"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "frontend/manifest.json"
+    },
+    {
+      "src": "/sw.js",
+      "dest": "frontend/sw.js"
+    },
+    {
+      "src": "/$",
+      "dest": "frontend/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    }
+  ]
+}
