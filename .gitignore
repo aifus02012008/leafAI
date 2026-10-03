@@ -37,3 +37,10 @@ venv.bak/
 *.bin
 *.h5
 *.ckpt
+
+# Reports, Posters & Generated Presentation Assets (Khong day len GitHub)
+*BAO_CAO*
+*POSTER*
+*.docx
+docs/product_images/
+docs/build_docx_report.py
