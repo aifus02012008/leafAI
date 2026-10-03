@@ -1,0 +1,4 @@
+# Ignore ML training and Hugging Face space files from Vercel build
+ml/
+docs/
+.github/
