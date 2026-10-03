@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef2f2"/>
+      <stop offset="100%" stop-color="#fff1f2"/>
+    </linearGradient>
+    <linearGradient id="leafGrad2" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="40%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <radialGradient id="bacSpot" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="60%" stop-color="#44403c"/>
+      <stop offset="85%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#fef08a" stop-opacity="0.3"/>
+    </radialGradient>
+    <filter id="shadow2" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="300" fill="url(#bgGrad2)" rx="12"/>
+  <path d="M0 50 H400 M0 100 H400 M0 150 H400 M0 200 H400 M0 250 H400 M50 0 V300 M100 0 V300 M150 0 V300 M200 0 V300 M250 0 V300 M300 0 V300 M350 0 V300" stroke="#fecdd3" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- Stem -->
+  <path d="M90 260 Q140 200 195 150 T290 70" fill="none" stroke="#15803d" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Center leaflet -->
+  <g filter="url(#shadow2)">
+    <path d="M200 145 C135 105 130 50 200 30 C270 50 265 105 200 145 Z" fill="url(#leafGrad2)"/>
+    <path d="M200 145 L200 35 M200 120 L165 100 M200 120 L235 100 M200 90 L160 70 M200 90 L240 70 M200 65 L170 50 M200 65 L230 50" fill="none" stroke="#166534" stroke-width="1.8" opacity="0.6"/>
+  </g>
+
+  <!-- Left leaflet -->
+  <g filter="url(#shadow2)">
+    <path d="M145 185 C95 170 80 130 115 105 C160 115 160 155 145 185 Z" fill="url(#leafGrad2)"/>
+    <path d="M145 185 Q130 145 115 105" fill="none" stroke="#166534" stroke-width="1.8" opacity="0.6"/>
+  </g>
+
+  <!-- Right leaflet -->
+  <g filter="url(#shadow2)">
+    <path d="M255 185 C305 170 320 130 285 105 C240 115 240 155 255 185 Z" fill="url(#leafGrad2)"/>
+    <path d="M255 185 Q270 145 285 105" fill="none" stroke="#166534" stroke-width="1.8" opacity="0.6"/>
+  </g>
+
+  <!-- BACTERIAL SPOTS (Xanthomonas - đốm đen nhỏ li ti úng nước viền vàng nhạt) -->
+  <!-- Clusters on Center Leaf -->
+  <circle cx="185" cy="65" r="5" fill="url(#bacSpot)"/>
+  <circle cx="192" cy="72" r="4" fill="url(#bacSpot)"/>
+  <circle cx="178" cy="75" r="6" fill="url(#bacSpot)"/>
+  <circle cx="182" cy="85" r="7" fill="url(#bacSpot)"/>
+  <circle cx="215" cy="78" r="6" fill="url(#bacSpot)"/>
+  <circle cx="225" cy="70" r="4.5" fill="url(#bacSpot)"/>
+  <circle cx="218" cy="92" r="5.5" fill="url(#bacSpot)"/>
+  <circle cx="205" cy="100" r="4" fill="url(#bacSpot)"/>
+  <circle cx="175" cy="105" r="5" fill="url(#bacSpot)"/>
+  <circle cx="185" cy="115" r="6" fill="url(#bacSpot)"/>
+  <circle cx="210" cy="120" r="4" fill="url(#bacSpot)"/>
+  <circle cx="195" cy="50" r="3.5" fill="url(#bacSpot)"/>
+  <circle cx="202" cy="42" r="3" fill="url(#bacSpot)"/>
+
+  <!-- Clusters on Left Leaflet -->
+  <circle cx="120" cy="125" r="5" fill="url(#bacSpot)"/>
+  <circle cx="130" cy="132" r="6" fill="url(#bacSpot)"/>
+  <circle cx="115" cy="140" r="4" fill="url(#bacSpot)"/>
+  <circle cx="135" cy="150" r="5.5" fill="url(#bacSpot)"/>
+  <circle cx="122" cy="160" r="4.5" fill="url(#bacSpot)"/>
+
+  <!-- Clusters on Right Leaflet -->
+  <circle cx="270" cy="125" r="5" fill="url(#bacSpot)"/>
+  <circle cx="282" cy="135" r="6.5" fill="url(#bacSpot)"/>
+  <circle cx="265" cy="145" r="4" fill="url(#bacSpot)"/>
+  <circle cx="275" cy="155" r="5" fill="url(#bacSpot)"/>
+
+  <!-- Yellow Halos around severe areas -->
+  <ellipse cx="188" cy="78" rx="20" ry="16" fill="#facc15" opacity="0.25"/>
+  <ellipse cx="275" cy="135" rx="16" ry="14" fill="#facc15" opacity="0.25"/>
+
+  <!-- Label Badge -->
+  <rect x="20" y="248" width="160" height="32" rx="16" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <circle cx="36" cy="264" r="6" fill="#ef4444"/>
+  <text x="50" y="269" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">Đốm vi khuẩn</text>
+  <text x="380" y="269" text-anchor="end" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#64748b">Xanthomonas campestris</text>
+</svg>
