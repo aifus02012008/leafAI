@@ -25,6 +25,7 @@ venv.bak/
 .vscode/
 *.swp
 *.swo
+~$*.docx
 
 # MacOS
 .DS_Store
