@@ -95,13 +95,20 @@ class GradCAM:
         self.gradients = grad_output[0]
 
     def generate(self, input_tensor: torch.Tensor, class_idx: int) -> np.ndarray:
-        self.model.zero_grad()
+        self.model.zero_grad(set_to_none=True)
         output = self.model(input_tensor)
         score = output[0, class_idx]
-        score.backward(retain_graph=True)
+        score.backward(retain_graph=False)
+
+        if self.gradients is None or self.activations is None:
+            return np.zeros((input_tensor.size(2), input_tensor.size(3)), dtype=np.float32)
 
         gradients = self.gradients.detach()
         activations = self.activations.detach()
+
+        # Giải phóng biến tham chiếu hook ngay lập tức để tiết kiệm bộ nhớ RAM
+        self.gradients = None
+        self.activations = None
 
         alpha = torch.mean(gradients, dim=[2, 3], keepdim=True)
         cam = torch.sum(alpha * activations, dim=1, keepdim=True)
@@ -109,11 +116,13 @@ class GradCAM:
         cam = F.interpolate(cam, size=(input_tensor.size(2), input_tensor.size(3)), mode="bilinear", align_corners=False)
         cam = cam.squeeze().cpu().numpy()
 
-        cam_min, cam_max = cam.min(), cam.max()
+        cam_min, cam_max = float(cam.min()), float(cam.max())
         if cam_max > cam_min:
             cam = (cam - cam_min) / (cam_max - cam_min)
         else:
             cam = np.zeros_like(cam)
+
+        self.model.zero_grad(set_to_none=True)
         return cam
 
 
@@ -353,6 +362,9 @@ async def predict_with_gradcam(req: PredictRequest):
         except Exception as e:
             logger.error(f"Lỗi suy luận PyTorch: {e}", exc_info=True)
             results = optical_analysis_fallback(img, model_version)
+        finally:
+            import gc
+            gc.collect()
     else:
         results = optical_analysis_fallback(img, model_version)
 
