@@ -1,0 +1,18 @@
+# Render.com Blueprint Deployment Configuration for LEAF_AI
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: leaf-ai-engine
+    env: docker
+    plan: free
+    region: singapore # hoặc oregon, ohio, frankfurt
+    rootDir: ml/hf-space
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 7860
+      - key: MODEL_DOWNLOAD_URL
+        value: https://huggingface.co/Hphuccoder28/leaf-ai-tomato-model/resolve/main/tomato_model.pt

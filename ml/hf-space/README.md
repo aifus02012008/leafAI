@@ -1,8 +1,15 @@
 ---
+title: LEAF AI Tomato Disease Engine
+emoji: 🍃
+colorFrom: green
+colorTo: emerald
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
 language:
 - vi
 - en
-license: mit
 tags:
 - agriculture
 - tomato
@@ -15,7 +22,6 @@ datasets:
 - wellCh4n/tomato-leaf-disease-image
 metrics:
 - accuracy
-pipeline_tag: image-classification
 ---
 
 # 🍃 LEAF_AI — Tomato Leaf Disease ResNet-18 Model

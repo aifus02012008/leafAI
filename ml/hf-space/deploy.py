@@ -89,23 +89,23 @@ def deploy(token: str = None, space_name: str = "leaf-ai-tomato-engine"):
     print(f"* Endpoint API:   {space_api_url}")
     print("=" * 60)
 
-    # Tự động cập nhật file backend/.env
-    backend_env = current_dir.parent / "backend" / ".env"
-    if backend_env.exists():
-        content = backend_env.read_text(encoding="utf-8")
-        if "AI_SERVER_URL=" in content:
-            lines = []
-            for line in content.splitlines():
-                if line.startswith("AI_SERVER_URL="):
-                    lines.append(f"AI_SERVER_URL={space_api_url}")
-                else:
-                    lines.append(line)
-            backend_env.write_text("\n".join(lines), encoding="utf-8")
-            print(f"[OK] Da cap nhat AI_SERVER_URL trong {backend_env}!")
-        else:
-            with open(backend_env, "a", encoding="utf-8") as f:
-                f.write(f"\nAI_SERVER_URL={space_api_url}\n")
-            print(f"[OK] Da them AI_SERVER_URL vao {backend_env}!")
+    # Tự động cập nhật file backend/.env và root .env
+    for env_path in [current_dir.parent.parent / "backend" / ".env", current_dir.parent.parent / ".env"]:
+        if env_path.exists():
+            content = env_path.read_text(encoding="utf-8")
+            if "AI_SERVER_URL=" in content:
+                lines = []
+                for line in content.splitlines():
+                    if line.startswith("AI_SERVER_URL="):
+                        lines.append(f"AI_SERVER_URL={space_api_url}")
+                    else:
+                        lines.append(line)
+                env_path.write_text("\n".join(lines), encoding="utf-8")
+                print(f"[OK] Da cap nhat AI_SERVER_URL trong {env_path}!")
+            else:
+                with open(env_path, "a", encoding="utf-8") as f:
+                    f.write(f"\nAI_SERVER_URL={space_api_url}\n")
+                print(f"[OK] Da them AI_SERVER_URL vao {env_path}!")
 
     print("\n[NOTE] Space se mat khoang 1-2 phut de build Docker tren Hugging Face.")
     print("Sau khi build xong, backend Django se ket noi toi AI server moi nay!")

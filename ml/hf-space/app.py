@@ -150,9 +150,19 @@ def load_pytorch_model():
     model_path = Path(__file__).parent / "tomato_model.pt"
 
     if not model_path.exists():
-        logger.warning(f"Chưa tìm thấy {model_path}, mô hình sẽ chạy chế độ quang học dự phòng.")
-        model_meta = {"status": "fallback_mode", "accuracy": "N/A"}
-        return
+        remote_url = os.environ.get(
+            "MODEL_DOWNLOAD_URL",
+            "https://huggingface.co/Hphuccoder28/leaf-ai-tomato-model/resolve/main/tomato_model.pt"
+        )
+        logger.info(f"Chưa có {model_path}, đang tải trọng số từ {remote_url}...")
+        try:
+            import urllib.request
+            urllib.request.urlretrieve(remote_url, str(model_path))
+            logger.info(f"[OK] Đã tải xong {model_path} ({model_path.stat().st_size / (1024*1024):.2f} MB)")
+        except Exception as err:
+            logger.warning(f"Không thể tải trọng số từ xa ({err}), chuyển sang chế độ quang học dự phòng.")
+            model_meta = {"status": "fallback_mode", "accuracy": "N/A"}
+            return
 
     try:
         checkpoint = torch.load(str(model_path), map_location=device)

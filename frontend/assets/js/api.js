@@ -94,6 +94,32 @@ class LeafApiService {
 
   async diagnose(image, modelVersion = 'v3', confidence = 0.25) {
     const payload = await this._toDataUrl(image);
+
+    // Ưu tiên 1: Kết nối trực tiếp AI Microservice Engine (Render / Cloud / HF) nếu được cấu hình
+    let customAiEngineUrl = null;
+    try { customAiEngineUrl = localStorage.getItem('leaf_ai_engine_url'); } catch { /* private mode */ }
+    if (customAiEngineUrl) {
+      try {
+        const cleanBase = customAiEngineUrl.replace(/\/+$/, '');
+        const res = await fetch(`${cleanBase}/predict_with_gradcam`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: payload,
+            model_version: modelVersion,
+            confidence: confidence
+          })
+        });
+        if (res.ok) {
+          const aiData = await res.json();
+          return this._formatAiEngineResult(aiData, modelVersion);
+        }
+      } catch (err) {
+        console.warn('[LEAF_AI] Không thể kết nối AI Engine trực tiếp, thử qua backend proxy:', err);
+      }
+    }
+
+    // Ưu tiên 2: Kết nối qua Backend Django / FastAPI
     if (await this.isOnline()) {
       try {
         const formData = new FormData();
@@ -114,6 +140,55 @@ class LeafApiService {
     // Giữ nhịp như suy luận thật để hiệu ứng quét không bị giật
     await new Promise((r) => setTimeout(r, 350));
     return this.simulateDetection(modelVersion, image);
+  }
+
+  /** Chuẩn hóa kết quả trả về từ Render AI Engine (ResNet-18 + Grad-CAM) */
+  _formatAiEngineResult(aiData, modelVersion) {
+    const results = aiData.results || [];
+    const heatmap = aiData.heatmap_base64
+      ? (aiData.heatmap_base64.startsWith('data:') ? aiData.heatmap_base64 : `data:image/jpeg;base64,${aiData.heatmap_base64}`)
+      : null;
+    const primary = results[0] || null;
+    const secondary = results.slice(1);
+    const healthy = !primary || primary.class === 'Healthy';
+    const info = (cls) => (typeof LEAF_DATA !== 'undefined' && LEAF_DATA.diseases)
+      ? Object.values(LEAF_DATA.diseases).find((d) => d.id === (cls || '').toLowerCase()) || {}
+      : {};
+
+    const primaryDisease = primary ? {
+      class: primary.class,
+      name_en: info(primary.class).name_en || primary.class,
+      name_vi: primary.name_vi || info(primary.class).name_vi || primary.class,
+      probability: primary.probability,
+      severity: primary.probability >= 60 ? 'Nghiêm trọng' : (primary.probability >= 35 ? 'Trung bình' : 'Nhẹ'),
+      color: info(primary.class).color || (healthy ? '#10b981' : '#d4452a'),
+      treatment: info(primary.class).treatment || {}
+    } : null;
+
+    const secondaryDiseases = secondary.map((s) => ({
+      class: s.class,
+      name_en: info(s.class).name_en || s.class,
+      name_vi: s.name_vi || info(s.class).name_vi || s.class,
+      probability: s.probability,
+      severity: s.probability >= 35 ? 'Trung bình' : 'Nhẹ',
+      color: info(s.class).color || '#ef4444'
+    }));
+
+    return {
+      success: true,
+      id: Date.now(),
+      model_version: modelVersion,
+      model_badge: `ResNet-18 ${modelVersion.toUpperCase()}`,
+      healthy: healthy,
+      is_coinfection: secondaryDiseases.length > 0 && !healthy,
+      warning_banner: (secondaryDiseases.length > 0 && !healthy) ? 'Phát hiện đa bệnh (đồng nhiễm)' : null,
+      primary_disease: primaryDisease,
+      secondary_diseases: secondaryDiseases,
+      heatmap_base64: heatmap,
+      detections: [],
+      lesion_count: healthy ? 0 : (secondaryDiseases.length + 1),
+      note: 'Dự đoán trực tiếp từ máy chủ Deep Learning ResNet-18'
+    };
   }
 
   async getHistory(limit = 50) {
