@@ -1,219 +1,188 @@
 /**
- * LEAF_AI - Client-side Disease Knowledge Base & FAO Handbook Data
+ * LEAF_AI - Kho tri thức bệnh hại trên lá vải thiều (Litchi chinensis) và cẩm nang IPM vườn vải.
+ * Khóa của mỗi bệnh trùng với tên lớp mô hình trả về; `aliases` gom các cách đặt tên lớp khác.
  */
 const LEAF_DATA = {
+  crop: {
+    name_vi: 'vải thiều',
+    region: 'Lục Ngạn',
+    latin: 'Litchi chinensis Sonn.'
+  },
+
   diseases: {
-    "Early_blight": {
-      id: "early_blight",
-      name_en: "Early Blight",
-      name_vi: "Úa sớm (Đốm vòng)",
-      pathogen: "Alternaria solani",
-      color: "#f97316",
+    "Anthracnose": {
+      id: "anthracnose",
+      name_en: "Anthracnose",
+      name_vi: "Thán thư",
+      pathogen: "Colletotrichum gloeosporioides",
+      kind: "Nấm",
+      aliases: ["anthracnose", "than_thu", "colletotrichum"],
+      color: "#c2410c",
       severity_default: "Nghiêm trọng",
-      confidence_default: 65,
-      thumb: "assets/images/early_blight.svg",
+      thumb: "assets/images/anthracnose.svg",
       symptoms: {
-        stage_1: "Đốm nhỏ hình tròn màu nâu sẫm trên các tầng lá già dưới gốc.",
-        stage_2: "Vết bệnh lan rộng 5-15mm xuất hiện các vân tròn đồng tâm đặc trưng (hình bia bắn), bao quanh bởi quầng vàng rõ rệt.",
-        stage_3: "Phiến lá cháy khô hoàn toàn, cuống lá gãy rũ treo trên thân, thân cây xuất hiện vết lõm hình bầu dục sậm màu."
+        stage_1: "Chấm nhỏ màu nâu nhạt xuất hiện ở chóp hoặc mép lá non, lá bánh tẻ; quanh chấm có quầng vàng mờ.",
+        stage_2: "Vết bệnh lan thành mảng nâu hình tròn hoặc bất định, viền nâu sẫm; khi trời ẩm trên vết có các chấm đen nhỏ xếp thành vòng.",
+        stage_3: "Nhiều vết liên kết làm cháy khô cả đoạn lá, lộc non quăn đen và rụng; bệnh lan sang chùm hoa, làm hoa thâm đen và quả non rụng."
       },
-      conditions: "Thời tiết ấm ẩm xen kẽ các đợt nắng ráo, nhiệt độ 24-29°C, sương đêm đọng kéo dài.",
-      prevention: "Dọn dẹp triệt để tàn dư vụ trước, tỉa cành gốc cách mặt đất 25-30cm, phủ bạt nilon hạn chế bắn đất.",
+      conditions: "Nhiệt độ 25–30°C, ẩm độ cao, mưa nhiều kéo dài trong các đợt ra lộc, ra hoa; vườn rậm rạp, thiếu ánh sáng.",
+      prevention: "Tỉa cành tạo tán thông thoáng sau thu hoạch, thu gom lá và cành bệnh đem tiêu hủy, bón cân đối và không để thừa đạm khi cây ra lộc.",
       treatment: {
-        cultural: "Tăng cường bón kali và canxi giúp tế bào lá cứng cáp, ngắt bỏ ngay lá chớm xuất hiện vòng tròn đồng tâm.",
-        biological: "Xử lý nấm đối kháng Trichoderma harzianum quanh vùng rễ và phun dịch chiết thảo mộc.",
-        chemical: "Phun luân phiên Mancozeb, Difenoconazole, Chlorothalonil hoặc Azoxystrobin theo liều khuyến cáo."
+        cultural: "Cắt bỏ lộc, lá và chùm hoa bị bệnh nặng, mang ra khỏi vườn tiêu hủy; khơi thông rãnh thoát nước, tỉa cành trong tán cho thoáng.",
+        biological: "Phun chế phẩm vi khuẩn đối kháng Bacillus subtilis lên lộc non; bón nấm Trichoderma cùng phân hữu cơ hoai mục quanh gốc.",
+        chemical: "Khi bệnh vượt ngưỡng, phun luân phiên thuốc gốc Azoxystrobin, Difenoconazole, Propineb hoặc Mancozeb theo danh mục được phép, không phun khi hoa nở rộ."
       },
-      references: "FAO IPM Field Handbook, Cornell University Vegetable MD Online"
+      references: "FAO, The Lychee Crop in Asia and the Pacific (Menzel, 2002); khuyến cáo của ngành bảo vệ thực vật"
     },
-    "Bacterial_spot": {
-      id: "bacterial_spot",
-      name_en: "Bacterial Spot",
-      name_vi: "Đốm vi khuẩn",
-      pathogen: "Xanthomonas campestris pv. vesicatoria",
-      color: "#ef4444",
-      severity_default: "Trung bình",
-      confidence_default: 42,
-      thumb: "assets/images/bacterial_spot.svg",
-      symptoms: {
-        stage_1: "Các đốm nhỏ 1-2mm úng nước trên lá bánh tẻ và lá già, mép đốm có quầng vàng nhạt trong suốt.",
-        stage_2: "Vết bệnh mở rộng sẫm màu nâu đen, tâm hoại tử hơi lõm, bề mặt ráp sần sùi.",
-        stage_3: "Nhiều đốm liên kết làm rách phiến lá, lá vàng khô giòn và rụng sớm từ gốc lên ngọn."
-      },
-      conditions: "Nhiệt độ ấm 24-30°C, ẩm độ cao >85%, giọt bắn mưa lớn hoặc tưới phun mưa đọng nước.",
-      prevention: "Sử dụng hạt giống đã xử lý nhiệt/hóa chất, luân canh cây khác họ cà ít nhất 2 năm, tưới nhỏ giọt.",
-      treatment: {
-        cultural: "Cắt tỉa lá già sát đất, vệ sinh tàn dư vườn, tránh chạm vào cây khi lá còn ướt sương.",
-        biological: "Phun chế phẩm sinh học chứa vi khuẩn đối kháng Bacillus subtilis hoặc Streptomyces spp.",
-        chemical: "Phun gốc đồng (Copper Hydroxide, Copper Oxychloride) phối hợp Kasugamycin luân phiên."
-      },
-      references: "FAO Plant Protection Guide, UC Davis IPM Tomato Bacterial Spot Guidelines"
-    },
-    "Septoria_leaf_spot": {
-      id: "septoria_leaf_spot",
-      name_en: "Septoria Leaf Spot",
-      name_vi: "Đốm lá Septoria",
-      pathogen: "Septoria lycopersici",
-      color: "#eab308",
-      severity_default: "Trung bình",
-      confidence_default: 31,
-      thumb: "assets/images/septoria_leaf_spot.svg",
-      symptoms: {
-        stage_1: "Vết đốm nhỏ li ti 1-3mm màu nâu xám viền nâu đậm xuất hiện dày đặc trên lá già.",
-        stage_2: "Tâm vết bệnh sáng màu chuyển sang màu xám tro, xuất hiện các chấm đen nhỏ li ti (ổ bào tử nấm pycnidia).",
-        stage_3: "Hàng trăm vết đốm liên kết khiến lá vàng úa hàng loạt, lá cuộn lại và rụng sớm làm trơ cành và cháy quả."
-      },
-      conditions: "Nhiệt độ 20-26°C kết hợp các đợt mưa kéo dài hoặc tưới nước mạnh làm văng bùn đất lên lá.",
-      prevention: "Bọc cọc chống cà chua sạch sẽ, dọn lá sát đất, dùng lưới che mặt luống giữ ẩm đều.",
-      treatment: {
-        cultural: "Tỉa thông thoáng gốc, bón phân cân đối tránh thừa đạm làm lá non mỏng manh.",
-        biological: "Phun dịch tỏi ớt lên men kết hợp vi sinh vật bản địa (IMO/EM).",
-        chemical: "Phun Chlorothalonil hoặc Copper Oxychloride ngay khi phát hiện những đốm đầu tiên."
-      },
-      references: "FAO Plant Health Division, Missouri Botanical Garden IPM"
-    },
-    "Late_blight": {
-      id: "late_blight",
-      name_en: "Late Blight",
-      name_vi: "Sương mai (Mốc sương)",
-      pathogen: "Phytophthora infestans",
+    "Downy_blight": {
+      id: "downy_blight",
+      name_en: "Downy Blight",
+      name_vi: "Sương mai",
+      pathogen: "Peronophythora litchii",
+      kind: "Nấm noãn",
+      aliases: ["downy_blight", "downy", "suong_mai", "peronophythora"],
       color: "#dc2626",
       severity_default: "Nghiêm trọng",
-      confidence_default: 75,
-      thumb: "assets/images/late_blight.svg",
+      thumb: "assets/images/downy_blight.svg",
       symptoms: {
-        stage_1: "Vết bệnh hình dạng bất định úng nước màu xanh tái xám ở chóp hoặc mép lá non.",
-        stage_2: "Vết bệnh lan rộng nhanh chuyển màu nâu sẫm nhạt dầu; mặt dưới lá phủ lớp tơ mốc trắng mịn vào sáng sớm.",
-        stage_3: "Toàn bộ tán lá úa thối nhanh trong 2-4 ngày, thân mềm gãy, mùi tanh ẩm đặc trưng."
+        stage_1: "Trên lá non xuất hiện vết úng nước màu xanh xám, hình dạng bất định, thường bắt đầu từ mép lá.",
+        stage_2: "Vết bệnh chuyển nâu sẫm và lan nhanh; khi trời ẩm, mặt vết bệnh phủ lớp mốc trắng mịn.",
+        stage_3: "Lá non thối khô, chùm hoa và quả bị thối nâu, phủ mốc trắng rồi rụng hàng loạt sau vài ngày mưa phùn."
       },
-      conditions: "Trời âm u mưa phùn, sương mù dày, nhiệt độ mát 15-22°C, ẩm độ bão hòa >90%.",
-      prevention: "Chọn giống kháng sương mai, mật độ hàng rộng thoáng gió, che phủ vòm mưa.",
+      conditions: "Mưa phùn, nồm ẩm kéo dài, ẩm độ không khí trên 85–90%, nhiệt độ khoảng 22–25°C, thường gặp từ giai đoạn ra hoa đến quả chín.",
+      prevention: "Giữ tán thông thoáng, thoát nước tốt; theo dõi sát thời tiết nồm ẩm để xử lý sớm; thu gom lá, quả rụng không để lại trong vườn.",
       treatment: {
-        cultural: "Tiêu hủy ngay bụi cây nhiễm đầu tiên, ngưng tưới nước khi ẩm độ ngoài trời cao.",
-        biological: "Chế phẩm chitosan phối hợp nấm cộng sinh mycorrhiza tăng sức đề kháng biểu bì.",
-        chemical: "Phun chặn tức thì khi có sương lạnh: Metalaxyl-M, Dimethomorph, Cymoxanil hoặc Fosetyl-Aluminium."
+        cultural: "Cắt bỏ phần lá, chùm hoa bị bệnh và quả rụng, đem tiêu hủy xa vườn; tránh tưới phun lên tán vào chiều tối.",
+        biological: "Phun chế phẩm Bacillus subtilis hoặc Trichoderma lên tán ngay khi dự báo có đợt mưa ẩm kéo dài.",
+        chemical: "Khi có đợt mưa phùn kéo dài và đã thấy vết bệnh, phun thuốc gốc Metalaxyl + Mancozeb, Cymoxanil + Mancozeb hoặc Dimethomorph theo danh mục được phép."
       },
-      references: "FAO Late Blight Global Initiative, UC IPM Tomato Pest Management"
+      references: "FAO, The Lychee Crop in Asia and the Pacific (Menzel, 2002); khuyến cáo của ngành bảo vệ thực vật"
     },
-    "Leaf_mold": {
-      id: "leaf_mold",
-      name_en: "Leaf Mold",
-      name_vi: "Nấm mốc lá",
-      pathogen: "Passalora fulva",
-      color: "#10b981",
-      severity_default: "Nhẹ",
-      confidence_default: 28,
-      thumb: "assets/images/leaf_mold.svg",
+    "Leaf_blight": {
+      id: "leaf_blight",
+      name_en: "Leaf Blight",
+      name_vi: "Cháy lá",
+      pathogen: "Pestalotiopsis spp.",
+      kind: "Nấm",
+      aliases: ["leaf_blight", "chay_la", "pestalotiopsis", "leaf_spot", "dom_la"],
+      color: "#a16207",
+      severity_default: "Trung bình",
+      thumb: "assets/images/leaf_blight.svg",
       symptoms: {
-        stage_1: "Mặt trên lá xuất hiện các đốm màu vàng xanh nhạt mờ nhạt ranh giới không phân định.",
-        stage_2: "Mặt dưới lá tương ứng xuất hiện thảm nấm mịn màu xanh ô liu chuyển dần sang nâu nhung.",
-        stage_3: "Phiến lá quăn queo, khô cháy và rụng, thường bùng phát nghiêm trọng trong nhà màng kín gió."
+        stage_1: "Chóp lá hoặc mép lá chuyển màu nâu nhạt, ranh giới với phần lá xanh có viền nâu sẫm gợn sóng.",
+        stage_2: "Vết cháy lan dần từ chóp và mép vào phía gân chính, chuyển màu xám nâu; trên vết có nhiều chấm đen nhỏ.",
+        stage_3: "Nửa lá hoặc cả lá chét khô cháy, giòn và rụng sớm, cây suy yếu, ảnh hưởng đến đợt lộc sau."
       },
-      conditions: "Ẩm độ không khí nhà kính >85%, nhiệt độ ấm 22-26°C, không khí tù đọng kém lưu thông.",
-      prevention: "Tăng cường quạt thông gió đối lưu trong nhà kính, mở lưới mái, tăng nhiệt độ sấy nhẹ.",
+      conditions: "Thời tiết nóng ẩm, mưa nhiều; cây suy yếu do thiếu dinh dưỡng, rễ bị úng hoặc lá có vết thương do côn trùng, gió bão.",
+      prevention: "Chăm sóc cho cây khỏe: bón phân cân đối, bổ sung kali; thoát nước tốt mùa mưa; hạn chế vết thương trên lá.",
       treatment: {
-        cultural: "Tỉa lá già định kỳ hàng tuần, không để mật độ cành lá quá dày đặc chen chúc.",
-        biological: "Phun phòng bằng nấm ký sinh đối kháng Trichoderma và dịch chiết quế.",
-        chemical: "Phun luân phiên hợp chất Triazole hoặc Bordeaux pha tỷ lệ chuẩn."
+        cultural: "Cắt bỏ các lá chét bị cháy nặng, thu gom lá rụng đem tiêu hủy; bổ sung phân hữu cơ và kali để cây phục hồi.",
+        biological: "Bón Trichoderma cùng phân hữu cơ quanh gốc, phun chế phẩm Bacillus subtilis lên tán.",
+        chemical: "Khi bệnh lan rộng, phun thuốc gốc đồng (Copper Oxychloride), Propineb hoặc Difenoconazole theo danh mục được phép."
       },
-      references: "FAO Greenhouse Crop Production Handbook, PennState Extension"
+      references: "FAO, The Lychee Crop in Asia and the Pacific (Menzel, 2002); khuyến cáo của ngành bảo vệ thực vật"
     },
-    "Powdery_mildew": {
-      id: "powdery_mildew",
-      name_en: "Powdery Mildew",
-      name_vi: "Phấn trắng",
-      pathogen: "Leveillula taurica",
-      color: "#06b6d4",
+    "Algal_spot": {
+      id: "algal_spot",
+      name_en: "Algal Spot (Red Rust)",
+      name_vi: "Đốm rong",
+      pathogen: "Cephaleuros virescens",
+      kind: "Tảo",
+      aliases: ["algal_spot", "algal_leaf_spot", "red_rust", "dom_rong", "cephaleuros"],
+      color: "#0e7490",
       severity_default: "Nhẹ",
-      confidence_default: 25,
-      thumb: "assets/images/powdery_mildew.svg",
+      thumb: "assets/images/algal_spot.svg",
       symptoms: {
-        stage_1: "Các mảng bụi phấn màu trắng xám xuất hiện rải rác trên bề mặt lá như phủ bột mì.",
-        stage_2: "Lớp phấn trắng lan rộng khắp hai mặt lá, cuống hoa và đài hoa, lá gợn sóng biến dạng.",
-        stage_3: "Vùng mô lá bên dưới chuyển vàng rồi khô cháy thành mảng lớn giòn vụn, làm giảm quang hợp nặng nề."
+        stage_1: "Mặt trên lá xuất hiện đốm tròn nhỏ 2–5 mm, hơi nổi, màu xám xanh.",
+        stage_2: "Đốm chuyển màu đỏ gạch hoặc cam như lớp nhung, nhiều đốm mọc thành cụm trên lá già trong tán.",
+        stage_3: "Lá bị phủ nhiều đốm, giảm khả năng quang hợp, lá vàng và rụng sớm; tảo có thể lan sang cành non."
       },
-      conditions: "Khí hậu khô râm mát ban ngày xen kẽ đêm ẩm ướt nhiều sương, nhiệt độ 20-28°C.",
-      prevention: "Tưới đủ ẩm cho gốc cây, tránh để cây chịu sốc hạn rồi ngập ẩm đột ngột, tỉa tán đón nắng.",
+      conditions: "Vườn rậm rạp, ẩm ướt, thiếu ánh sáng; mưa nhiều; cây già, chăm sóc kém.",
+      prevention: "Tỉa cành tạo tán thông thoáng cho ánh sáng lọt vào trong tán, làm cỏ quanh gốc, bón phân đầy đủ cho cây.",
       treatment: {
-        cultural: "Ngắt bỏ lá bị bao phủ phấn nặng cho vào túi kín đem tiêu hủy.",
-        biological: "Phun dung dịch dầu neem nguyên chất (Neem oil) hoặc hỗn hợp Baking soda + xà phòng sinh học hữu cơ.",
-        chemical: "Phun bột lưu huỳnh (Sulfur WG) hoặc Difenoconazole nồng độ nhẹ."
+        cultural: "Tỉa bỏ cành lá bị nặng trong tán, phát quang vườn để giảm ẩm độ.",
+        biological: "Chưa có chế phẩm sinh học đặc hiệu; ưu tiên biện pháp canh tác để giảm ẩm trong tán.",
+        chemical: "Khi mật độ đốm cao, phun thuốc gốc đồng (Copper Hydroxide, Copper Oxychloride) hoặc hỗn hợp Bordeaux theo khuyến cáo."
       },
-      references: "FAO Organic Tomato Handbook, UC Davis IPM Powdery Mildew"
+      references: "FAO, The Lychee Crop in Asia and the Pacific (Menzel, 2002); khuyến cáo của ngành bảo vệ thực vật"
+    },
+    "Erinose": {
+      id: "erinose",
+      name_en: "Erinose Mite",
+      name_vi: "Nhện lông nhung",
+      pathogen: "Aceria litchii",
+      kind: "Nhện hại",
+      aliases: ["erinose", "erinose_mite", "leaf_mite", "leaf_mites", "mite", "nhen_long_nhung", "aceria"],
+      color: "#7e22ce",
+      severity_default: "Trung bình",
+      thumb: "assets/images/erinose.svg",
+      symptoms: {
+        stage_1: "Mặt dưới lá non xuất hiện các mảng lông tơ màu trắng bạc; mặt trên tương ứng hơi phồng lên.",
+        stage_2: "Lớp lông chuyển sang màu vàng nâu rồi nâu đỏ như nhung; lá phồng rộp, xoăn mép, biến dạng.",
+        stage_3: "Lá chuyển nâu sẫm, khô và rụng; lộc non, chùm hoa bị hại làm cây ra hoa kém, đậu quả ít."
+      },
+      conditions: "Phát sinh mạnh trên các đợt lộc xuân và lộc thu; lây lan theo gió, côn trùng và qua cành chiết, cây giống mang nhện.",
+      prevention: "Dùng cây giống sạch nhện; cắt bỏ cành lá bị nhện sau thu hoạch; nuôi các đợt lộc ra đồng loạt để dễ phòng trừ.",
+      treatment: {
+        cultural: "Cắt bỏ toàn bộ lá, cành bị lông nhung và đem tiêu hủy, không để lại trong vườn.",
+        biological: "Phun dầu khoáng hoặc chế phẩm thảo mộc khi lộc non dài 3–5 cm; bảo vệ nhện bắt mồi và các loài thiên địch trong vườn.",
+        chemical: "Khi mật độ nhện cao, phun thuốc gốc Abamectin hoặc lưu huỳnh lên lộc non theo danh mục được phép. Đây là nhện hại, thuốc trừ nấm không có tác dụng."
+      },
+      references: "FAO, The Lychee Crop in Asia and the Pacific (Menzel, 2002); khuyến cáo của ngành bảo vệ thực vật"
     }
   },
 
-  models: {
-    v3: {
-      name: "Model V3 (Production)",
-      badge: "Mặc định",
-      badge_class: "badge-prod",
-      arch: "YOLOv8n (Object Detection)",
-      file: "model/tomato_v3/best.pt",
-      classes_count: 3,
-      classes: ["Bacterial_spot", "Early_blight", "Late_blight"],
-      map50: "0.768",
-      recall: "80.8% (đốm nhỏ)",
-      input: "640x640",
-      confidence: 0.25,
-      desc: "Mô hình sản xuất tối ưu nhận diện 3 bệnh nguy hiểm nhất với độ trễ siêu thấp."
-    },
-    v4: {
-      name: "Model V4 (Experimental)",
-      badge: "Mở rộng",
-      badge_class: "badge-exp",
-      arch: "YOLOv8n (Object Detection)",
-      file: "model/tomato_v4/best.pt",
-      classes_count: 6,
-      classes: ["Bacterial_spot", "Early_blight", "Late_blight", "Septoria_leaf_spot", "Leaf_mold", "Powdery_mildew"],
-      map50: "0.742",
-      recall: "79.1%",
-      input: "640x640",
-      epochs: 25,
-      confidence: 0.25,
-      desc: "Mô hình thử nghiệm mở rộng nhận diện trọn bộ 6 bệnh phổ biến trên lá cà chua."
-    }
+  /** Lá khỏe: không đưa vào thư viện bệnh nhưng dùng để nhận diện nhãn của mô hình */
+  healthy_aliases: ["healthy", "la_khoe", "normal", "healthy_leaf"],
+
+  model: {
+    name: "ResNet-18 + Grad-CAM",
+    arch: "ResNet-18 (PyTorch), tinh chỉnh từ ImageNet",
+    input: "224 × 224",
+    classes: ["Healthy", "Anthracnose", "Downy_blight", "Leaf_blight", "Algal_spot", "Erinose"],
+    explain: "Grad-CAM tại tầng tích chập cuối (layer4)",
+    desc: "Phân loại 5 bệnh, dịch hại thường gặp trên lá vải và lá khỏe; bản đồ nhiệt cho biết vùng ảnh mô hình dựa vào."
   },
 
   handbook: {
     principles: [
-      { num: 1, title: "Chọn giống kháng bệnh", desc: "Ưu tiên giống F1 có chứng nhận kháng héo vi khuẩn, sương mai, virus xoăn vàng lá." },
-      { num: 2, title: "Khử trùng đất & giá thể", desc: "Phơi ải đất, rải vôi bột 50-70kg/sào hoặc xử lý nấm Trichoderma 10 ngày trước khi xuống giống." },
-      { num: 3, title: "Mật độ & khoảng cách chuẩn", desc: "Cây cách cây 45-50cm, hàng cách hàng 70-80cm, bố trí luống theo hướng gió và ánh nắng sáng." },
-      { num: 4, title: "Tưới tiêu khoa học", desc: "Áp dụng tưới nhỏ giọt quanh gốc rễ; không bao giờ tưới phun mưa lúc chiều muộn làm ướt lá qua đêm." },
-      { num: 5, title: "Bón phân cân đối N-P-K", desc: "Không bón thừa đạm làm vách tế bào mỏng; tăng cường Silic, Canxi, Bo tăng độ dai biểu bì lá." },
-      { num: 6, title: "Cắt tỉa & dọn vệ sinh", desc: "Tỉa chồi nách vô hiệu lúc trời khô ráo; cắt bỏ toàn bộ lá gốc chạm mặt đất cách mặt luống 25-30cm." },
-      { num: 7, title: "Che phủ mặt luống", desc: "Dùng màng phủ nông nghiệp hoặc rơm rạ khô ngăn giọt mưa bắn mang nấm khuẩn từ đất lên phiến lá." },
-      { num: 8, title: "Tiêu hủy tàn dư cây bệnh", desc: "Không vứt lá bệnh xuống rãnh nước; thu gom vào bao kín mang ra bãi tiêu hủy hoặc rắc vôi chôn sâu." }
+      { num: 1, title: "Cây giống sạch bệnh", desc: "Nhân giống từ cây mẹ khỏe, không mang nhện lông nhung; dùng cành chiết, cây ghép có nguồn gốc rõ ràng." },
+      { num: 2, title: "Cắt tỉa sau thu hoạch", desc: "Tỉa cành tăm, cành sâu bệnh, cành bị lông nhung ngay sau thu hoạch để tán thông thoáng, đón nắng." },
+      { num: 3, title: "Tạo tán, giữ khoảng cách", desc: "Tạo tán gọn, không để tán các cây giao nhau; vườn thoáng giúp lá nhanh khô sau mưa, hạn chế nấm và tảo." },
+      { num: 4, title: "Quản lý các đợt lộc", desc: "Nuôi các đợt lộc thu ra đồng loạt, khỏe; hạn chế lộc đông để cây phân hóa mầm hoa thuận lợi." },
+      { num: 5, title: "Bón phân cân đối", desc: "Ưu tiên phân hữu cơ hoai mục, cân đối N-P-K, bổ sung kali, canxi, bo; thừa đạm làm lộc non mềm, dễ nhiễm bệnh." },
+      { num: 6, title: "Tưới và thoát nước", desc: "Giữ ẩm vừa đủ mùa khô, khơi rãnh thoát nước mùa mưa; tránh tưới phun lên tán vào chiều tối." },
+      { num: 7, title: "Vệ sinh vườn", desc: "Thu gom lá, quả rụng và cành bệnh đem tiêu hủy xa vườn; làm sạch cỏ dại quanh gốc." },
+      { num: 8, title: "Bảo vệ ong và thiên địch", desc: "Không phun thuốc khi hoa nở rộ; ong mật thụ phấn giúp tăng tỷ lệ đậu quả, thiên địch giữ dịch hại ở mức thấp." }
     ],
     inspection: [
-      { step: 1, title: "Quan sát tổng quan luống cây", desc: "Đi dọc luống lúc sáng sớm quan sát độ đồng đều, phát hiện các điểm úa vàng hoặc chồi non bất thường." },
-      { step: 2, title: "Kiểm tra mặt dưới lá bánh tẻ", desc: "Lật nhẹ mặt dưới các lá gần gốc kiểm tra màng tơ trắng (sương mai) hoặc thảm phấn nhung (mốc lá)." },
-      { step: 3, title: "Soi ngược ánh sáng mặt trời", desc: "Đưa phiến lá lên nguồn sáng tự nhiên để nhận diện sớm các chấm úng nước li ti của bệnh đốm vi khuẩn." },
-      { step: 4, title: "Kiểm tra thân & vết cắt tỉa", desc: "Soi kỹ phần gốc thân, các vết bấm chồi tìm dấu hiệu thâm đen, chảy nhựa hoặc nứt sùi." },
-      { step: 5, title: "Đo độ ẩm bầu rễ và rãnh luống", desc: "Kiểm tra đất dưới màng phủ, đảm bảo đất ẩm xốp nhưng không bị sũng nước đọng lâu sau cữ tưới." },
-      { step: 6, title: "Giám sát bẫy côn trùng", desc: "Đếm mật độ bọ trĩ, rầy phấn trắng dính trên bẫy dính vàng để ngăn ngừa nguồn lây truyền virus." },
-      { step: 7, title: "Ghi chép & phân vùng kịp thời", desc: "Đánh dấu cọc cờ tại vị trí cây có dấu hiệu nghi ngờ để theo dõi tiến triển trong 24 giờ tới." }
+      { step: 1, title: "Quan sát tán theo bốn hướng", desc: "Đi quanh tán vào buổi sáng, quan sát độ đồng đều của đợt lộc, chùm hoa và những chỗ lá đổi màu." },
+      { step: 2, title: "Kiểm tra lộc non", desc: "Lộc dài 3–5 cm là lúc nhện lông nhung và thán thư dễ tấn công nhất; kiểm tra kỹ các đợt lộc xuân, lộc thu." },
+      { step: 3, title: "Lật mặt dưới lá", desc: "Tìm mảng lông tơ trắng hoặc nâu đỏ (nhện lông nhung) và lớp mốc trắng (sương mai)." },
+      { step: 4, title: "Xem chóp và mép lá", desc: "Vết cháy nâu có viền sẫm, chấm đen nhỏ trên vết là dấu hiệu của thán thư hoặc cháy lá." },
+      { step: 5, title: "Kiểm tra lá trong tán", desc: "Ở chỗ rậm, ẩm, tìm các đốm tròn đỏ gạch như nhung của bệnh đốm rong trên lá già." },
+      { step: 6, title: "Theo dõi thời tiết", desc: "Mưa phùn, nồm ẩm kéo dài là lúc nguy cơ sương mai và thán thư tăng cao, cần thăm vườn dày hơn." },
+      { step: 7, title: "Ghi chép và đánh dấu cây", desc: "Buộc dây đánh dấu cây nghi bệnh, chụp ảnh và lưu vào nhật ký LEAF_AI để theo dõi diễn biến." }
     ],
     ipm: [
-      { step: 1, title: "Khởi đầu bằng cây giống khỏe mạnh", desc: "Chỉ trồng cây con ươm khay cứng cáp, rễ trắng, không có đốm bệnh." },
-      { step: 2, title: "Thăm vườn thường xuyên định kỳ", desc: "Tối thiểu 2 lần/tuần đi kiểm tra chi tiết theo quy trình 7 bước." },
-      { step: 3, title: "Bảo vệ & phát triển thiên địch", desc: "Duy trì bọ rùa, ong ký sinh, nhện bắt mồi bằng cách trồng hoa cúc, hoa vạn thọ ven bờ." },
-      { step: 4, title: "Nâng cao năng lực tự nhận diện", desc: "Sử dụng LEAF_AI chẩn đoán ngay khi vết bệnh mới chớm ở giai đoạn 1." },
-      { step: 5, title: "Chỉ can thiệp khi tới ngưỡng kinh tế", desc: "Không phun phòng thuốc hóa học bừa bãi khi tỷ lệ hại dưới 5% diện tích lá." },
-      { step: 6, title: "Biện pháp canh tác làm nền móng", desc: "Luân canh cây họ đậu/hòa thảo, khử chua đất bằng vôi, lên luống cao thoát thủy." },
-      { step: 7, title: "Ưu tiên cơ giới & rào chắn vật lý", desc: "Dùng nhà lưới chống côn trùng, bẫy bả dính màu, bạt phủ cách ly mầm bệnh." },
-      { step: 8, title: "Ưu tiên giải pháp sinh học vi sinh", desc: "Sử dụng nấm đối kháng Trichoderma, vi khuẩn Bacillus subtilis, dầu neem sinh học." },
-      { step: 9, title: "Hóa học là cứu cánh cuối cùng", desc: "Chỉ phun hóa học chọn lọc khi dịch có nguy cơ bùng phát diện rộng vượt kiểm soát." },
-      { step: 10, title: "Đánh giá hiệu quả & lưu trữ dữ liệu", desc: "Ghi chép lịch sử chẩn đoán trên LEAF_AI để rút kinh nghiệm cho các vụ mùa sau." }
+      { step: 1, title: "Cây khỏe từ gốc", desc: "Cây giống sạch bệnh, chăm sóc phục hồi cây ngay sau thu hoạch." },
+      { step: 2, title: "Thăm vườn định kỳ", desc: "Ít nhất 1–2 lần mỗi tuần, dày hơn khi cây ra lộc, ra hoa hoặc gặp đợt mưa ẩm." },
+      { step: 3, title: "Bảo vệ thiên địch", desc: "Giữ nhện bắt mồi, ong ký sinh, kiến vàng; không phun thuốc phổ rộng tràn lan." },
+      { step: 4, title: "Nhận diện đúng tác nhân", desc: "Dùng LEAF_AI để phân biệt bệnh do nấm, tảo hay nhện hại trước khi chọn biện pháp." },
+      { step: 5, title: "Chỉ can thiệp khi vượt ngưỡng", desc: "Không phun định kỳ theo lịch; chỉ xử lý khi tỷ lệ lộc, lá bị hại tăng nhanh." },
+      { step: 6, title: "Biện pháp canh tác làm nền", desc: "Tỉa cành, vệ sinh vườn, bón phân cân đối, thoát nước tốt." },
+      { step: 7, title: "Biện pháp cơ giới", desc: "Cắt bỏ và tiêu hủy cành lá bị bệnh, bị nhện lông nhung." },
+      { step: 8, title: "Ưu tiên biện pháp sinh học", desc: "Trichoderma, Bacillus subtilis, dầu khoáng, chế phẩm thảo mộc." },
+      { step: 9, title: "Hóa học là bước cuối cùng", desc: "Chỉ dùng thuốc trong danh mục được phép, đúng 4 đúng, không phun khi hoa nở rộ." },
+      { step: 10, title: "Ghi chép và truy xuất", desc: "Lưu nhật ký chẩn đoán và phun thuốc; vải xuất khẩu cần nhật ký canh tác đầy đủ để truy xuất nguồn gốc." }
     ],
     safe_pesticide: [
-      { rule: "1. Đúng thuốc", desc: "Chẩn đoán chính xác bệnh trên LEAF_AI trước khi mua thuốc; tuyệt đối không dùng thuốc trừ sâu trị nấm bệnh." },
-      { rule: "2. Đúng lúc", desc: "Phun khi vết bệnh ở giai đoạn khởi phát; phun vào sáng sớm (khi ráo sương) hoặc chiều mát lặng gió." },
-      { rule: "3. Đúng liều lượng & nồng độ", desc: "Đo đong chính xác theo khuyến cáo bao bì; không pha quá đặc gây cháy chồi lá, không pha loãng gây lờn thuốc." },
-      { rule: "4. Đúng cách", desc: "Phun ướt đều 2 mặt lá, chỉnh béc phun hạt mịn như sương, đặc biệt rà kỹ mặt dưới lá nơi nấm ẩn náu." },
-      { rule: "5. Thời gian cách ly (PHI)", desc: "Ngừng phun thuốc trước khi thu hoạch quả theo đúng số ngày quy định ghi trên nhãn (thường 7-14 ngày)." },
-      { rule: "6. Bảo hộ an toàn tuyệt đối", desc: "Mặc quần áo dài, khẩu trang than hoạt tính, găng tay và kính mắt; không ăn uống hút thuốc khi đang phun thuốc." }
+      { rule: "1. Đúng thuốc", desc: "Xác định đúng tác nhân trước khi mua thuốc: thuốc trừ nấm không trị được nhện lông nhung và ngược lại." },
+      { rule: "2. Đúng lúc", desc: "Phun khi bệnh mới chớm hoặc khi lộc non dài 3–5 cm; phun lúc sáng sớm hoặc chiều mát, không phun khi hoa nở rộ." },
+      { rule: "3. Đúng liều lượng, nồng độ", desc: "Pha đúng liều ghi trên nhãn; pha đặc gây cháy lộc, pha loãng làm dịch hại nhờn thuốc." },
+      { rule: "4. Đúng cách", desc: "Phun ướt đều hai mặt lá, chú ý mặt dưới lá và lộc non; không pha trộn nhiều loại thuốc tùy tiện." },
+      { rule: "5. Thời gian cách ly (PHI)", desc: "Ngừng phun trước thu hoạch đúng số ngày ghi trên nhãn; vải xuất khẩu còn phải tuân thủ danh mục hoạt chất và mức dư lượng (MRL) của nước nhập khẩu." },
+      { rule: "6. Bảo hộ khi phun", desc: "Mặc quần áo dài, đeo khẩu trang, găng tay, kính; không ăn uống, hút thuốc khi đang pha và phun thuốc." }
     ]
   }
 };

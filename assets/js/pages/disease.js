@@ -1,5 +1,5 @@
 /**
- * LEAF_AI — Chi tiết bệnh (disease.html?id=early_blight)
+ * LEAF_AI — Chi tiết bệnh (disease.html?id=anthracnose)
  */
 (function () {
   'use strict';
@@ -20,8 +20,8 @@
     <span class="tag">Nhận diện: ${diseases.models(d)}</span>`;
   $('dLead').textContent = d.symptoms.stage_2;
   $('dImg').src = d.thumb;
-  $('dImg').alt = `Minh hoạ lá cà chua bị ${shortName.toLowerCase()}`;
-  $('dAsk').href = `assistant.html?q=${encodeURIComponent(`Cách xử lý bệnh ${shortName.toLowerCase()} trên cà chua theo hướng IPM?`)}`;
+  $('dImg').alt = `Minh hoạ lá vải bị ${shortName.toLowerCase()}`;
+  $('dAsk').href = `assistant.html?q=${encodeURIComponent(`Cách xử lý ${shortName.toLowerCase()} trên cây vải theo hướng IPM?`)}`;
 
   const stages = [
     ['Khởi phát', d.symptoms.stage_1],

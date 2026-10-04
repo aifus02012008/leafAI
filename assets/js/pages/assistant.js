@@ -14,7 +14,7 @@
   const sendBtn = $('btnSend');
   let sending = false;
 
-  const WELCOME = '<p>Xin chào! Mình là trợ lý chuyên về bệnh trên cây cà chua.</p><p>Bạn có thể mô tả vết bệnh (màu sắc, hình dạng, lá già hay lá non, mặt trên hay mặt dưới) hoặc hỏi về cách xử lý theo hướng IPM.</p>';
+  const WELCOME = '<p>Xin chào! Mình là trợ lý chuyên về bệnh hại trên cây vải thiều.</p><p>Bạn có thể mô tả vết bệnh (màu sắc, vị trí ở chóp, mép hay mặt dưới lá, lộc non hay lá già) hoặc hỏi về cách xử lý theo hướng IPM.</p>';
 
   /** Markdown tối giản cho câu trả lời dạng text: in đậm, xuống dòng, gạch đầu dòng */
   function mdToHtml(text) {

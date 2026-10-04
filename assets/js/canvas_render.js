@@ -95,7 +95,8 @@ class LeafCanvasRenderer {
     }
 
     // Vẽ Bounding Boxes khoanh vùng bệnh (nếu không bật heatmap hoặc người dùng muốn cả hai)
-    if (this.detections && this.detections.length > 0 && !this.isScanning) {
+    // Chế độ bản đồ nhiệt chỉ hiện Grad-CAM, không chồng khung lên
+    if (this.detections && this.detections.length > 0 && !this.isScanning && !(this.showHeatmap && this.heatmapImage)) {
       this.drawBoundingBoxes();
     }
 
