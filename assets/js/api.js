@@ -58,12 +58,52 @@ class LeafApiService {
     if (category) params.append('category', category);
     if (query) params.append('q', query);
     const json = await this._getJson(`/api/diseases/?${params}`);
-    return json?.data || Object.values(LEAF_DATA.diseases);
+
+    const validLycheeIds = ['anthracnose', 'downy_blight', 'leaf_blight', 'algal_spot', 'erinose'];
+    let list = null;
+    if (Array.isArray(json?.data) && json.data.length > 0) {
+      const hasLychee = json.data.some((d) => validLycheeIds.includes(d.id?.toLowerCase()));
+      const hasTomato = json.data.some((d) =>
+        ['bacterial_spot', 'early_blight', 'late_blight', 'septoria_leaf_spot', 'leaf_mold', 'powdery_mildew'].includes(d.id?.toLowerCase())
+      );
+      if (hasLychee && !hasTomato) {
+        list = json.data;
+      }
+    }
+
+    if (!list) {
+      list = Object.values(LEAF_DATA.diseases);
+      if (category === 'fungus') {
+        list = list.filter((d) => d.kind === 'Nấm' || d.kind === 'Nấm noãn');
+      } else if (category === 'pest') {
+        list = list.filter((d) => d.kind === 'Nhện hại');
+      } else if (category === 'algae') {
+        list = list.filter((d) => d.kind === 'Tảo');
+      } else if (category === 'severe') {
+        list = list.filter((d) => d.severity_default === 'Nghiêm trọng');
+      }
+      if (query) {
+        const q = query.toLowerCase();
+        list = list.filter(
+          (d) =>
+            (d.name_vi && d.name_vi.toLowerCase().includes(q)) ||
+            (d.name_en && d.name_en.toLowerCase().includes(q)) ||
+            (d.pathogen && d.pathogen.toLowerCase().includes(q))
+        );
+      }
+    }
+    return list;
   }
 
   async getHandbook(section = '') {
     const json = await this._getJson(section ? `/api/handbook/?section=${section}` : '/api/handbook/');
-    return json?.data || LEAF_DATA.handbook;
+    if (json?.data && !JSON.stringify(json.data).toLowerCase().includes('cà chua')) {
+      return json.data;
+    }
+    if (section && LEAF_DATA.handbook[section]) {
+      return { [section]: LEAF_DATA.handbook[section] };
+    }
+    return LEAF_DATA.handbook;
   }
 
   async getStats() {

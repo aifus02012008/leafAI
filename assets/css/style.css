@@ -1,7 +1,7 @@
 /* ==========================================================================
    LEAF_AI — Design system v2 "Field green"
    Tông xanh diệp lục trên nền sương lá, chữ Be Vietnam Pro.
-   Màu đỏ (biến --tomato) chỉ dùng cho mức độ bệnh nặng.
+   Màu đỏ cảnh báo (biến --crimson / --danger) chỉ dùng cho mức độ bệnh nặng.
    ========================================================================== */
 
 :root {
@@ -20,8 +20,12 @@
   --leaf-tint: #eef7eb;
   --sun: #e8b33c;           /* mức trung bình */
   --sun-soft: #fbf1d6;
-  --tomato: #d4452a;        /* mức nghiêm trọng */
-  --tomato-soft: #fbe3dd;
+  --crimson: #d4452a;       /* mức nghiêm trọng / vải chín */
+  --crimson-soft: #fbe3dd;
+  --danger: var(--crimson);
+  --danger-soft: var(--crimson-soft);
+  --tomato: var(--crimson); /* alias tương thích ngược */
+  --tomato-soft: var(--crimson-soft);
 
   /* Type */
   --font: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
