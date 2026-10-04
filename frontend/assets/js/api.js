@@ -93,6 +93,11 @@ class LeafApiService {
   }
 
   async diagnose(image, modelVersion = 'v3', confidence = 0.25) {
+    // Ảnh mẫu trong thư mục assets/samples là hình minh họa vẽ tay: không gửi lên máy chủ
+    if (typeof image === 'string' && /assets\/samples\/sample_/.test(image)) {
+      await new Promise((r) => setTimeout(r, 350));
+      return this.simulateDetection(modelVersion, image);
+    }
     const payload = await this._toDataUrl(image);
 
     // Ưu tiên 1: Kết nối trực tiếp máy chủ AI Render (ResNet-18 Deep Learning + Grad-CAM)
@@ -132,7 +137,7 @@ class LeafApiService {
         formData.append('model_version', modelVersion);
         formData.append('confidence', confidence);
         const res = await this._fetch('/api/diagnose/', { method: 'POST', body: formData }, 60000);
-        if (res.ok) return await res.json();
+        if (res.ok) return this._checkLycheeLabels(await res.json());
         if (res.status === 429) {
           const j = await res.json().catch(() => ({}));
           throw Object.assign(new Error(j.error || 'Bạn quét quá nhanh, vui lòng chờ một phút rồi thử lại.'), { code: 429 });
@@ -147,92 +152,112 @@ class LeafApiService {
     return this.simulateDetection(modelVersion, image);
   }
 
-  /** Chuẩn hóa kết quả trả về từ Render AI Engine (ResNet-18 + Grad-CAM) */
+  /** Tra thông tin bệnh lá vải theo tên lớp mô hình trả về (có xử lý tên gọi khác) */
+  _lookup(cls) {
+    if (window.Leaf && window.Leaf.diseases) return window.Leaf.diseases.find(cls);
+    const k = String(cls || '').toLowerCase();
+    return Object.values(LEAF_DATA.diseases).find((d) => d.id === k || (d.aliases || []).includes(k)) || null;
+  }
+
+  _isHealthy(cls) {
+    if (window.Leaf && window.Leaf.diseases) return window.Leaf.diseases.isHealthy(cls);
+    return String(cls || '').toLowerCase() === 'healthy';
+  }
+
+  /** Kết quả không chứa nhãn lá vải (máy chủ còn chạy mô hình cũ) thì không hiển thị như một chẩn đoán */
+  _unsupportedResult(labels, modelVersion) {
+    return {
+      success: true,
+      id: Date.now(),
+      model_version: modelVersion,
+      analysis_unavailable: true,
+      unsupported: true,
+      healthy: false,
+      primary_disease: null,
+      secondary_diseases: [],
+      detections: [],
+      lesion_count: 0,
+      note: `Máy chủ AI trả về nhãn chưa thuộc danh mục bệnh lá vải (${labels.join(', ')}). Cần cập nhật mô hình lá vải lên máy chủ trước khi dùng kết quả này.`
+    };
+  }
+
+  _checkLycheeLabels(result) {
+    const p = result && result.primary_disease;
+    if (!p || this._isHealthy(p.class) || this._lookup(p.class)) return result;
+    return this._unsupportedResult([p.class], result.model_version || 'v3');
+  }
+
+  /** Chuẩn hóa kết quả trả về từ máy chủ AI (ResNet-18 + Grad-CAM) */
   _formatAiEngineResult(aiData, modelVersion) {
-    const results = aiData.results || [];
+    const all = aiData.results || [];
     const heatmap = aiData.heatmap_base64
       ? (aiData.heatmap_base64.startsWith('data:') ? aiData.heatmap_base64 : `data:image/jpeg;base64,${aiData.heatmap_base64}`)
       : null;
-    const primary = results[0] || null;
-    const secondary = results.slice(1);
-    const healthy = !primary || primary.class === 'Healthy';
-    const info = (cls) => (typeof LEAF_DATA !== 'undefined' && LEAF_DATA.diseases)
-      ? Object.values(LEAF_DATA.diseases).find((d) => d.id === (cls || '').toLowerCase()) || {}
-      : {};
+    const top = all[0] || null;
+    if (top && !this._isHealthy(top.class) && !this._lookup(top.class)) {
+      return this._unsupportedResult(all.map((r) => r.class), modelVersion);
+    }
+    const healthy = !top || this._isHealthy(top.class);
+    const sev = (p) => (p >= 60 ? 'Nghiêm trọng' : p >= 35 ? 'Trung bình' : 'Nhẹ');
+    const toDisease = (r) => {
+      const d = this._lookup(r.class) || {};
+      return {
+        class: r.class,
+        id: d.id,
+        name_en: d.name_en || r.class,
+        name_vi: d.name_vi || r.name_vi || r.class,
+        probability: r.probability,
+        severity: sev(r.probability),
+        color: d.color || '#d4452a',
+        treatment: d.treatment || {}
+      };
+    };
 
-    const primaryDisease = primary ? {
-      class: primary.class,
-      name_en: info(primary.class).name_en || primary.class,
-      name_vi: primary.name_vi || info(primary.class).name_vi || primary.class,
-      probability: primary.probability,
-      severity: primary.probability >= 60 ? 'Nghiêm trọng' : (primary.probability >= 35 ? 'Trung bình' : 'Nhẹ'),
-      color: info(primary.class).color || (healthy ? '#10b981' : '#d4452a'),
-      treatment: info(primary.class).treatment || {}
-    } : null;
+    const primaryDisease = healthy ? null : toDisease(top);
+    // Bệnh phụ: chỉ giữ nhãn lá vải có xác suất đáng kể (quy tắc cảnh báo nghi đồng nhiễm: ≥ 25%)
+    const secondaryDiseases = healthy ? [] : all.slice(1)
+      .filter((r) => this._lookup(r.class) && r.probability >= 25)
+      .map(toDisease);
 
-    const secondaryDiseases = secondary.map((s) => ({
-      class: s.class,
-      name_en: info(s.class).name_en || s.class,
-      name_vi: s.name_vi || info(s.class).name_vi || s.class,
-      probability: s.probability,
-      severity: s.probability >= 35 ? 'Trung bình' : 'Nhẹ',
-      color: info(s.class).color || '#ef4444'
-    }));
-
-    // Tạo phác đồ IPM hoàn chỉnh hiển thị trên giao diện
     let reportHtml = '';
     if (healthy) {
-      reportHtml = '<div class="callout callout-info"><strong>Lá không phát hiện dấu hiệu bệnh hại nguy hiểm.</strong><br>Khuyến nghị: Duy trì chế độ tưới tiêu tiêu chuẩn, vệ sinh vườn thường xuyên và kiểm tra định kỳ 2 lần/tuần.</div>';
-    } else if (primaryDisease) {
+      reportHtml = '<div class="callout callout-info"><strong>Không phát hiện dấu hiệu bệnh hại trên lá vải.</strong><br>Khuyến nghị: tiếp tục thăm vườn 1–2 lần mỗi tuần, chú ý các đợt lộc non và những ngày mưa phùn, nồm ẩm.</div>';
+    } else {
       const t = primaryDisease.treatment || {};
-      const cult = t.cultural || 'Cắt tỉa các lá và cành nhiễm bệnh, tiêu hủy xa khu vực vườn trồng.';
-      const bio = t.biological || 'Bổ sung chế phẩm sinh học chứa nấm đối kháng (Trichoderma) hoặc vi khuẩn Bacillus subtilis.';
-      const chem = t.chemical || 'Sử dụng thuốc BVTV theo danh mục cho phép, tuân thủ nguyên tắc 4 đúng và thời gian cách ly.';
       reportHtml = `
-        <h3>Kết quả Chẩn đoán Học sâu & Grad-CAM (Render Engine)</h3>
-        <p>Bệnh chính phát hiện: <strong>${primaryDisease.name_vi}</strong> (<em>${primaryDisease.class}</em>)<br>
+        <h3>Kết quả chẩn đoán học sâu và Grad-CAM</h3>
+        <p>Bệnh chính: <strong>${primaryDisease.name_vi}</strong> (<em>${primaryDisease.name_en}</em>)<br>
         Độ tin cậy: <span class="pct">${primaryDisease.probability}%</span> — Mức độ: <span class="badge ${primaryDisease.severity === 'Nghiêm trọng' ? 'badge-high' : 'badge-mid'}">${primaryDisease.severity}</span></p>
         <div class="callout callout-info">
-          <strong>Giải thích thị giác (Grad-CAM):</strong> Mô hình mạng nơ-ron tích chập ResNet-18 đã khoanh vùng tổn thương. Nhấn tab <em>"Bản đồ nhiệt Grad-CAM"</em> để đối chiếu vùng bệnh kích hoạt.
+          <strong>Giải thích bằng Grad-CAM:</strong> chọn chế độ <em>"Bản đồ nhiệt Grad-CAM"</em> để xem vùng ảnh mà mô hình ResNet-18 dựa vào khi kết luận. Vùng đỏ nên trùng với vết bệnh trên lá.
         </div>
-        <h3>Phác đồ quản lý dịch hại tổng hợp (IPM - FAO)</h3>
+        <h3>Phác đồ quản lý dịch hại tổng hợp (IPM)</h3>
         <table class="report-table">
           <thead><tr><th>Biện pháp</th><th>Hướng dẫn thực hiện</th></tr></thead>
           <tbody>
-            <tr><td><strong>1. Canh tác</strong></td><td>${cult}</td></tr>
-            <tr><td><strong>2. Sinh học</strong></td><td>${bio}</td></tr>
-            <tr><td><strong>3. Hóa học</strong></td><td>${chem}</td></tr>
+            <tr><td><strong>1. Canh tác</strong></td><td>${t.cultural || 'Cắt bỏ lá, cành bị bệnh và tiêu hủy xa vườn.'}</td></tr>
+            <tr><td><strong>2. Sinh học</strong></td><td>${t.biological || 'Dùng chế phẩm Trichoderma, Bacillus subtilis.'}</td></tr>
+            <tr><td><strong>3. Hóa học</strong></td><td>${t.chemical || 'Chỉ dùng thuốc trong danh mục được phép, tuân thủ 4 đúng và thời gian cách ly.'}</td></tr>
           </tbody>
-        </table>
-      `;
+        </table>`;
     }
-
-    const detections = healthy ? [] : [
-      {
-        class: primary.class,
-        name_vi: primaryDisease ? primaryDisease.name_vi : primary.class,
-        confidence: (primary.probability || 90) / 100,
-        probability_percent: primary.probability || 90,
-        color: primaryDisease ? primaryDisease.color : '#d4452a',
-        bbox: [180, 150, 280, 260]
-      }
-    ];
 
     return {
       success: true,
       id: Date.now(),
       model_version: modelVersion,
-      model_badge: `ResNet-18 ${modelVersion.toUpperCase()}`,
-      healthy: healthy,
-      is_coinfection: secondaryDiseases.length > 0 && !healthy,
-      warning_banner: (secondaryDiseases.length > 0 && !healthy) ? 'Phát hiện đa bệnh (đồng nhiễm)' : null,
+      model_badge: 'ResNet-18',
+      healthy,
+      is_coinfection: secondaryDiseases.length > 0,
+      warning_banner: secondaryDiseases.length > 0 ? 'Nghi đồng nhiễm' : null,
       primary_disease: primaryDisease,
       secondary_diseases: secondaryDiseases,
       heatmap_base64: heatmap,
-      detections: detections,
-      lesion_count: healthy ? 0 : 1,
+      // Mô hình phân loại cả ảnh, không khoanh từng vết: vị trí vết bệnh xem trên bản đồ nhiệt
+      detections: [],
+      lesion_count: healthy ? 0 : null,
       report_html: reportHtml,
-      note: 'Dự đoán trực tiếp từ máy chủ Deep Learning ResNet-18 (Render.com)'
+      note: ''
     };
   }
 
@@ -347,12 +372,11 @@ class LeafApiService {
     const q = String(message || '').toLowerCase();
     const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
     const keywords = {
-      early_blight: ['úa sớm', 'đốm vòng', 'alternaria', 'early', 'đồng tâm'],
-      late_blight: ['sương mai', 'mốc sương', 'phytophthora', 'late'],
-      bacterial_spot: ['vi khuẩn', 'xanthomonas', 'bacterial', 'kasugamycin', 'gốc đồng'],
-      septoria_leaf_spot: ['septoria', 'đốm lá nhỏ', 'chấm đen'],
-      leaf_mold: ['mốc lá', 'nấm mốc', 'nhà kính', 'passalora'],
-      powdery_mildew: ['phấn trắng', 'bột trắng', 'mildew', 'neem']
+      erinose: ['lông nhung', 'nhện', 'aceria', 'erinose', 'lông tơ', 'phồng rộp'],
+      downy_blight: ['sương mai', 'mốc trắng', 'peronophythora', 'downy', 'thối quả'],
+      anthracnose: ['thán thư', 'colletotrichum', 'anthracnose', 'chấm đen xếp vòng'],
+      algal_spot: ['đốm rong', 'rong', 'tảo', 'đỏ gạch', 'cephaleuros', 'rỉ sắt'],
+      leaf_blight: ['cháy lá', 'cháy chóp', 'cháy mép', 'pestalotiopsis', 'khô chóp']
     };
     const hit = Object.entries(keywords).find(([, words]) => words.some((w) => q.includes(w)));
     if (hit) {
@@ -367,95 +391,68 @@ class LeafApiService {
         <p><a href="disease.html?id=${d.id}">Xem đầy đủ phác đồ ${esc(d.name_vi)}</a></p>`;
     }
     if (/(phi|cách ly|thu hoạch)/.test(q)) {
-      return '<p>Ngừng phun thuốc BVTV trước thu hoạch đúng số ngày ghi trên nhãn, với cà chua thường là <strong>7–14 ngày</strong>. Hết thời gian cách ly mới hái quả để không tồn dư hoạt chất.</p><p><a href="handbook.html#an-toan">Xem quy tắc an toàn BVTV</a></p>';
+      return '<p>Ngừng phun thuốc BVTV trước thu hoạch <strong>đúng số ngày ghi trên nhãn</strong> của từng loại thuốc. Với vải xuất khẩu, cần kiểm tra thêm danh mục hoạt chất và mức dư lượng (MRL) mà nước nhập khẩu cho phép.</p><p><a href="handbook.html#an-toan">Xem quy tắc an toàn BVTV</a></p>';
     }
     if (/(trichoderma|ủ phân|vi sinh|hữu cơ)/.test(q)) {
-      return '<p>Trộn chế phẩm <strong>Trichoderma</strong> với phân chuồng hoai mục, giữ ẩm 50–60%, đậy bạt và đảo sau 7–10 ngày. Bón lót vào hốc trước khi trồng để nấm đối kháng chiếm chỗ của nấm gây bệnh vùng rễ.</p>';
+      return '<p>Trộn chế phẩm <strong>Trichoderma</strong> với phân chuồng hoai mục, giữ ẩm 50–60%, đậy bạt và đảo sau 7–10 ngày. Bón quanh hình chiếu tán vải sau thu hoạch, lấp một lớp đất mỏng để nấm đối kháng phát triển trong vùng rễ.</p>';
+    }
+    if (/(lộc|tỉa|cắt cành|sau thu hoạch)/.test(q)) {
+      return '<p>Sau thu hoạch, tỉa bỏ cành tăm, cành sâu bệnh và cành bị nhện lông nhung để tán thông thoáng. Nuôi các đợt lộc thu ra đồng loạt, kiểm tra kỹ khi lộc dài 3–5 cm vì đây là lúc nhện lông nhung và thán thư dễ tấn công.</p><p><a href="handbook.html#nguyen-tac">Xem 8 nguyên tắc canh tác</a></p>';
     }
     if (/(ipm|tổng hợp|fao)/.test(q)) {
       return '<p>IPM ưu tiên theo thứ tự: cây giống khỏe, thăm đồng 2 lần/tuần, bảo vệ thiên địch, biện pháp canh tác và sinh học. Thuốc hóa học chỉ dùng khi dịch vượt ngưỡng kinh tế.</p><p><a href="handbook.html#ipm">Xem 10 bước IPM</a></p>';
     }
-    return '<p>Hiện chưa kết nối được máy chủ trợ lý nên mình trả lời từ kho kiến thức có sẵn. Hãy mô tả rõ hơn: màu vết bệnh, vị trí trên lá (mặt trên hay mặt dưới), lá già hay lá non, thời tiết mấy ngày qua.</p><p>Hoặc <a href="scan.html">chụp ảnh lá để AI khoanh vùng</a>.</p>';
+    return '<p>Hiện chưa kết nối được máy chủ trợ lý nên mình trả lời từ kho kiến thức có sẵn. Hãy mô tả rõ hơn: màu vết bệnh, vị trí trên lá (chóp, mép, mặt trên hay mặt dưới), lộc non hay lá già, thời tiết mấy ngày qua.</p><p>Hoặc <a href="scan.html">chụp ảnh lá để AI khoanh vùng</a>.</p>';
   }
 
   /**
-   * Mô phỏng YOLOv8 khi chưa có backend.
-   * Với ảnh mẫu, dùng toạ độ vết bệnh thật trên ảnh (800×600) để demo sát thực tế.
+   * Kết quả mô phỏng cho ảnh mẫu minh họa (không gọi máy chủ AI).
+   * Toạ độ khung lấy từ đúng vị trí vết bệnh vẽ trên ảnh mẫu (800×600).
    */
   simulateDetection(modelVersion, image) {
-    const V3_CLASSES = ['Bacterial_spot', 'Early_blight', 'Late_blight'];
     const src = typeof image === 'string' ? image : '';
     const sampleKey = (src.match(/sample_([a-z_]+)\.jpg/) || [])[1] || 'upload';
 
     const PROFILES = {
-      early_blight: [
-        ['Early_blight', 91, [565, 30, 112, 112]],
-        ['Early_blight', 87, [394, 124, 92, 92]],
-        ['Early_blight', 78, [528, 228, 84, 84]],
-        ['Early_blight', 74, [286, 256, 78, 78]]
-      ],
-      bacterial_spot: [
-        ['Bacterial_spot', 89, [402, 118, 102, 100]],
-        ['Bacterial_spot', 84, [570, 26, 104, 128]],
-        ['Bacterial_spot', 81, [506, 196, 108, 124]],
-        ['Bacterial_spot', 76, [278, 228, 96, 124]]
-      ],
-      late_blight: [
-        ['Late_blight', 93, [556, 36, 118, 108]],
-        ['Late_blight', 86, [404, 124, 82, 90]],
-        ['Late_blight', 82, [524, 226, 92, 96]]
-      ],
-      septoria: [
-        ['Septoria_leaf_spot', 85, [572, 30, 100, 116]],
-        ['Septoria_leaf_spot', 80, [408, 98, 88, 104]],
-        ['Septoria_leaf_spot', 77, [506, 198, 102, 120]],
-        ['Septoria_leaf_spot', 71, [280, 248, 92, 100]],
-        ['Early_blight', 34, [404, 98, 92, 108]]
-      ],
-      healthy_leaf: [],
-      upload: [
-        ['Early_blight', 65, [220, 160, 200, 180]],
-        ['Bacterial_spot', 42, [80, 80, 150, 130]],
-        ['Septoria_leaf_spot', 31, [120, 260, 140, 120]]
-      ]
+      anthracnose: { main: ['Anthracnose', 91], second: ['Leaf_blight', 6], boxes: [[337, 491, 101, 101], [337, 214, 84, 84], [459, 369, 84, 84], [461, 12, 106, 106], [558, 193, 84, 84]] },
+      downy_blight: { main: ['Downy_blight', 88], second: ['Anthracnose', 9], boxes: [[311, 193, 105, 105], [458, 86, 115, 115], [610, 203, 95, 95]] },
+      leaf_blight: { main: ['Leaf_blight', 62], second: ['Anthracnose', 31], boxes: [[180, 304, 67, 84], [482, 352, 112, 82], [649, 217, 85, 72]] },
+      algal_spot: { main: ['Algal_spot', 94], second: null, boxes: [[273, 483, 91, 80], [317, 200, 77, 93], [471, 117, 80, 97], [592, 219, 94, 79]] },
+      erinose: { main: ['Erinose', 90], second: null, boxes: [[177, 349, 92, 92], [302, 215, 106, 106], [456, 356, 92, 92], [552, 199, 110, 110]] },
+      healthy: null
     };
 
-    const all = PROFILES[sampleKey] || PROFILES.upload;
-    const usable = modelVersion === 'v4' ? all : all.filter(([cls]) => V3_CLASSES.includes(cls));
-    const info = (cls) => Object.values(LEAF_DATA.diseases).find((d) => d.id === cls.toLowerCase()) || {};
-    const sev = (p) => (p >= 60 ? 'Nghiêm trọng' : p >= 35 ? 'Trung bình' : 'Nhẹ');
+    const base = { success: true, simulated: true, sample: sampleKey !== 'upload', id: Date.now(), model_version: modelVersion };
+    const profile = PROFILES[sampleKey];
+    if (!profile) {
+      return { ...base, healthy: true, primary_disease: null, secondary_diseases: [], detections: [], lesion_count: 0, is_coinfection: false };
+    }
 
-    const detections = usable.map(([cls, p, bbox]) => ({
-      class: cls,
-      name_vi: info(cls).name_vi || cls,
-      confidence: p / 100,
-      probability_percent: p,
-      color: info(cls).color || '#d4452a',
+    const sev = (p) => (p >= 60 ? 'Nghiêm trọng' : p >= 35 ? 'Trung bình' : 'Nhẹ');
+    const make = ([cls, p]) => {
+      const d = this._lookup(cls) || {};
+      return { class: cls, id: d.id, name_en: d.name_en, name_vi: d.name_vi, probability: p, severity: sev(p), color: d.color, treatment: d.treatment };
+    };
+    const primary = make(profile.main);
+    const secondary = profile.second && profile.second[1] >= 25 ? [make(profile.second)] : [];
+    const detections = profile.boxes.map((bbox, i) => ({
+      class: primary.class,
+      name_vi: primary.name_vi,
+      confidence: (primary.probability - i * 4) / 100,
+      probability_percent: primary.probability - i * 4,
+      color: primary.color,
       bbox
     }));
 
-    // Gom theo bệnh, lấy độ tin cậy cao nhất của mỗi bệnh
-    const byClass = {};
-    detections.forEach((d) => {
-      if (!byClass[d.class] || byClass[d.class].probability < d.probability_percent) {
-        const i = info(d.class);
-        byClass[d.class] = { class: d.class, name_en: i.name_en, name_vi: i.name_vi, probability: d.probability_percent, severity: sev(d.probability_percent), color: i.color, treatment: i.treatment };
-      }
-    });
-    const ranked = Object.values(byClass).sort((a, b) => b.probability - a.probability);
-    const missedByV3 = modelVersion !== 'v4' && all.some(([cls]) => !V3_CLASSES.includes(cls));
-
     return {
-      success: true,
-      simulated: true,
-      id: Date.now(),
-      model_version: modelVersion,
-      healthy: ranked.length === 0,
-      note: missedByV3 ? 'Vết bệnh trên lá có thể thuộc loại V3 chưa hỗ trợ. Hãy quét lại bằng mô hình V4 để kiểm tra Septoria, mốc lá và phấn trắng.' : '',
+      ...base,
+      healthy: false,
+      note: '',
       lesion_count: detections.length,
-      is_coinfection: ranked.length > 1,
-      primary_disease: ranked[0] || null,
-      secondary_diseases: ranked.slice(1),
+      is_coinfection: secondary.length > 0,
+      primary_disease: primary,
+      secondary_diseases: secondary,
+      heatmap_url: `assets/samples/cam_${sampleKey}.jpg`,
       detections
     };
   }

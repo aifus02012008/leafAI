@@ -18,11 +18,12 @@
   const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
 
   function matches(d, term) {
-    if (filter === 'fungus' && d.id === 'bacterial_spot') return false;
-    if (filter === 'bacteria' && d.id !== 'bacterial_spot') return false;
+    const isFungus = /^Nấm/.test(diseases.kind(d));
+    if (filter === 'fungus' && !isFungus) return false;
+    if (filter === 'other' && isFungus) return false;
     if (filter === 'severe' && d.severity_default !== 'Nghiêm trọng') return false;
     if (!term) return true;
-    const hay = norm([d.name_vi, d.name_en, d.pathogen, d.symptoms.stage_1, d.symptoms.stage_2, d.conditions].join(' '));
+    const hay = norm([d.name_vi, d.name_en, d.pathogen, d.kind, d.symptoms.stage_1, d.symptoms.stage_2, d.symptoms.stage_3, d.conditions].join(' '));
     return hay.includes(term);
   }
 
@@ -35,7 +36,7 @@
       grid.innerHTML = `<div class="empty panel" style="grid-column:1/-1">
         <i class="bi bi-search"></i>
         <h3>Không tìm thấy bệnh phù hợp</h3>
-        <p class="small">Thử từ khoá ngắn hơn như “đốm”, “mốc” hoặc tên tác nhân.</p>
+        <p class="small">Thử từ khoá ngắn hơn như “cháy”, “mốc”, “lông” hoặc tên tác nhân.</p>
         <button class="btn" type="button" id="btnResetFilter">Xoá bộ lọc</button>
       </div>`;
       document.getElementById('btnResetFilter').addEventListener('click', reset);

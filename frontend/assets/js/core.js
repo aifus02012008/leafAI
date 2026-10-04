@@ -38,7 +38,7 @@
           <span class="brand-mark">${LEAF_MARK}</span>
           <span>
             <span class="brand-name">LEAF<span>_AI</span></span>
-            <span class="brand-sub">Bác sĩ cây cà chua</span>
+            <span class="brand-sub">Bác sĩ lá vải Lục Ngạn</span>
           </span>
         </a>
         <nav class="main-nav" aria-label="Điều hướng chính">
@@ -82,7 +82,7 @@
             <span class="brand-mark">${LEAF_MARK}</span>
             <span class="brand-name">LEAF<span>_AI</span></span>
           </a>
-          <p class="footer-note">Phát hiện sớm bệnh trên lá cà chua bằng AI, xử lý theo hướng IPM để giảm thuốc hóa học và giữ đồng ruộng khỏe.</p>
+          <p class="footer-note">Phát hiện sớm bệnh trên lá vải thiều Lục Ngạn bằng AI, xử lý theo hướng IPM để giảm thuốc hóa học và giữ vườn vải khỏe.</p>
         </div>
         <div>
           <h4>Công cụ</h4>
@@ -95,7 +95,7 @@
         <div>
           <h4>Kiến thức</h4>
           <ul>
-            <li><a href="library.html">Thư viện 6 bệnh</a></li>
+            <li><a href="library.html">Thư viện bệnh lá vải</a></li>
             <li><a href="handbook.html">Cẩm nang IPM (FAO)</a></li>
             <li><a href="handbook.html#an-toan">An toàn thuốc BVTV</a></li>
           </ul>
@@ -104,7 +104,7 @@
           <h4>Dự án</h4>
           <ul>
             <li><a href="about.html">Giới thiệu</a></li>
-            <li><a href="about.html#mo-hinh">Mô hình YOLOv8</a></li>
+            <li><a href="about.html#mo-hinh">Mô hình ResNet-18</a></li>
             <li><a href="about.html#nguon">Nguồn tham khảo</a></li>
           </ul>
         </div>
@@ -431,16 +431,26 @@
 
   const diseases = {
     list: () => (typeof LEAF_DATA !== 'undefined' ? Object.values(LEAF_DATA.diseases) : []),
-    /** Nhận id ('early_blight'), class ('Early_blight') hoặc tên tiếng Việt */
+    /** Nhận id ('anthracnose'), tên lớp mô hình ('Anthracnose', 'Leaf_mites'…) hoặc tên tiếng Việt */
     find(key) {
       if (!key) return null;
-      const k = String(key).toLowerCase();
-      return diseases.list().find((d) => d.id === k || d.name_en.toLowerCase() === k.replace(/_/g, ' ') || d.name_vi.toLowerCase() === k) || null;
+      const k = String(key).trim().toLowerCase().replace(/[\s-]+/g, '_');
+      const plain = k.replace(/_/g, ' ');
+      return diseases.list().find((d) => d.id === k
+        || d.name_en.toLowerCase() === plain
+        || d.name_vi.toLowerCase() === plain
+        || (d.aliases || []).includes(k)) || null;
     },
-    /** Nhóm tác nhân gây bệnh */
-    kind: (d) => (d.id === 'bacterial_spot' ? 'Vi khuẩn' : d.id === 'late_blight' ? 'Nấm noãn' : 'Nấm'),
+    /** Nhãn "lá khỏe" của mô hình */
+    isHealthy(key) {
+      const k = String(key || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+      const list = (typeof LEAF_DATA !== 'undefined' && LEAF_DATA.healthy_aliases) || ['healthy'];
+      return list.includes(k);
+    },
+    /** Nhóm tác nhân: nấm, nấm noãn, tảo hay nhện hại */
+    kind: (d) => d.kind || 'Nấm',
     /** Mô hình nhận diện được bệnh này */
-    models: (d) => (['bacterial_spot', 'early_blight', 'late_blight'].includes(d.id) ? 'V3 và V4' : 'Chỉ V4'),
+    models: () => 'ResNet-18',
     url: (key) => {
       const d = diseases.find(key);
       return d ? `disease.html?id=${d.id}` : 'library.html';

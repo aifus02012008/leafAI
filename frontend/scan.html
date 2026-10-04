@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Chẩn đoán lá — LEAF_AI</title>
-  <meta name="description" content="Tải ảnh hoặc chụp lá cà chua để AI khoanh vùng vết bệnh và gợi ý phác đồ xử lý.">
+  <meta name="description" content="Chụp hoặc tải ảnh lá vải thiều để AI nhận diện bệnh, xem bản đồ nhiệt Grad-CAM và phác đồ xử lý theo IPM.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e7a4c">
   <link rel="icon" href="assets/images/icon-192.png">
@@ -22,19 +22,16 @@
     <div class="container">
       <div class="page-head">
         <div>
-          <h1>Chẩn đoán lá cà chua</h1>
-          <p>Chụp hoặc tải ảnh một lá nghi bệnh. AI sẽ khoanh từng vết, ghi tên bệnh và độ tin cậy.</p>
+          <h1>Chẩn đoán lá vải</h1>
+          <p>Chụp hoặc tải ảnh một lá vải nghi bệnh. AI cho biết tên bệnh, độ tin cậy và vùng lá mà mô hình dựa vào để kết luận.</p>
         </div>
-        <div class="segmented" role="group" aria-label="Chọn mô hình AI">
-          <button type="button" data-model="v3" aria-pressed="true">Mô hình V3<small>3 bệnh, ổn định</small></button>
-          <button type="button" data-model="v4" aria-pressed="false">Mô hình V4<small>6 bệnh, thử nghiệm</small></button>
-        </div>
+
       </div>
 
       <ol class="stepper" id="stepper" aria-label="Tiến trình chẩn đoán">
         <li><b>1</b><span>Chọn ảnh</span></li>
         <li><b>2</b><span>AI phân tích</span></li>
-        <li><b>3</b><span>Khoanh vùng</span></li>
+        <li><b>3</b><span>Bản đồ nhiệt</span></li>
         <li><b>4</b><span>Đọc kết quả</span></li>
         <li><b>5</b><span>Xem phác đồ</span></li>
       </ol>
@@ -54,7 +51,7 @@
               <i class="bi bi-layers-half"></i> <span>Chế độ quan sát AI:</span>
             </div>
             <div class="segmented segmented-sm" role="group" aria-label="Chế độ hiển thị AI">
-              <button type="button" id="btnModeBox" aria-pressed="true"><i class="bi bi-bounding-box"></i> Hộp khoanh vùng</button>
+              <button type="button" id="btnModeBox" aria-pressed="true"><i class="bi bi-image"></i> Ảnh gốc</button>
               <button type="button" id="btnModeHeatmap" aria-pressed="false"><i class="bi bi-fire"></i> Bản đồ nhiệt Grad-CAM</button>
             </div>
           </div>
@@ -67,15 +64,16 @@
 
           <div class="samples">
             <div class="samples-head">
-              <strong>Chưa có ảnh? Thử với ảnh mẫu</strong>
+              <strong>Chưa có ảnh? Thử với ảnh minh họa</strong>
               <span class="muted small">Ảnh ≤ 10 MB</span>
             </div>
             <div class="sample-list" id="sampleList">
-              <button type="button" class="sample" data-sample="assets/samples/sample_early_blight.jpg"><img src="assets/samples/sample_early_blight.jpg" alt="" loading="lazy"><span>Úa sớm</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_late_blight.jpg"><img src="assets/samples/sample_late_blight.jpg" alt="" loading="lazy"><span>Sương mai</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_bacterial_spot.jpg"><img src="assets/samples/sample_bacterial_spot.jpg" alt="" loading="lazy"><span>Đốm vi khuẩn</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_septoria.jpg"><img src="assets/samples/sample_septoria.jpg" alt="" loading="lazy"><span>Septoria</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_healthy_leaf.jpg"><img src="assets/samples/sample_healthy_leaf.jpg" alt="" loading="lazy"><span>Lá khỏe</span></button>
+              <button type="button" class="sample" data-sample="assets/samples/sample_anthracnose.jpg"><img src="assets/samples/sample_anthracnose.jpg" alt="" loading="lazy"><span>Thán thư</span></button>
+              <button type="button" class="sample" data-sample="assets/samples/sample_downy_blight.jpg"><img src="assets/samples/sample_downy_blight.jpg" alt="" loading="lazy"><span>Sương mai</span></button>
+              <button type="button" class="sample" data-sample="assets/samples/sample_leaf_blight.jpg"><img src="assets/samples/sample_leaf_blight.jpg" alt="" loading="lazy"><span>Cháy lá</span></button>
+              <button type="button" class="sample" data-sample="assets/samples/sample_algal_spot.jpg"><img src="assets/samples/sample_algal_spot.jpg" alt="" loading="lazy"><span>Đốm rong</span></button>
+              <button type="button" class="sample" data-sample="assets/samples/sample_erinose.jpg"><img src="assets/samples/sample_erinose.jpg" alt="" loading="lazy"><span>Nhện lông nhung</span></button>
+              <button type="button" class="sample" data-sample="assets/samples/sample_healthy.jpg"><img src="assets/samples/sample_healthy.jpg" alt="" loading="lazy"><span>Lá khỏe</span></button>
             </div>
           </div>
         </section>
@@ -84,20 +82,20 @@
         <section class="panel panel-pad" aria-labelledby="resultTitle" aria-live="polite">
           <div class="panel-title">
             <h2 id="resultTitle">Kết quả</h2>
-            <span class="tag" id="modelTag">V3</span>
+            <span class="tag" id="modelTag">ResNet-18</span>
           </div>
           <div class="result-status" id="resultStatus"><span class="pulse"></span><span id="resultStatusText">Chờ ảnh lá</span></div>
 
           <div id="resultEmpty" class="empty" style="padding:28px 8px">
             <i class="bi bi-flower1"></i>
             <h3>Chưa có ảnh để phân tích</h3>
-            <p class="small">Chụp lá dưới ánh sáng tự nhiên, để lá chiếm phần lớn khung hình và tránh bóng tay che.</p>
+            <p class="small">Chụp cả lá kép hoặc một lá chét dưới ánh sáng tự nhiên, để lá chiếm phần lớn khung hình. Với nhện lông nhung, chụp thêm mặt dưới lá.</p>
           </div>
 
           <div id="resultBody" hidden>
             <div class="alert alert-warn" id="coinfectionAlert" hidden>
               <i class="bi bi-exclamation-triangle"></i>
-              <div><strong>Lá nhiễm nhiều bệnh cùng lúc.</strong> Xử lý bệnh chính trước, theo dõi các bệnh phụ trong 3 ngày tới.</div>
+              <div><strong>Nghi lá nhiễm nhiều bệnh cùng lúc.</strong> Bệnh thứ hai cũng có xác suất đáng kể. Xử lý bệnh chính trước và kiểm tra lại lá trong 3 ngày tới.</div>
             </div>
             <div class="alert alert-info" id="noteAlert" hidden><i class="bi bi-info-circle"></i><div id="noteText"></div></div>
 
@@ -115,7 +113,7 @@
             </div>
 
             <div id="secondaryWrap">
-              <h3 class="sub-head">Bệnh khác phát hiện trên lá</h3>
+              <h3 class="sub-head">Khả năng khác</h3>
               <ul class="secondary-list" id="secondaryList"></ul>
             </div>
 
@@ -139,13 +137,13 @@
       <section style="margin-top:28px" aria-labelledby="modelTitle">
         <div class="panel-title">
           <h2 id="modelTitle" style="font-size:var(--fs-md)">Thông số mô hình đang dùng</h2>
-          <a class="small" href="about.html#mo-hinh">So sánh V3 và V4</a>
+          <a class="small" href="about.html#mo-hinh">Xem chi tiết mô hình</a>
         </div>
         <dl class="model-facts">
-          <div><dt>Kiến trúc</dt><dd>YOLOv8n</dd></div>
-          <div><dt>Số bệnh</dt><dd id="specClasses">3</dd></div>
-          <div><dt>mAP@50</dt><dd id="specMap">0.768</dd></div>
-          <div><dt>Recall đốm nhỏ</dt><dd id="specRecall">80.8%</dd></div>
+          <div><dt>Kiến trúc</dt><dd>ResNet-18</dd></div>
+          <div><dt>Số lớp</dt><dd>5 bệnh, dịch hại + lá khỏe</dd></div>
+          <div><dt>Ảnh đầu vào</dt><dd>224 × 224</dd></div>
+          <div><dt>Giải thích</dt><dd>Grad-CAM</dd></div>
         </dl>
       </section>
     </div>
@@ -154,12 +152,12 @@
   <!-- Camera -->
   <dialog class="sheet" id="cameraDialog" aria-labelledby="cameraTitle">
     <div class="sheet-head">
-      <h2 id="cameraTitle">Chụp lá cây</h2>
+      <h2 id="cameraTitle">Chụp lá vải</h2>
       <button class="btn btn-ghost btn-icon" type="button" data-close aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="sheet-body">
       <video id="cameraVideo" class="camera-view" autoplay playsinline muted></video>
-      <p class="small muted" style="margin-top:10px">Giữ máy cách lá khoảng 20–30 cm, lấy nét vào vùng có vết bệnh.</p>
+      <p class="small muted" style="margin-top:10px">Giữ máy cách lá khoảng 20–30 cm, lấy nét vào vùng có vết bệnh; lật mặt dưới lá nếu nghi nhện lông nhung.</p>
     </div>
     <div class="sheet-foot">
       <button class="btn btn-ghost" type="button" id="btnFlipCamera"><i class="bi bi-arrow-repeat"></i>Đổi camera</button>

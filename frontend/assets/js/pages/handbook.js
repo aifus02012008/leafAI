@@ -8,7 +8,7 @@
   const hb = LEAF_DATA.handbook;
   const $ = (id) => document.getElementById(id);
 
-  const PRINCIPLE_ICONS = ['bi-award', 'bi-bucket', 'bi-rulers', 'bi-droplet', 'bi-diagram-2', 'bi-scissors', 'bi-layers', 'bi-recycle'];
+  const PRINCIPLE_ICONS = ['bi-award', 'bi-scissors', 'bi-tree', 'bi-calendar3', 'bi-diagram-2', 'bi-droplet', 'bi-recycle', 'bi-flower1'];
   const SAFE_ICONS = ['bi-capsule', 'bi-clock', 'bi-eyedropper', 'bi-wind', 'bi-calendar-check', 'bi-person-badge'];
 
   $('listPrinciples').innerHTML = hb.principles.map((p, i) => `

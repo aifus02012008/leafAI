@@ -49,7 +49,7 @@ class Leaf3DVisualizer {
     bounceLight.position.set(-5, -5, 5);
     this.scene.add(bounceLight);
 
-    // Dáng lá cây cà chua tự nhiên
+    // Dáng lá chét vải (thuôn dài, mép nguyên)
     const shape = new THREE.Shape();
     shape.moveTo(0, -6);
     shape.bezierCurveTo(2.8, -4, 4.2, 0, 3.2, 4);

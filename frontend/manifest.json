@@ -1,7 +1,7 @@
 {
-  "name": "LEAF_AI — Bác sĩ cây cà chua",
+  "name": "LEAF_AI — Bác sĩ lá vải Lục Ngạn",
   "short_name": "LEAF_AI",
-  "description": "Chụp lá cà chua để AI khoanh vùng vết bệnh, tra cứu phác đồ IPM theo FAO, dùng được cả khi mất sóng.",
+  "description": "Chụp lá vải thiều để AI nhận diện bệnh, xem bản đồ nhiệt Grad-CAM, tra cứu phác đồ IPM, dùng được cả khi mất sóng.",
   "lang": "vi",
   "start_url": "scan.html",
   "scope": "./",
@@ -14,7 +14,7 @@
     { "src": "assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "shortcuts": [
-    { "name": "Quét lá", "short_name": "Quét lá", "description": "Chụp và chẩn đoán lá cà chua", "url": "scan.html" },
+    { "name": "Quét lá", "short_name": "Quét lá", "description": "Chụp và chẩn đoán lá vải", "url": "scan.html" },
     { "name": "Thư viện bệnh", "short_name": "Thư viện", "description": "Tra cứu triệu chứng và phác đồ", "url": "library.html" },
     { "name": "Cẩm nang IPM", "short_name": "Cẩm nang", "description": "10 bước IPM và an toàn BVTV", "url": "handbook.html" },
     { "name": "Lịch sử quét", "short_name": "Lịch sử", "description": "Nhật ký đồng ruộng", "url": "history.html" }

@@ -4,7 +4,7 @@
  * - Điều hướng: network-first, rớt mạng thì lấy bản đã cache.
  * - Gọi API (/api/, /health/) không cache.
  */
-const CACHE_NAME = 'leaf-ai-v2.1.0';
+const CACHE_NAME = 'leaf-ai-vai-v1';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -31,17 +31,22 @@ const STATIC_ASSETS = [
   './assets/js/pages/assistant.js',
   './assets/images/icon-192.png',
   './assets/images/icon-512.png',
-  './assets/images/early_blight.svg',
-  './assets/images/late_blight.svg',
-  './assets/images/bacterial_spot.svg',
-  './assets/images/septoria_leaf_spot.svg',
-  './assets/images/leaf_mold.svg',
-  './assets/images/powdery_mildew.svg',
-  './assets/samples/sample_early_blight.jpg',
-  './assets/samples/sample_late_blight.jpg',
-  './assets/samples/sample_bacterial_spot.jpg',
-  './assets/samples/sample_septoria.jpg',
-  './assets/samples/sample_healthy_leaf.jpg'
+  './assets/images/anthracnose.svg',
+  './assets/images/downy_blight.svg',
+  './assets/images/leaf_blight.svg',
+  './assets/images/algal_spot.svg',
+  './assets/images/erinose.svg',
+  './assets/samples/sample_anthracnose.jpg',
+  './assets/samples/sample_downy_blight.jpg',
+  './assets/samples/sample_leaf_blight.jpg',
+  './assets/samples/sample_algal_spot.jpg',
+  './assets/samples/sample_erinose.jpg',
+  './assets/samples/sample_healthy.jpg',
+  './assets/samples/cam_anthracnose.jpg',
+  './assets/samples/cam_downy_blight.jpg',
+  './assets/samples/cam_leaf_blight.jpg',
+  './assets/samples/cam_algal_spot.jpg',
+  './assets/samples/cam_erinose.jpg'
 ];
 
 self.addEventListener('install', (event) => {

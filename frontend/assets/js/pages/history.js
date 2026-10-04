@@ -36,7 +36,7 @@
       healthy,
       prob: Math.round(r.probability ?? r.confidence ?? 0),
       severity: healthy ? 'Khỏe' : r.severity,
-      model: String(r.model || r.model_version || 'v3').toUpperCase(),
+      model: String(r.model || r.model_version || 'ResNet-18'),
       time: parseTime(r.timestamp),
       rawTime: r.timestamp || '',
       coinf: Boolean(r.is_coinfection),

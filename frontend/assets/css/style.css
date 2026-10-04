@@ -1,7 +1,7 @@
 /* ==========================================================================
    LEAF_AI — Design system v2 "Field green"
    Tông xanh diệp lục trên nền sương lá, chữ Be Vietnam Pro.
-   Màu đỏ cà chua chỉ dùng cho mức độ bệnh nặng.
+   Màu đỏ (biến --tomato) chỉ dùng cho mức độ bệnh nặng.
    ========================================================================== */
 
 :root {
@@ -272,6 +272,12 @@ code { font-size: 0.9em; background: var(--leaf-tint); padding: 1px 6px; border-
   font-size: 11px; font-weight: 600; white-space: nowrap; line-height: 1.4;
 }
 .demo-box.label-below b { bottom: auto; top: 100%; margin: 4px 0 0; }
+.demo-stage .demo-cam { position: absolute; inset: 0; opacity: 0; animation: fade-in .7s ease forwards 2.1s; }
+.demo-chip {
+  position: absolute; left: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: var(--r-pill); background: rgba(16, 33, 24, .78); color: #fff;
+  font-size: 11px; font-weight: 600; opacity: 0; animation: fade-in .4s ease forwards 2.4s;
+}
 .demo-scanline {
   position: absolute; left: 0; right: 0; top: -70px; height: 64px;
   background: linear-gradient(to bottom, rgba(30, 122, 76, 0), rgba(30, 122, 76, .24));
@@ -445,7 +451,7 @@ code { font-size: 0.9em; background: var(--leaf-tint); padding: 1px 6px; border-
 .samples { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
 .samples-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: var(--fs-sm); }
 .samples-head strong { font-weight: 600; }
-.sample-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.sample-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .sample {
   border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); padding: 6px; cursor: pointer;
   font: 500 var(--fs-xs) / 1.3 var(--font); color: var(--ink-2); text-align: left;
@@ -454,7 +460,7 @@ code { font-size: 0.9em; background: var(--leaf-tint); padding: 1px 6px; border-
 .sample span { padding: 0 4px 2px; display: block; }
 .sample:hover { border-color: var(--leaf); color: var(--ink); }
 .sample[aria-pressed="true"] { border-color: var(--leaf); box-shadow: 0 0 0 2px var(--leaf-soft); color: var(--ink); font-weight: 600; }
-@media (max-width: 560px) { .sample-list { grid-template-columns: repeat(5, 120px); overflow-x: auto; scrollbar-width: none; } }
+@media (max-width: 560px) { .sample-list { grid-template-columns: repeat(6, 120px); overflow-x: auto; scrollbar-width: none; } }
 
 .result-status { display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); color: var(--ink-2); margin-bottom: 16px; }
 .result-status .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); flex: none; }

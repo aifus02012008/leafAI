@@ -1,21 +1,21 @@
 # 🍃 LEAF_AI — Frontend (v2, đa trang)
 
-Giao diện web/PWA phát hiện bệnh lá cà chua. Tông xanh diệp lục, chữ **Be Vietnam Pro**, không còn phụ thuộc Bootstrap CSS/JS (chỉ dùng Bootstrap Icons).
+Giao diện web/PWA nhận diện bệnh trên lá vải thiều Lục Ngạn. Tông xanh diệp lục, chữ **Be Vietnam Pro**, không còn phụ thuộc Bootstrap CSS/JS (chỉ dùng Bootstrap Icons).
 
 ## Cấu trúc trang
 
 | File | Nội dung |
 |---|---|
-| `index.html` | Landing page: hero có demo quét lá, 6 bệnh, quy trình 3 bước, tháp IPM, so sánh mô hình |
-| `scan.html` | Chẩn đoán: camera / chọn ảnh / ảnh mẫu, chọn model V3–V4, khoanh vùng, kết quả, stepper 5 bước |
-| `library.html` | Thư viện 6 bệnh: tìm kiếm không dấu, lọc nấm / vi khuẩn / nghiêm trọng |
+| `index.html` | Landing page: hero có demo quét lá vải kèm Grad-CAM, 5 bệnh, quy trình 3 bước, tháp IPM, thông số mô hình |
+| `scan.html` | Chẩn đoán: camera / chọn ảnh / ảnh minh họa, ResNet-18 + bản đồ nhiệt Grad-CAM, kết quả, stepper 5 bước |
+| `library.html` | Thư viện 5 bệnh, dịch hại lá vải: tìm kiếm không dấu, lọc nấm / tảo, nhện hại / nghiêm trọng |
 | `disease.html?id=<id>` | Chi tiết bệnh: triệu chứng 3 giai đoạn, điều kiện, phòng ngừa, phác đồ 3 cấp |
 | `handbook.html` | Cẩm nang: 8 nguyên tắc, 7 bước kiểm tra, 10 bước IPM, an toàn BVTV (mục lục bám cuộn) |
 | `history.html` | Nhật ký đồng ruộng: thống kê, lọc, xóa, xuất CSV, ảnh thu nhỏ |
 | `assistant.html?q=<câu hỏi>` | Trợ lý kỹ sư AI, có trả lời ngoại tuyến từ kho tri thức |
 | `about.html` | Giới thiệu dự án, thông số mô hình, nguồn tham khảo |
 
-`id` bệnh: `early_blight`, `late_blight`, `bacterial_spot`, `septoria_leaf_spot`, `leaf_mold`, `powdery_mildew`.
+`id` bệnh: `anthracnose` (thán thư), `downy_blight` (sương mai), `leaf_blight` (cháy lá), `algal_spot` (đốm rong), `erinose` (nhện lông nhung). Tên lớp mô hình cần trả về: `Healthy`, `Anthracnose`, `Downy_blight`, `Leaf_blight`, `Algal_spot`, `Erinose` (các tên gọi khác khai báo trong `aliases` của `disease_data.js`). Nhãn không thuộc danh mục lá vải sẽ không được hiển thị như một chẩn đoán.
 
 ## JavaScript
 
@@ -23,7 +23,7 @@ Giao diện web/PWA phát hiện bệnh lá cà chua. Tông xanh diệp lục, c
 assets/js/
 ├── core.js           # Header/menu/bottom-nav/footer dùng chung, toast, hộp xác nhận, lưu lịch sử, PWA
 ├── api.js            # REST client có timeout + kiểm tra backend 1 lần; mô phỏng khi backend tắt
-├── disease_data.js   # Kho tri thức 6 bệnh + cẩm nang
+├── disease_data.js   # Kho tri thức bệnh lá vải + cẩm nang vườn vải
 ├── canvas_render.js  # Vẽ ảnh, bounding box, tia quét
 ├── camera.js         # Camera trước/sau, kéo thả, kiểm tra file ≤ 10MB
 └── pages/*.js        # Mỗi trang một file
