@@ -741,6 +741,75 @@ dialog.sheet::backdrop { background: rgba(18, 48, 31, .45); }
 .auth-tab-btn.is-active { background: var(--ink); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
 .alert-danger { background: var(--tomato-soft); border: 1px solid rgba(212,69,42,0.25); color: #a8321b; padding: 10px 14px; border-radius: var(--r-md); }
 
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #ffffff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.08);
+  font-weight: 600;
+  font-size: 14.5px;
+  height: 44px;
+  width: 100%;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all .18s;
+  margin-bottom: 4px;
+}
+.btn-google:hover {
+  background: #f8f9fa;
+  border-color: #c6c9cc;
+  box-shadow: 0 1px 4px rgba(60, 64, 67, 0.16);
+  color: #202124;
+}
+.btn-google:active {
+  transform: scale(0.99);
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 16px 0 14px;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 500;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+.auth-divider span {
+  padding: 0 10px;
+}
+.auth-gate-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.auth-gate-notice i {
+  font-size: 1.25rem;
+  color: var(--leaf);
+  flex: none;
+  margin-top: 1px;
+}
+.auth-gate-notice strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
 /* ===== Báo cáo AI (HTML sanitize từ backend — contract class: badge/pct/report-table/callout) ===== */
 .ai-report { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.65; }
 .ai-report h3 {
