@@ -1,0 +1,142 @@
+{
+  "version": "1.0.0",
+  "crop": "Vải thiều (Litchi chinensis Sonn.) – Lục Ngạn",
+  "source": "Tổng hợp từ FAO, The Lychee Crop in Asia and the Pacific (Menzel, 2002) và khuyến cáo của ngành bảo vệ thực vật; liều lượng luôn theo nhãn thuốc đã đăng ký.",
+  "spray_volume_l_per_m2": 0.08,
+  "tank_volume_l": 16,
+  "phi_guard_days": 14,
+  "severity_levels": {
+    "nhe": {
+      "label": "Nhẹ",
+      "criteria": "Dưới 10% số lộc, lá trên cây có vết bệnh; vết bệnh rải rác, chưa lan sang chùm hoa, quả."
+    },
+    "trung_binh": {
+      "label": "Trung bình",
+      "criteria": "Khoảng 10–25% số lộc, lá có vết bệnh; vết bệnh mới xuất hiện thêm sau 2–3 ngày."
+    },
+    "nang": {
+      "label": "Nặng",
+      "criteria": "Trên 25% số lộc, lá bị hại hoặc bệnh đã lan sang chùm hoa, quả non."
+    }
+  },
+  "growth_stages": {
+    "sau_thu_hoach": "Sau thu hoạch, phục hồi cây",
+    "loc_non": "Ra lộc non (lộc xuân, lộc thu)",
+    "ra_hoa": "Ra hoa",
+    "nuoi_qua": "Đậu quả, nuôi quả"
+  },
+  "diseases": {
+    "anthracnose": {
+      "class": "Anthracnose",
+      "name_vi": "Thán thư",
+      "pathogen": "Colletotrichum gloeosporioides",
+      "kind": "Nấm",
+      "cultural": [
+        "Cắt bỏ lộc, lá, chùm hoa bị bệnh nặng; cho vào bao kín, mang ra khỏi vườn tiêu hủy.",
+        "Lau dao kéo bằng cồn 70° sau mỗi cây để không mang bào tử sang cây khác.",
+        "Tỉa cành trong tán, khơi thông rãnh thoát nước để lá nhanh khô sau mưa."
+      ],
+      "biological": [
+        "Phun chế phẩm vi khuẩn đối kháng Bacillus subtilis ướt đều lộc non, lá bánh tẻ.",
+        "Bón nấm Trichoderma trộn phân hữu cơ hoai mục quanh hình chiếu tán."
+      ],
+      "chemical": [
+        { "active": "Azoxystrobin", "group": "FRAC 11 (QoI)" },
+        { "active": "Difenoconazole", "group": "FRAC 3 (DMI)" },
+        { "active": "Propineb", "group": "FRAC M03 (đa điểm)" },
+        { "active": "Mancozeb", "group": "FRAC M03 (đa điểm)" }
+      ],
+      "monitor": "Đếm số lộc có chấm nâu mới ở chóp, mép lá; trời ẩm thì xem vết bệnh có chấm đen nhỏ xếp vòng hay không.",
+      "success": "Không xuất hiện vết bệnh mới trên lộc non trong 7 ngày liên tiếp.",
+      "note": "Bệnh lây mạnh khi mưa kéo dài ở 25–30 °C; tăng số lần thăm vườn trong các đợt mưa ẩm."
+    },
+    "downy_blight": {
+      "class": "Downy_blight",
+      "name_vi": "Sương mai",
+      "pathogen": "Peronophythora litchii",
+      "kind": "Nấm noãn",
+      "cultural": [
+        "Cắt bỏ lá non, chùm hoa, quả bị thối phủ mốc trắng; nhặt sạch quả rụng dưới gốc đem tiêu hủy.",
+        "Khơi rãnh thoát nước, không để đọng nước dưới tán; tỉa cành cho tán thông thoáng.",
+        "Không tưới phun lên tán vào chiều tối trong những ngày nồm ẩm."
+      ],
+      "biological": [
+        "Phun chế phẩm Bacillus subtilis lên lá non, chùm hoa khi trời tạnh mưa.",
+        "Bón Trichoderma cùng phân hữu cơ để giảm nguồn bệnh trong đất."
+      ],
+      "chemical": [
+        { "active": "Metalaxyl + Mancozeb", "group": "FRAC 4 + M03" },
+        { "active": "Cymoxanil + Mancozeb", "group": "FRAC 27 + M03" },
+        { "active": "Dimethomorph", "group": "FRAC 40 (CAA)" }
+      ],
+      "monitor": "Lật mặt dưới lá non, xem chùm hoa và quả non: lớp mốc trắng mịn mới là dấu hiệu bệnh còn hoạt động.",
+      "success": "Không còn mốc trắng mới trên lá, hoa, quả sau 2 lần kiểm tra liên tiếp.",
+      "note": "Mưa phùn, ẩm độ trên 85–90% và nhiệt độ 22–25 °C là điều kiện bùng phát; xử lý sớm trước các đợt nồm."
+    },
+    "leaf_blight": {
+      "class": "Leaf_blight",
+      "name_vi": "Cháy lá",
+      "pathogen": "Pestalotiopsis spp.",
+      "kind": "Nấm",
+      "cultural": [
+        "Cắt bỏ lá cháy chóp, cháy mép và cành khô; thu gom lá rụng đem tiêu hủy.",
+        "Bón phân cân đối, bổ sung kali để lá dày, cứng; không bón thừa đạm khi cây ra lộc.",
+        "Tưới đủ ẩm trong mùa khô để hạn chế cháy lá do cây suy yếu."
+      ],
+      "biological": [
+        "Phun chế phẩm Bacillus subtilis hoặc Trichoderma lên tán sau khi cắt tỉa.",
+        "Bón phân hữu cơ hoai mục ủ Trichoderma để phục hồi bộ rễ."
+      ],
+      "chemical": [
+        { "active": "Mancozeb", "group": "FRAC M03 (đa điểm)" },
+        { "active": "Difenoconazole", "group": "FRAC 3 (DMI)" },
+        { "active": "Azoxystrobin", "group": "FRAC 11 (QoI)" }
+      ],
+      "monitor": "Theo dõi vết cháy nâu từ chóp, mép lá: vết bệnh có lan rộng thêm và có viền sẫm mới hay không.",
+      "success": "Vết cháy không lan thêm, lá mới ra không có vết bệnh.",
+      "note": "Dễ nhầm với thán thư ở giai đoạn đầu; nếu kết quả có cảnh báo nghi đồng nhiễm, xử lý theo phác đồ bệnh chính trước."
+    },
+    "algal_spot": {
+      "class": "Algal_spot",
+      "name_vi": "Đốm rong",
+      "pathogen": "Cephaleuros virescens",
+      "kind": "Tảo",
+      "cultural": [
+        "Tỉa bỏ cành, lá già bị đốm dày trong tán; phát quang cỏ dại quanh gốc.",
+        "Tỉa thưa tán cho ánh sáng lọt vào, giảm ẩm độ trong vườn.",
+        "Bón phân đầy đủ giúp cây khỏe, lá già được thay thế sớm."
+      ],
+      "biological": [],
+      "chemical": [
+        { "active": "Copper Hydroxide", "group": "FRAC M01 (đồng)" },
+        { "active": "Copper Oxychloride", "group": "FRAC M01 (đồng)" },
+        { "active": "Hỗn hợp Bordeaux", "group": "FRAC M01 (đồng)" }
+      ],
+      "monitor": "Đếm số đốm đỏ gạch như nhung mới trên lá già trong tán.",
+      "success": "Không phát sinh đốm mới; đốm cũ khô, chuyển màu xám.",
+      "note": "Chưa có chế phẩm sinh học đặc hiệu; biện pháp canh tác giảm ẩm là chính. Thuốc gốc đồng thuộc nhóm đa điểm, nguy cơ kháng thấp."
+    },
+    "erinose": {
+      "class": "Erinose",
+      "name_vi": "Nhện lông nhung",
+      "pathogen": "Aceria litchii",
+      "kind": "Nhện hại",
+      "cultural": [
+        "Cắt bỏ toàn bộ lá, cành có mảng lông nhung; cho vào bao kín và tiêu hủy, không để lại trong vườn.",
+        "Không lấy cành chiết, mắt ghép từ cây đang bị nhện.",
+        "Nuôi các đợt lộc ra đồng loạt để dễ phát hiện và xử lý."
+      ],
+      "biological": [
+        "Phun dầu khoáng hoặc chế phẩm thảo mộc khi lộc non dài 3–5 cm, phun kỹ mặt dưới lá.",
+        "Bảo vệ nhện bắt mồi và thiên địch: không phun thuốc phổ rộng tràn lan."
+      ],
+      "chemical": [
+        { "active": "Abamectin", "group": "IRAC 6" },
+        { "active": "Lưu huỳnh", "group": "Vô cơ (M02)" }
+      ],
+      "monitor": "Lật mặt dưới lá non: mảng lông tơ trắng bạc mới là dấu hiệu nhện còn gây hại.",
+      "success": "Lộc mới không xuất hiện mảng lông tơ trắng bạc sau 10 ngày.",
+      "note": "Đây là nhện hại, thuốc trừ nấm không có tác dụng."
+    }
+  }
+}

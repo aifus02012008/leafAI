@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Phác đồ điều trị — LEAF_AI</title>
+  <meta name="description" content="Lập lịch điều trị bệnh lá vải từng bước theo IPM sau khi chẩn đoán: canh tác, sinh học, hóa học khi cần, kiểm tra lại và đánh giá.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e7a4c">
+  <link rel="icon" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="treatment">
+  <script src="assets/js/core.js"></script>
+
+  <main id="main" class="page">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Đường dẫn">
+        <a href="scan.html">Chẩn đoán</a><span aria-hidden="true">/</span><span>Phác đồ điều trị</span>
+      </nav>
+      <div class="page-head">
+        <div>
+          <h1>Phác đồ điều trị</h1>
+          <p>Lịch xử lý từng bước sau khi biết lá vải mắc bệnh, theo thứ tự quản lý dịch hại tổng hợp: canh tác, sinh học, rồi mới đến thuốc hóa học khi thật cần.</p>
+        </div>
+      </div>
+
+      <div class="detail-layout">
+        <div class="plan-main">
+          <!-- Thông tin lập phác đồ -->
+          <section class="panel panel-pad" id="formPanel" aria-labelledby="hForm">
+            <div class="panel-title">
+              <h2 id="hForm">Thông tin vườn</h2>
+              <span class="tag" id="fromScanTag" hidden><i class="bi bi-camera"></i>Từ kết quả chẩn đoán</span>
+            </div>
+            <form id="planForm" class="plan-form" novalidate>
+              <label class="plan-field">
+                <span>Bệnh cần điều trị</span>
+                <select id="fDisease" class="input" required></select>
+              </label>
+              <label class="plan-field">
+                <span>Giai đoạn của cây</span>
+                <select id="fStage" class="input"></select>
+              </label>
+              <fieldset class="plan-field plan-field-wide">
+                <legend>Mức độ bệnh quan sát trên vườn</legend>
+                <div class="sev-pick" role="radiogroup" id="fSeverity">
+                  <label><input type="radio" name="sev" value="nhe"><span><b>Nhẹ</b><small>Dưới 10% lộc, lá có vết</small></span></label>
+                  <label><input type="radio" name="sev" value="trung_binh" checked><span><b>Trung bình</b><small>10–25% lộc, lá có vết</small></span></label>
+                  <label><input type="radio" name="sev" value="nang"><span><b>Nặng</b><small>Trên 25% hoặc lan sang hoa, quả</small></span></label>
+                </div>
+                <p class="small muted" id="sevHint"></p>
+              </fieldset>
+              <label class="plan-field">
+                <span>Diện tích cần xử lý (m²)</span>
+                <input id="fArea" class="input" type="number" min="1" max="1000000" step="10" value="1000" inputmode="numeric">
+              </label>
+              <label class="plan-field">
+                <span>Ngày bắt đầu</span>
+                <input id="fStart" class="input" type="date">
+              </label>
+              <label class="plan-field">
+                <span>Số ngày đến thu hoạch <em class="muted">(nếu có)</em></span>
+                <input id="fHarvest" class="input" type="number" min="0" max="365" placeholder="Bỏ trống nếu chưa có quả" inputmode="numeric">
+              </label>
+              <div class="plan-field plan-submit">
+                <button class="btn btn-primary btn-block" id="btnBuild" type="submit"><i class="bi bi-clipboard2-pulse"></i>Lập phác đồ</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Kết quả -->
+          <section class="panel panel-pad" id="planBox" hidden aria-labelledby="planTitle" aria-live="polite">
+            <div class="plan-head">
+              <div>
+                <h2 id="planTitle">—</h2>
+                <p class="diagnosis-latin" id="planLatin"></p>
+                <div class="plan-tags" id="planTags"></div>
+              </div>
+              <span class="tag" id="planSource"></span>
+            </div>
+
+            <dl class="model-facts plan-facts">
+              <div><dt>Thời gian</dt><dd id="factDuration">—</dd></div>
+              <div><dt>Số bước</dt><dd id="factSteps">—</dd></div>
+              <div><dt>Lần phun hóa học</dt><dd id="factChem">—</dd></div>
+              <div><dt>Dung dịch / lần phun (bình 16 L)</dt><dd id="factSpray">—</dd></div>
+            </dl>
+
+            <div class="plan-progress">
+              <div class="plan-progress-row"><strong>Tiến độ điều trị</strong><span id="progressText">0/0 bước</span></div>
+              <div class="meter" aria-hidden="true"><i id="progressBar" style="width:0%"></i></div>
+            </div>
+
+            <div class="alert alert-warn" id="planNotes" hidden><i class="bi bi-exclamation-triangle"></i><div id="planNotesText"></div></div>
+
+            <ol class="plan-steps" id="planSteps"></ol>
+
+            <div class="plan-actions">
+              <button class="btn btn-primary" id="btnSave" type="button"><i class="bi bi-bookmark-check"></i>Lưu để theo dõi</button>
+              <button class="btn" id="btnIcs" type="button"><i class="bi bi-calendar-plus"></i>Thêm vào lịch điện thoại</button>
+              <button class="btn" id="btnPrint" type="button"><i class="bi bi-printer"></i>In phác đồ</button>
+              <a class="btn btn-ghost" id="btnRescan" href="scan.html"><i class="bi bi-camera"></i>Chụp lại để so sánh</a>
+            </div>
+            <p class="refs" id="planRefs"></p>
+          </section>
+        </div>
+
+        <aside>
+          <div class="panel panel-pad">
+            <h2 class="aside-title">Phác đồ đang theo dõi</h2>
+            <ul class="aside-list" id="savedPlans"></ul>
+            <p class="small muted" id="savedEmpty">Chưa lưu phác đồ nào.</p>
+          </div>
+          <div class="panel panel-pad">
+            <h2 class="aside-title">Tiêu chí khỏi bệnh</h2>
+            <p class="small" id="asideSuccess">Lập phác đồ để xem tiêu chí đánh giá.</p>
+          </div>
+          <div class="panel panel-pad">
+            <h2 class="aside-title">Khi dùng thuốc hóa học</h2>
+            <ul class="rule-list" id="asideRules"></ul>
+          </div>
+          <div class="panel panel-pad">
+            <p class="small muted">Phác đồ mang tính tham khảo. Liều lượng luôn theo nhãn thuốc đã đăng ký. Với vết bệnh lan nhanh, hãy mang mẫu lá đến trạm bảo vệ thực vật để xác nhận.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/js/disease_data.js"></script>
+  <script src="assets/js/treatment_planner.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/pages/treatment.js"></script>
+</body>
+</html>

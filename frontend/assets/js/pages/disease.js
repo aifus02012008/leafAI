@@ -21,6 +21,8 @@
   $('dLead').textContent = d.symptoms.stage_2;
   $('dImg').src = d.thumb;
   $('dImg').alt = `Minh hoạ lá vải bị ${shortName.toLowerCase()}`;
+  $('dTreat').href = `treatment.html?id=${d.id}`;
+  $('dTreat2').href = `treatment.html?id=${d.id}`;
   $('dAsk').href = `assistant.html?q=${encodeURIComponent(`Cách xử lý ${shortName.toLowerCase()} trên cây vải theo hướng IPM?`)}`;
 
   const stages = [

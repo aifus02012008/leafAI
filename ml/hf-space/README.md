@@ -92,3 +92,23 @@ with torch.no_grad():
 ## 🛡️ Bản quyền & Nguồn
 - Dự án: **LEAF_AI (Hệ sinh thái AI nông nghiệp thông minh)**
 - Dataset: `wellCh4n/tomato-leaf-disease-image` (PlantVillage)
+
+## 🩺 Phác đồ điều trị sau chẩn đoán (lá vải)
+Kho tri thức `treatment_protocols.json` (5 bệnh, dịch hại lá vải) và bộ lập lịch `treatment.py`
+sinh lịch xử lý theo thứ tự IPM: canh tác → sinh học → hóa học khi cần → kiểm tra lại → đánh giá.
+
+| Phương thức | Đường dẫn | Mô tả |
+|---|---|---|
+| GET | `/treatment` | Danh sách bệnh có phác đồ, mức độ, giai đoạn sinh trưởng |
+| GET | `/treatment/{disease}` | Phác đồ gốc của một bệnh (nhận tên lớp mô hình, ví dụ `Anthracnose`) |
+| POST | `/treatment/plan` | Lịch điều trị cá nhân hóa |
+
+```bash
+curl -X POST https://leaf-ai-engine.onrender.com/treatment/plan \
+  -H "Content-Type: application/json" \
+  -d '{"disease":"Anthracnose","severity":"trung_binh","growth_stage":"loc_non","area_m2":1500,"days_to_harvest":null}'
+```
+
+Quy tắc an toàn: luân phiên nhóm FRAC/IRAC giữa hai lần phun; cảnh báo không phun khi hoa nở rộ;
+bỏ bước hóa học nếu còn dưới 14 ngày đến thu hoạch. Liều lượng luôn theo nhãn thuốc.
+Kiểm thử: `pytest test_treatment.py` (không cần PyTorch).

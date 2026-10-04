@@ -26,6 +26,8 @@ import torch.nn.functional as F
 import torchvision.models as models
 import torchvision.transforms as transforms
 
+from treatment import router as treatment_router
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("leaf_ai_service")
 
@@ -42,6 +44,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Phác đồ điều trị sau chẩn đoán: GET /treatment, GET /treatment/{disease}, POST /treatment/plan
+app.include_router(treatment_router)
 
 # 10 Lớp bệnh & lá cà chua chuẩn hóa quốc tế (PlantVillage & FAO)
 CLASSES = [
@@ -295,6 +300,9 @@ def index():
             <ul>
                 <li><code>POST /predict_with_gradcam</code>: Chẩn đoán ảnh lá (Base64) + tạo bản đồ nhiệt Grad-CAM chuẩn</li>
                 <li><code>POST /predict</code>: Chẩn đoán nhanh không kèm bản đồ nhiệt</li>
+                <li><code>GET /treatment</code>: Danh sách bệnh có phác đồ điều trị</li>
+                <li><code>GET /treatment/{{disease}}</code>: Phác đồ gốc của một bệnh</li>
+                <li><code>POST /treatment/plan</code>: Lập lịch điều trị theo mức độ, giai đoạn, diện tích</li>
                 <li><code>GET /health</code>: Kiểm tra trạng thái máy chủ AI</li>
             </ul>
         </div>
@@ -310,7 +318,8 @@ def health():
         "service": "leaf_ai_tomato_engine",
         "model": "ResNet18-PlantVillage",
         "metadata": model_meta,
-        "supported_classes": CLASSES
+        "supported_classes": CLASSES,
+        "features": ["predict_with_gradcam", "treatment_plan"]
     }
 
 
