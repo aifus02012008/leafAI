@@ -840,3 +840,434 @@ dialog.sheet::backdrop { background: rgba(18, 48, 31, .45); }
   .panel { border: 0; }
   .plan-steps > li { break-inside: avoid; }
 }
+
+/* ==========================================================================
+   MOBILE-FIRST ENHANCEMENTS & RESPONSIVE POLISH (iOS & Android)
+   ========================================================================== */
+@media (max-width: 768px) {
+  :root {
+    --bottom-nav-h: 66px;
+    --header-h: 58px;
+    --gutter: 14px;
+    --r-lg: 20px;
+    --r-md: 16px;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    padding-bottom: calc(var(--bottom-nav-h) + 28px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Safe touch feedback */
+  .btn, .sample, .disease-card, .bottom-nav a, .segmented button, .suggest button {
+    touch-action: manipulation;
+  }
+  .btn:active, .sample:active, .disease-card:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+
+  /* Header on Mobile */
+  .site-header {
+    height: var(--header-h);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 1px 12px rgba(0, 0, 0, 0.04);
+  }
+  .header-inner {
+    padding-inline: 12px;
+  }
+  .brand-name {
+    font-size: 1.15rem;
+  }
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+  .auth-header button {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: var(--r-pill);
+  }
+  .menu-toggle {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  /* Mobile Drawer */
+  .mobile-drawer {
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.2);
+    padding: 10px 16px 20px;
+  }
+  .mobile-drawer a {
+    border-radius: 12px;
+    padding: 12px 14px;
+    border-bottom: 0;
+    margin-bottom: 3px;
+    transition: background 0.15s ease;
+  }
+  .mobile-drawer a:active {
+    background: var(--surface-2);
+  }
+
+  /* Bottom Navigation */
+  .bottom-nav {
+    height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+    padding: 0 6px env(safe-area-inset-bottom, 0px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.07);
+  }
+  .bottom-nav a {
+    font-size: 10.5px;
+    font-weight: 600;
+    gap: 3px;
+  }
+  .bottom-nav a i {
+    font-size: 1.25rem;
+  }
+  .bottom-nav a[aria-current="page"] {
+    color: var(--leaf-deep, #1b4332);
+    font-weight: 800;
+  }
+  .bottom-nav a.fab i {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+    color: #fff;
+    font-size: 1.55rem;
+    margin-top: -28px;
+    box-shadow: 0 10px 24px -4px rgba(27, 67, 50, 0.6), 0 0 0 5px rgba(255, 255, 255, 0.96);
+    transition: transform 0.12s ease;
+  }
+  .bottom-nav a.fab:active i {
+    transform: scale(0.92);
+  }
+
+  /* Hero Section */
+  .hero {
+    padding-block: 20px 36px;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .hero h1 {
+    font-size: clamp(1.85rem, 6.8vw, 2.45rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  .hero-lead {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-top: 14px;
+  }
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .hero-actions .btn {
+    width: 100%;
+    height: 48px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: var(--r-pill);
+    justify-content: center;
+  }
+  .hero-trust {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 20px;
+    font-size: 13px;
+  }
+  .demo {
+    border-radius: 20px;
+    box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.12);
+  }
+  .demo-stage {
+    aspect-ratio: 4 / 3;
+    min-height: 230px;
+  }
+
+  /* Scan Page Optimizations */
+  .stepper {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+  }
+  .stepper::-webkit-scrollbar { display: none; }
+  .stepper li {
+    flex: none;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .stepper li b {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .stage {
+    min-height: 270px;
+    max-height: 380px;
+    aspect-ratio: 4 / 3;
+    border-radius: 20px;
+    border-width: 2px;
+    padding: 6px;
+  }
+  .stage-hint {
+    bottom: 10px;
+    left: 10px;
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  /* View Mode Bar */
+  .view-mode-bar {
+    border-radius: 16px;
+    padding: 8px 12px;
+    margin-top: 12px;
+  }
+  .segmented.segmented-sm button {
+    padding: 7px 12px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  /* Camera & Pick File Buttons */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .toolbar #btnOpenCamera {
+    flex: 1 1 100%;
+    height: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: var(--r-pill);
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+    box-shadow: 0 6px 20px -4px rgba(27, 67, 50, 0.45);
+    color: #fff;
+    justify-content: center;
+  }
+  .toolbar #btnPickFile {
+    flex: 1 1 55%;
+    height: 44px;
+    font-size: 13.5px;
+    font-weight: 600;
+    border-radius: var(--r-pill);
+    justify-content: center;
+  }
+  .toolbar #btnRescan {
+    flex: 0 0 auto;
+    height: 44px;
+    border-radius: var(--r-pill);
+    padding-inline: 16px;
+  }
+
+  /* Sample Cards Horizontal Snap Carousel */
+  .samples {
+    margin-top: 16px;
+    padding-top: 14px;
+  }
+  .samples-head {
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .sample-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 2px 2px 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sample-list::-webkit-scrollbar { display: none; }
+  .sample {
+    flex: 0 0 114px;
+    scroll-snap-align: start;
+    border-radius: 14px;
+    padding: 6px;
+    text-align: center;
+  }
+  .sample img {
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    margin-bottom: 4px;
+  }
+  .sample span {
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  /* Diagnosis Panel */
+  .diagnosis {
+    border-radius: 20px;
+    padding: 18px;
+  }
+  .diagnosis-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+  .score b {
+    font-size: 2.1rem;
+  }
+  .result-actions .btn {
+    height: 48px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    font-weight: 700;
+    justify-content: center;
+  }
+
+  /* Assistant / Chat layout on Mobile */
+  .chat {
+    height: calc(100vh - var(--header-h) - var(--bottom-nav-h) - 40px);
+    min-height: 450px;
+    border-radius: 20px;
+  }
+  .chat-thread {
+    padding: 16px 12px;
+    gap: 12px;
+  }
+  .msg {
+    max-width: 92%;
+  }
+  .msg .bubble {
+    font-size: 13.5px;
+    padding: 10px 14px;
+    border-radius: 4px 16px 16px 16px;
+  }
+  .chat-side {
+    margin-bottom: 12px;
+  }
+  .chat-side .panel-pad {
+    padding: 12px 14px;
+    border-radius: 18px;
+  }
+  .suggest {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 2px 0 6px;
+  }
+  .suggest::-webkit-scrollbar { display: none; }
+  .suggest button {
+    flex: none;
+    max-width: 260px;
+    scroll-snap-align: start;
+    border-radius: var(--r-pill);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .composer {
+    padding: 8px 12px;
+    gap: 8px;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+  .composer textarea {
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 20px;
+  }
+  .composer #btnSend {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .composer #btnSend span { display: none; }
+
+  /* Library & Diseases on Mobile */
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+  .filter-chips::-webkit-scrollbar { display: none; }
+  .filter-chips button {
+    flex: none;
+    scroll-snap-align: start;
+    border-radius: var(--r-pill);
+    padding: 7px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .disease-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .disease-card {
+    border-radius: 18px;
+  }
+  .disease-card .thumb {
+    aspect-ratio: 16 / 9;
+    max-height: 180px;
+  }
+  .disease-card .body {
+    padding: 14px 16px 16px;
+  }
+
+  /* History Summary 2x2 */
+  .summary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+  .summary div {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+  .summary dd {
+    font-size: 1.45rem !important;
+  }
+
+  /* Form & Dialog Inputs (Prevent iOS auto-zoom on focus) */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+  .sheet {
+    width: 92%;
+    max-width: 420px;
+    border-radius: 24px;
+  }
+}
+

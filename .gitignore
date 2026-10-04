@@ -45,4 +45,9 @@ venv.bak/
 docs/product_images/
 docs/temp_shots/
 docs/*.py
+docs/*.png
+docs/*.mp4
+docs/anh_phac_do_dieu_tri/
+docs/video_recordings/
+record_demo.py
 .vercel

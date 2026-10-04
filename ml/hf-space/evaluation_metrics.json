@@ -1,0 +1,220 @@
+{
+  "checkpoint_epoch": 5,
+  "n_val": 3569,
+  "label_counts": [
+    335,
+    188,
+    273,
+    350,
+    209,
+    441,
+    355,
+    0,
+    1073,
+    345
+  ],
+  "accuracy": 99.55,
+  "per_class": {
+    "Healthy": {
+      "support": 335,
+      "tp": 335,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1": 100.0
+    },
+    "Leaf_mold": {
+      "support": 188,
+      "tp": 188,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1": 100.0
+    },
+    "Target_spot": {
+      "support": 273,
+      "tp": 273,
+      "precision": 98.91,
+      "recall": 100.0,
+      "f1": 99.45
+    },
+    "Late_blight": {
+      "support": 350,
+      "tp": 345,
+      "precision": 100.0,
+      "recall": 98.57,
+      "f1": 99.28
+    },
+    "Early_blight": {
+      "support": 209,
+      "tp": 208,
+      "precision": 96.74,
+      "recall": 99.52,
+      "f1": 98.11
+    },
+    "Bacterial_spot": {
+      "support": 441,
+      "tp": 434,
+      "precision": 100.0,
+      "recall": 98.41,
+      "f1": 99.2
+    },
+    "Septoria_leaf_spot": {
+      "support": 355,
+      "tp": 355,
+      "precision": 99.44,
+      "recall": 100.0,
+      "f1": 99.72
+    },
+    "Tomato_mosaic_virus": {
+      "support": 0,
+      "tp": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "Tomato_yellow_leaf_curl_virus": {
+      "support": 1073,
+      "tp": 1072,
+      "precision": 99.72,
+      "recall": 99.91,
+      "f1": 99.81
+    },
+    "Spider_mites": {
+      "support": 345,
+      "tp": 343,
+      "precision": 99.71,
+      "recall": 99.42,
+      "f1": 99.56
+    }
+  },
+  "macro_avg": {
+    "precision": 99.39,
+    "recall": 99.54,
+    "f1": 99.46
+  },
+  "confusion_matrix": [
+    [
+      335,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      188,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      273,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      345,
+      3,
+      0,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      208,
+      0,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      3,
+      434,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      355,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1072,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      343
+    ]
+  ],
+  "cpu_latency_ms": {
+    "mean": 32.2,
+    "std": 4.1
+  }
+}
