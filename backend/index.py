@@ -26,8 +26,8 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 # Ensure proper Python path resolution for Vercel Serverless
-root_dir = Path(__file__).resolve().parent.parent
-backend_dir = root_dir / "backend"
+backend_dir = Path(__file__).resolve().parent
+root_dir = backend_dir.parent
 
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))

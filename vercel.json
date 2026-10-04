@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
+      "src": "backend/index.py",
       "use": "@vercel/python"
     },
     {
@@ -13,39 +13,39 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/docs",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/openapi.json",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/health/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/admin/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/login/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/logout/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/signup/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/profile/(.*)",
-      "dest": "api/index.py"
+      "dest": "backend/index.py"
     },
     {
       "src": "/assets/(.*)",
