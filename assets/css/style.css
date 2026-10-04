@@ -156,31 +156,53 @@ code { font-size: 0.9em; background: var(--leaf-tint); padding: 1px 6px; border-
 
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); flex: none; }
 .brand:hover { color: var(--ink); }
-.brand-mark { width: 36px; height: 36px; border-radius: 11px; background: var(--leaf); display: grid; place-items: center; flex: none; }
+.brand-mark { width: 36px; height: 36px; border-radius: 11px; background: var(--leaf); display: grid; place-items: center; flex: none; box-shadow: 0 4px 10px rgba(30, 122, 76, 0.2); }
 .brand-mark svg { width: 22px; height: 22px; }
+.brand-text { display: flex; flex-direction: column; justify-content: center; }
+.brand-title-line { display: inline-flex; align-items: center; gap: 8px; }
 .brand-name { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; line-height: 1; }
 .brand-name span { color: var(--leaf); }
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  background: rgba(194, 38, 45, 0.1);
+  color: #c2262d;
+  border: 1px solid rgba(194, 38, 45, 0.22);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
 .brand-sub { display: block; font-size: 11px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; margin-top: 3px; }
 
-.main-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.main-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .main-nav a {
-  position: relative; padding: 8px 12px; border-radius: var(--r-pill);
+  position: relative; padding: 7px 13px; border-radius: var(--r-pill);
   font-size: var(--fs-sm); font-weight: 500; color: var(--ink-2); text-decoration: none;
+  white-space: nowrap;
 }
 .main-nav a:hover { color: var(--ink); background: var(--leaf-tint); }
 .main-nav a[aria-current="page"] { color: var(--ink); font-weight: 600; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
-.header-cta { flex: none; }
+.header-cta { flex: none; font-weight: 600; }
+.header-cta.is-active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--leaf); }
 .menu-toggle { display: none; margin-left: auto; }
 .mobile-drawer { display: none; }
 .bottom-nav { display: none; }
 
 @media (max-width: 1100px) {
-  .main-nav a { padding: 8px 9px; }
+  .main-nav a { padding: 7px 9px; font-size: 13px; }
   .brand-sub { display: none; }
 }
 @media (max-width: 960px) {
   :root { --bottom-nav-h: 68px; --header-h: 60px; }
   .main-nav, .header-cta { display: none; }
+  .brand-sub { display: none; }
+  .auth-btn-label { display: none; }
+  .auth-user-name { display: none; }
+  .header-inner { gap: 10px; }
   .menu-toggle { display: inline-flex; }
 
   .mobile-drawer {

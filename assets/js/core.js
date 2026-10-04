@@ -11,12 +11,11 @@
   'use strict';
 
   const NAV = [
-    { id: 'scan', href: 'scan.html', label: 'Chẩn đoán', icon: 'bi-camera' },
-    { id: 'library', href: 'library.html', label: 'Thư viện bệnh', short: 'Thư viện', icon: 'bi-journal-text' },
-    { id: 'handbook', href: 'handbook.html', label: 'Cẩm nang IPM', short: 'Cẩm nang', icon: 'bi-shield-check' },
-    { id: 'history', href: 'history.html', label: 'Lịch sử', icon: 'bi-clock-history' },
-    { id: 'assistant', href: 'assistant.html', label: 'Trợ lý AI', short: 'Trợ lý', icon: 'bi-chat-dots' },
-    { id: 'about', href: 'about.html', label: 'Giới thiệu', icon: 'bi-info-circle' }
+    { id: 'library', href: 'library.html', label: 'Thư viện', icon: 'bi-journal-text' },
+    { id: 'treatment', href: 'treatment.html', label: 'Phác đồ', icon: 'bi-clipboard2-pulse' },
+    { id: 'handbook', href: 'handbook.html', label: 'Cẩm nang', icon: 'bi-shield-check' },
+    { id: 'assistant', href: 'assistant.html', label: 'Trợ lý', icon: 'bi-chat-dots' },
+    { id: 'history', href: 'history.html', label: 'Lịch sử', icon: 'bi-clock-history' }
   ];
 
   const LEAF_MARK = `
@@ -34,21 +33,24 @@
     <a class="visually-hidden" href="#main">Bỏ qua điều hướng</a>
     <header class="site-header" id="siteHeader">
       <div class="container header-inner">
-        <a class="brand" href="index.html" aria-label="LEAF_AI — Trang chủ">
+        <a class="brand" href="index.html" aria-label="LEAF_AI — Vải Lục Ngạn">
           <span class="brand-mark">${LEAF_MARK}</span>
-          <span>
-            <span class="brand-name">LEAF<span>_AI</span></span>
+          <div class="brand-text">
+            <div class="brand-title-line">
+              <span class="brand-name">LEAF<span>_AI</span></span>
+              <span class="brand-badge">Vải Lục Ngạn</span>
+            </div>
             <span class="brand-sub">Bác sĩ lá vải Lục Ngạn</span>
-          </span>
+          </div>
         </a>
         <nav class="main-nav" aria-label="Điều hướng chính">
           ${NAV.map((n) => `<a href="${n.href}"${isActive(n.id)}>${n.label}</a>`).join('')}
         </nav>
-        <button class="btn btn-soft btn-sm" id="btnInstallPwa" hidden><i class="bi bi-download"></i>Cài ứng dụng</button>
+        <button class="btn btn-soft btn-sm" id="btnInstallPwa" hidden title="Cài ứng dụng"><i class="bi bi-download"></i><span class="pwa-btn-text">Cài app</span></button>
         <div class="auth-header" id="authHeader">
-          <button class="btn btn-soft btn-sm" id="btnOpenAuth" type="button"><i class="bi bi-person"></i>Đăng nhập</button>
+          <button class="btn btn-soft btn-sm" id="btnOpenAuth" type="button"><i class="bi bi-person"></i><span class="auth-btn-label">Đăng nhập</span></button>
         </div>
-        <a class="btn btn-primary header-cta" href="scan.html"><i class="bi bi-camera"></i>Quét lá ngay</a>
+        <a class="btn btn-primary header-cta${isActive('scan') ? ' is-active' : ''}" href="scan.html"><i class="bi bi-camera"></i>Quét lá</a>
         <button class="btn btn-ghost btn-icon menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileDrawer" aria-label="Mở menu">
           <i class="bi bi-list" style="font-size:1.5rem"></i>
         </button>
@@ -60,7 +62,13 @@
         <button class="btn btn-soft btn-sm" id="btnMobileAuth" type="button">Đăng nhập</button>
       </div>
       <a href="index.html"${isActive('home')}><i class="bi bi-house"></i>Trang chủ</a>
-      ${NAV.map((n) => `<a href="${n.href}"${isActive(n.id)}><i class="bi ${n.icon}"></i>${n.label}</a>`).join('')}
+      <a href="scan.html"${isActive('scan')}><i class="bi bi-camera"></i>Quét lá vải</a>
+      <a href="library.html"${isActive('library') || isActive('disease')}><i class="bi bi-journal-text"></i>Thư viện bệnh</a>
+      <a href="treatment.html"${isActive('treatment')}><i class="bi bi-clipboard2-pulse"></i>Phác đồ điều trị</a>
+      <a href="handbook.html"${isActive('handbook')}><i class="bi bi-shield-check"></i>Cẩm nang IPM</a>
+      <a href="assistant.html"${isActive('assistant')}><i class="bi bi-chat-dots"></i>Trợ lý kỹ sư AI</a>
+      <a href="history.html"${isActive('history')}><i class="bi bi-clock-history"></i>Lịch sử quét</a>
+      <a href="about.html"${isActive('about')}><i class="bi bi-info-circle"></i>Giới thiệu</a>
     </nav>
     <nav class="bottom-nav" aria-label="Điều hướng nhanh">
       <a href="index.html"${isActive('home')}><i class="bi bi-house"></i><span>Trang chủ</span></a>
@@ -251,7 +259,7 @@
           authHeader.innerHTML = `
             <div class="auth-user-badge" title="Tài khoản: ${escapeHtml(user.username)}">
               <i class="bi bi-person-circle"></i>
-              <span>${escapeHtml(user.username)}</span>
+              <span class="auth-user-name">${escapeHtml(user.username)}</span>
             </div>
             <button class="btn btn-ghost btn-sm" id="btnHeaderLogout" title="Đăng xuất" type="button">
               <i class="bi bi-box-arrow-right"></i>
@@ -266,7 +274,7 @@
         }
       } else {
         if (authHeader) {
-          authHeader.innerHTML = `<button class="btn btn-soft btn-sm" id="btnOpenAuth" type="button"><i class="bi bi-person"></i>Đăng nhập</button>`;
+          authHeader.innerHTML = `<button class="btn btn-soft btn-sm" id="btnOpenAuth" type="button"><i class="bi bi-person"></i><span class="auth-btn-label">Đăng nhập</span></button>`;
           const btnOpen = document.getElementById('btnOpenAuth');
           if (btnOpen) btnOpen.addEventListener('click', () => { switchTab(true); authModal.showModal(); });
         }
