@@ -111,6 +111,7 @@
             ${r.coinf ? `<span class="tag tag-warn">Đồng nhiễm${r.secondary.length ? ': ' + escapeHtml(r.secondary.join(', ')) : ''}</span>` : ''}
             ${r.synced ? '<span class="tag"><i class="bi bi-cloud-check"></i>Đã đồng bộ</span>' : ''}
             ${r.simulated ? '<span>Mô phỏng</span>' : ''}
+            ${r.info && !r.healthy ? `<a class="small" href="treatment.html?id=${encodeURIComponent(r.info.id)}&p=${r.prob}"><i class="bi bi-clipboard2-pulse"></i> Lập phác đồ điều trị</a>` : ''}
           </div>
         </div>
         <button class="btn btn-ghost btn-icon" type="button" data-delete="${escapeHtml(r.id)}" aria-label="Xóa bản ghi ${escapeHtml(r.name)}"><i class="bi bi-trash3"></i></button>

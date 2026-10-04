@@ -101,17 +101,11 @@ class LeafApiService {
     const payload = await this._toDataUrl(image);
 
     // Ưu tiên 1: Kết nối trực tiếp máy chủ AI Render (ResNet-18 Deep Learning + Grad-CAM)
-    const renderEngineUrl = 'https://leaf-ai-engine.onrender.com';
-    let aiEngineUrl = renderEngineUrl;
-    try {
-      const custom = localStorage.getItem('leaf_ai_engine_url');
-      if (custom) aiEngineUrl = custom;
-    } catch { /* private mode */ }
+    const aiEngineUrl = this.engineUrl();
 
     if (aiEngineUrl) {
       try {
-        const cleanBase = aiEngineUrl.replace(/\/+$/, '');
-        const res = await fetch(`${cleanBase}/predict_with_gradcam`, {
+        const res = await fetch(`${aiEngineUrl}/predict_with_gradcam`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -150,6 +144,46 @@ class LeafApiService {
     // Giữ nhịp như suy luận thật để hiệu ứng quét không bị giật
     await new Promise((r) => setTimeout(r, 350));
     return this.simulateDetection(modelVersion, image);
+  }
+
+  /** Địa chỉ máy chủ AI trên Render (đổi được qua localStorage 'leaf_ai_engine_url') */
+  engineUrl() {
+    let url = 'https://leaf-ai-engine.onrender.com';
+    try {
+      const custom = localStorage.getItem('leaf_ai_engine_url');
+      if (custom) url = custom;
+    } catch { /* private mode */ }
+    return url.replace(/\/+$/, '');
+  }
+
+  /**
+   * Lập phác đồ điều trị sau chẩn đoán.
+   * Gọi POST /treatment/plan trên máy chủ AI; máy chủ đang khởi động hoặc mất mạng
+   * thì lập bằng bộ lập phác đồ trong trình duyệt (cùng thuật toán, cùng kho tri thức).
+   */
+  async getTreatmentPlan(opts, timeoutMs = 15000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${this.engineUrl()}/treatment/plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(opts),
+        signal: ctrl.signal
+      });
+      if (res.ok) return await res.json();
+      if (res.status === 422) {
+        const j = await res.json().catch(() => ({}));
+        if (typeof j.detail === 'string') throw Object.assign(new Error(j.detail), { code: 422 });
+      }
+    } catch (err) {
+      if (err.code === 422) throw err;
+      console.warn('[LEAF_AI] Máy chủ phác đồ chưa sẵn sàng, lập phác đồ trên máy:', err);
+    } finally {
+      clearTimeout(timer);
+    }
+    const kb = await window.LeafTreatment.loadKB();
+    return window.LeafTreatment.build(kb, opts);
   }
 
   /** Tra thông tin bệnh lá vải theo tên lớp mô hình trả về (có xử lý tên gọi khác) */

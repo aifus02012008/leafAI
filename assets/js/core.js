@@ -88,6 +88,7 @@
           <h4>Công cụ</h4>
           <ul>
             <li><a href="scan.html">Chẩn đoán lá</a></li>
+            <li><a href="treatment.html">Phác đồ điều trị</a></li>
             <li><a href="history.html">Lịch sử quét</a></li>
             <li><a href="assistant.html">Trợ lý kỹ sư AI</a></li>
           </ul>
