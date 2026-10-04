@@ -10,7 +10,7 @@ Thay thế AI server (YOLOv8) khi model chưa kịp bàn giao. Luồng xử lý:
        —_bytes sau đó được SDK google-genai mã hoá base64 (inline_data) khi gửi lên API
     3. Gửi Gemini API (multimodal: ảnh + prompt) -> JSON
        {healthy, diseases[], regions[], report_html}
-    4. Chuẩn hoá dữ liệu bệnh theo knowledge base 6 bệnh cà chua + sanitize HTML báo cáo
+    4. Chuẩn hoá dữ liệu bệnh theo knowledge base 5 bệnh lá vải thiều Lục Ngạn + sanitize HTML báo cáo
        -> FE render (SPA /app/... và template result.html).
 
 Module này KHÔNG phụ vụ ngoài Gemini: mọi truy vấn HTTP đều có timeout,
@@ -38,14 +38,14 @@ from .leaf_knowledge import TOMATO_DISEASES
 logger = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------------------------
-# Model versions (giữ nguyên contract cũ: "v3" production / "v4" experimental)
+# Model versions (giữ nguyên contract: "v3" production / "v4" experimental)
 # --------------------------------------------------------------------------------------
-MODEL_V3 = "v3"  # production: 3 bệnh (Bacterial_spot, Early_blight, Late_blight)
-MODEL_V4 = "v4"  # experimental: 6 bệnh (toàn bộ TOMATO_DISEASES)
+MODEL_V3 = "v3"  # production: 3 bệnh lá vải chính (Anthracnose, Downy_blight, Leaf_blight)
+MODEL_V4 = "v4"  # experimental: 5 bệnh lá vải (Anthracnose, Downy_blight, Leaf_blight, Algal_spot, Erinose)
 VALID_MODELS = (MODEL_V3, MODEL_V4)
 
-V3_CLASSES = ("Bacterial_spot", "Early_blight", "Late_blight")
-V4_CLASSES = tuple(TOMATO_DISEASES.keys())
+V3_CLASSES = ("Anthracnose", "Downy_blight", "Leaf_blight")
+V4_CLASSES = ("Anthracnose", "Downy_blight", "Leaf_blight", "Algal_spot", "Erinose")
 DISEASE_CLASSES = V4_CLASSES
 
 # --------------------------------------------------------------------------------------
@@ -155,8 +155,8 @@ def build_diagnosis_prompt(context_text="", model_version=MODEL_V3):
             "(hãy lồng ghép tự nhiên vào phần phân tích):\n" + ctx + "\n"
         )
 
-    return f"""Bạn là chuyên gia bệnh học cây cà chua (plant pathologist) của LEAF_AI.
-Nhiệm vụ: phân tích ẢNH LÁ đính kèm và trả về đúng MỘT JSON object thuần (UTF-8),
+    return f"""Bạn là chuyên gia bệnh học lá cây vải thiều Lục Ngạn, Bắc Giang (plant pathologist specializing in Lychee - Litchi chinensis) của LEAF_AI.
+Nhiệm vụ: phân tích ẢNH LÁ VẢI THIỀU LỤC NGẠN đính kèm và trả về đúng MỘT JSON object thuần (UTF-8),
 không markdown, không lời dẫn, không giải thích ngoài JSON.
 
 Các bệnh được phép chẩn đoán (chỉ dùng đúng mã này cho trường "class"):
@@ -166,8 +166,8 @@ Nếu lá không thấy dấu hiệu bệnh nào, đặt "healthy": true và đ�
 CẤU TRÚC JSON:
 {{
   "healthy": false,
-  "diseases": [{{"class": "Early_blight", "probability": 87}}],
-  "regions": [{{"class": "Early_blight", "confidence": 0.87, "bbox": [512, 96, 224, 192]}}],
+  "diseases": [{{"class": "Anthracnose", "probability": 87}}],
+  "regions": [{{"class": "Anthracnose", "confidence": 0.87, "bbox": [512, 96, 224, 192]}}],
   "report_html": "<h3>Kết luận nhanh</h3><p>...</p>"
 }}
 
@@ -196,8 +196,7 @@ QUY TẮC BẮT BUỘC:
    e) <h3>Phác đồ xử lý</h3> — 3 nhóm gạch đầu dòng: Canh tác / Sinh học / Hóa học;
       nhóm hóa học nhắc nguyên tắc 4 đúng (đúng thuốc, đúng lúc, đúng nồng độ, đúng cách).
    f) <h3>Phòng ngừa và lưu ý</h3> — kết thúc đúng câu:
-      "AI chỉ hỗ trợ chẩn đoán sơ bộ — hãy tham khảo chuyên gia nông nghiệp hoặc
-      trung tâm bảo vệ thực vụ trước khi phun thuốc."
+      "AI chỉ hỗ trợ chẩn đoán sơ bộ cho vườn vải thiều Lục Ngạn — hãy tham khảo cán bộ khuyến nông hoặc trạm Trồng trọt & BVTV Lục Ngạn trước khi phun thuốc."
 5. Mức độ theo "probability": >=60 → "Nghiêm trọng"; 35-59 → "Trung bình"; <35 → "Nhẹ".
    Mọi phần trăm trong report_html phải KHỚP với "diseases".
 6. healthy=true: report_html nêu lá khỏe mạnh + dặn thăm vườn 2 lần/tuần.

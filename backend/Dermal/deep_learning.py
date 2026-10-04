@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 LEAF_AI - Native Deep Learning Inference Engine with Grad-CAM
-Phục vụ chẩn đoán bệnh cà chua bằng mạng nơ-ron tích chập ResNet-18 (PyTorch)
+Phục vụ chẩn đoán bệnh lá cây vải thiều Lục Ngạn bằng mạng nơ-ron tích chập ResNet-18 (PyTorch)
 và trích xuất bản đồ nhiệt kích hoạt trực quan Grad-CAM (Explainable AI).
 """
 
@@ -21,35 +21,27 @@ import torch.nn.functional as F
 import torchvision.models as models
 import torchvision.transforms as transforms
 
-from .leaf_knowledge import TOMATO_DISEASES
+from .leaf_knowledge import LYCHEE_DISEASES, TOMATO_DISEASES
 
 logger = logging.getLogger("leaf_ai.deep_learning")
 
-# 10 Lớp bệnh & lá chuẩn hóa theo dataset PlantVillage & thực địa
+# 6 Lớp bệnh & lá vải thiều Lục Ngạn chuẩn hóa
 CLASSES = [
-    "Healthy",                           # 0: Lá khỏe mạnh
-    "Leaf_mold",                         # 1: Nấm mốc lá
-    "Target_spot",                       # 2: Đốm mắt cua
-    "Late_blight",                       # 3: Sương mai
-    "Early_blight",                      # 4: Úa sớm
-    "Bacterial_spot",                    # 5: Đốm vi khuẩn
-    "Septoria_leaf_spot",                # 6: Đốm lá Septoria
-    "Tomato_mosaic_virus",               # 7: Khảm lá virus
-    "Tomato_yellow_leaf_curl_virus",     # 8: Xoăn vàng lá virus
-    "Spider_mites",                      # 9: Nhện đỏ hai chấm
+    "Healthy",          # 0: Lá vải khỏe mạnh
+    "Anthracnose",      # 1: Thán thư
+    "Downy_blight",     # 2: Sương mai
+    "Leaf_blight",      # 3: Cháy lá
+    "Algal_spot",       # 4: Đốm rong
+    "Erinose",          # 5: Nhện lông nhung
 ]
 
 CLASS_NAME_VI = {
-    "Healthy": "Lá khỏe mạnh",
-    "Leaf_mold": "Nấm mốc lá",
-    "Target_spot": "Đốm mắt cua (Target Spot)",
-    "Late_blight": "Sương mai (Late Blight)",
-    "Early_blight": "Úa sớm (Early Blight)",
-    "Bacterial_spot": "Đốm vi khuẩn",
-    "Septoria_leaf_spot": "Đốm lá Septoria",
-    "Tomato_mosaic_virus": "Khảm lá virus (ToMV)",
-    "Tomato_yellow_leaf_curl_virus": "Xoăn vàng lá virus (TYLCV)",
-    "Spider_mites": "Nhện đỏ hai chấm",
+    "Healthy": "Lá vải khỏe mạnh",
+    "Anthracnose": "Thán thư (Anthracnose)",
+    "Downy_blight": "Sương mai (Downy Blight)",
+    "Leaf_blight": "Cháy lá (Leaf Blight)",
+    "Algal_spot": "Đốm rong (Algal Spot)",
+    "Erinose": "Nhện lông nhung (Erinose Mite)",
 }
 
 # Pipeline chuẩn hóa ảnh 224x224 theo ImageNet stats
@@ -175,6 +167,9 @@ class NativeDeepLearningEngine:
     def _load_model(self):
         base_dir = Path(__file__).resolve().parent.parent.parent
         possible_paths = [
+            base_dir / "ml" / "hf-space" / "leaf_model.pt",
+            base_dir / "leaf_model.pt",
+            Path("ml/hf-space/leaf_model.pt"),
             base_dir / "ml" / "hf-space" / "tomato_model.pt",
             base_dir / "tomato_model.pt",
             Path("ml/hf-space/tomato_model.pt"),
@@ -186,7 +181,7 @@ class NativeDeepLearningEngine:
                 break
 
         if not model_path:
-            logger.warning("Không tìm thấy tệp trọng số tomato_model.pt")
+            logger.warning("Không tìm thấy tệp trọng số leaf_model.pt")
             return
 
         try:

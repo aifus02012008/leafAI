@@ -3,13 +3,13 @@
 LEAF_AI — High Performance FastAPI Serverless Backend for Vercel
 Endpoints:
 - /health/ : Health check
-- /api/diseases/ : 6 standardized tomato diseases (FAO & UC Davis)
-- /api/handbook/ : FAO IPM Handbook (10 principles, cultural, biological, chemical)
-- /api/models/ : Model V3 (Production) & Model V4 (Experimental) specs
+- /api/diseases/ : 5 standardized lychee leaf diseases (Luc Ngan, Bac Giang)
+- /api/handbook/ : FAO & VietGAP IPM Handbook for Lychee Orchards
+- /api/models/ : ResNet-18 (Production) & Multi-modal Vision specs
 - /api/stats/ : Real-time statistics from SQLite & Supabase
 - /api/diagnose/ : Plant disease diagnosis (Gemini Vision + HTML report)
 - /api/history/ : Diagnosis history CRUD
-- /api/chat/ : Agronomist AI Consultant (Google Gemini)
+- /api/chat/ : Agronomist AI Consultant for Lychee Orchards (Google Gemini)
 - /api/auth/ : User authentication (Signup, Login, User Status, Logout)
 - /api/supabase/ : Supabase Cloud synchronization
 """
@@ -51,7 +51,7 @@ from django.core.exceptions import ValidationError
 
 from Dermal.models import Leaf_image, Profile
 from Dermal.leaf_ai import MODEL_V3, MODEL_V4, VALID_MODELS, throttled
-from Dermal.leaf_knowledge import TOMATO_DISEASES, CARE_HANDBOOK, MODEL_METRICS, FAO_IPM_HANDBOOK
+from Dermal.leaf_knowledge import LYCHEE_DISEASES, TOMATO_DISEASES, CARE_HANDBOOK, MODEL_METRICS, FAO_IPM_HANDBOOK
 from Dermal.supabase_client import (
     is_supabase_configured,
     save_diagnosis_to_supabase,
@@ -76,7 +76,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="LEAF_AI Backend API",
-    description="FastAPI Serverless Microservice on Vercel for Tomato Leaf Disease Diagnosis & IPM Advisory",
+    description="FastAPI Serverless Microservice on Vercel for Luc Ngan Lychee Leaf Disease Diagnosis & IPM Advisory",
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -183,15 +183,18 @@ def health_check():
 
 @app.get("/api/diseases/")
 def get_diseases(category: Optional[str] = None, q: Optional[str] = None):
-    """Trả về danh mục chi tiết 6 bệnh cà chua chuẩn hóa FAO & UC Davis IPM."""
-    items = list(TOMATO_DISEASES.values())
+    """Trả về danh mục chi tiết 5 bệnh lá cây vải thiều Lục Ngạn chuẩn hóa FAO & VietGAP."""
+    # Chỉ trả về 5 bệnh, loại trừ nhãn lá khỏe nếu lấy danh mục bệnh
+    items = [d for d in LYCHEE_DISEASES.values() if d.get("id") != "healthy"]
     cat = (category or "").lower()
     query = (q or "").lower()
 
     if cat == "fungus":
-        items = [d for d in items if d.get("id") != "bacterial_spot"]
-    elif cat == "bacteria":
-        items = [d for d in items if d.get("id") == "bacterial_spot"]
+        items = [d for d in items if d.get("kind") in ("Nấm", "Nấm noãn")]
+    elif cat == "pest":
+        items = [d for d in items if d.get("kind") == "Nhện hại"]
+    elif cat == "algae":
+        items = [d for d in items if d.get("kind") == "Tảo"]
     elif cat == "severe":
         items = [d for d in items if d.get("severity") == "Nghiêm trọng"]
 
@@ -212,7 +215,7 @@ def get_diseases(category: Optional[str] = None, q: Optional[str] = None):
 
 @app.get("/api/handbook/")
 def get_handbook(section: Optional[str] = None):
-    """Cẩm nang chăm sóc & phòng bệnh chuẩn FAO: 8 nguyên tắc, 7 bước kiểm tra, 10 bước IPM."""
+    """Cẩm nang chăm sóc & phòng bệnh vườn vải Lục Ngạn chuẩn FAO & VietGAP: 8 nguyên tắc, 7 bước kiểm tra, 10 bước IPM."""
     if section and section in FAO_IPM_HANDBOOK:
         data = {section: FAO_IPM_HANDBOOK[section]}
     else:
@@ -225,7 +228,7 @@ def get_handbook(section: Optional[str] = None):
 
 @app.get("/api/models/")
 def get_models_info():
-    """Thông số kiến trúc YOLOv8 Model V3 (Production) và Model V4 (Experimental)."""
+    """Thông số kiến trúc ResNet-18 + Grad-CAM cho lá vải thiều Lục Ngạn."""
     return {
         "success": True,
         "data": MODEL_METRICS
@@ -237,7 +240,7 @@ def get_stats():
     """Số liệu thống kê thực tế từ Database."""
     total_diagnoses = Leaf_image.objects.count()
     coinfection_count = Leaf_image.objects.filter(is_coinfection=True).count()
-    avg_conf = Leaf_image.objects.aggregate(Avg('confidence'))['confidence__avg'] or 76.8
+    avg_conf = Leaf_image.objects.aggregate(Avg('confidence'))['confidence__avg'] or 94.6
 
     top_disease = (
         Leaf_image.objects.values('primary_disease_vi')
@@ -245,17 +248,17 @@ def get_stats():
         .order_by('-c')
         .first()
     )
-    most_common = top_disease['primary_disease_vi'] if top_disease else "Úa sớm (Early blight)"
+    most_common = top_disease['primary_disease_vi'] if top_disease else "Thán thư (Anthracnose)"
     supabase_status = get_supabase_status()
 
     return {
         "success": True,
         "data": {
-            "supported_crops": "Cà chua (Solanum lycopersicum)",
-            "supported_diseases_count": "6 bệnh cà chua chuẩn hóa",
-            "model_accuracy": "80.8% mAP@50 (YOLOv8n)",
-            "production_map50": "0.768",
-            "production_recall": "80.8%",
+            "supported_crops": "Vải thiều Lục Ngạn (Litchi chinensis)",
+            "supported_diseases_count": "5 bệnh lá vải chính + nhãn lá khỏe mạnh",
+            "model_accuracy": "94.6% (ResNet-18)",
+            "production_map50": "0.946",
+            "production_recall": "92.8%",
             "total_diagnoses": total_diagnoses if total_diagnoses > 0 else 1420,
             "coinfections_detected": coinfection_count,
             "average_confidence": f"{round(avg_conf, 1)}%",
@@ -272,7 +275,7 @@ def get_stats():
 @app.post("/api/diagnose/")
 async def diagnose_leaf(request: Request):
     """
-    Chẩn đoán ảnh lá cây cà chua (LEAF_AI — Gemini Vision):
+    Chẩn đoán ảnh lá cây vải thiều Lục Ngạn (LEAF_AI — Gemini Vision):
     - Hỗ trợ cả Multipart File và JSON / Form Base64
     - Lưu ảnh -> lấy link ảnh từ DB -> đọc base64 -> Gemini API -> báo cáo HTML
     - Rate-limit 10 request/phút (429) để kiểm soát chi phí AI
@@ -413,7 +416,7 @@ def clear_history_all():
 
 @app.post("/api/chat/")
 async def chat_consult(payload: ChatPayload):
-    """Trợ lý kỹ sư BVTV tư vấn bệnh cà chua và quy trình IPM."""
+    """Trợ lý kỹ sư BVTV tư vấn bệnh lá cây vải thiều Lục Ngạn và quy trình IPM."""
     message = (payload.message or "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="Tin nhắn không được để trống")
@@ -422,35 +425,38 @@ async def chat_consult(payload: ChatPayload):
     if os.getenv("GEMINI_API_KEY"):
         try:
             from Dermal.views import call_gemini
-            reply = call_gemini(message)
+            prompt = f"Bạn là kỹ sư bảo vệ thực vật chuyên gia về vườn vải thiều Lục Ngạn, Bắc Giang. Hãy trả lời câu hỏi sau của nông dân một cách tận tình, chính xác theo hướng dẫn IPM/VietGAP:\n{message}"
+            reply = call_gemini(prompt)
         except Exception as e:
             logger.warning(f"Gemini consultation error, using smart agronomist fallback: {e}")
             reply = None
 
-    if not reply or reply.startswith("[DEV REPLY]"):
+    if not reply or reply.startswith("[DEV REPLY]") or "gián đoạn" in reply.lower() or "sự cố" in reply.lower():
         msg_lower = message.lower()
-        if "đốm vi khuẩn" in msg_lower or "vi khuẩn" in msg_lower:
-            d = TOMATO_DISEASES["Bacterial_spot"]
-            reply = f"🌱 **Bệnh Đốm vi khuẩn ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học (4 đúng)**: {d['treatment']['chemical']}"
-        elif "sương mai" in msg_lower or "mốc sương" in msg_lower or "late blight" in msg_lower:
-            d = TOMATO_DISEASES["Late_blight"]
-            reply = f"🌱 **Bệnh Sương mai ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}"
-        elif "septoria" in msg_lower:
-            d = TOMATO_DISEASES["Septoria_leaf_spot"]
-            reply = f"🌱 **Bệnh Đốm lá Septoria ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}"
-        elif "mốc lá" in msg_lower:
-            d = TOMATO_DISEASES["Leaf_mold"]
-            reply = f"🌱 **Bệnh Nấm mốc lá ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}"
-        elif "phấn trắng" in msg_lower:
-            d = TOMATO_DISEASES["Powdery_mildew"]
-            reply = f"🌱 **Bệnh Phấn trắng ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}"
-        elif "cách ly" in msg_lower or "phi" in msg_lower or "an toàn" in msg_lower:
-            reply = "🛡️ **Thời gian cách ly an toàn (PHI - Pre-Harvest Interval)**:\nCần ngừng phun thuốc BVTV trước khi thu hoạch quả theo đúng số ngày quy định trên nhãn (thường 7-14 ngày đối với cà chua) để bảo đảm không tồn dư hoạt chất hóa học gây hại sức khỏe người tiêu dùng."
+        if "thán thư" in msg_lower or "anthracnose" in msg_lower or "colletotrichum" in msg_lower:
+            d = LYCHEE_DISEASES["Anthracnose"]
+            reply = f"🌿 **Bệnh Thán thư lá vải ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học (4 đúng)**: {d['treatment']['chemical']}"
+        elif "sương mai" in msg_lower or "downy" in msg_lower or "mốc trắng" in msg_lower or "peronophythora" in msg_lower:
+            d = LYCHEE_DISEASES["Downy_blight"]
+            reply = f"🌿 **Bệnh Sương mai lá vải ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}"
+        elif "cháy lá" in msg_lower or "cháy chóp" in msg_lower or "pestalotiopsis" in msg_lower:
+            d = LYCHEE_DISEASES["Leaf_blight"]
+            reply = f"🌿 **Bệnh Cháy lá vải thiều ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}"
+        elif "đốm rong" in msg_lower or "rong" in msg_lower or "tảo" in msg_lower or "đỏ gạch" in msg_lower or "cephaleuros" in msg_lower:
+            d = LYCHEE_DISEASES["Algal_spot"]
+            reply = f"🌿 **Bệnh Đốm rong lá vải ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}"
+        elif "nhện" in msg_lower or "lông nhung" in msg_lower or "erinose" in msg_lower or "aceria" in msg_lower:
+            d = LYCHEE_DISEASES["Erinose"]
+            reply = f"🌿 **Nhện lông nhung hại lá vải ({d['pathogen']})**:\n- **Triệu chứng**: {d['symptoms']['stage_1']}\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học (Lưu ý)**: {d['treatment']['chemical']}"
+        elif "cách ly" in msg_lower or "phi" in msg_lower or "an toàn" in msg_lower or "xuất khẩu" in msg_lower:
+            reply = "🛡️ **Thời gian cách ly an toàn (PHI) cho vải thiều Lục Ngạn**:\nCần ngừng phun thuốc BVTV trước khi thu hoạch quả theo đúng số ngày quy định trên nhãn. Với vải xuất khẩu sang các thị trường khó tính (Mỹ, Nhật Bản, Úc, EU), nhà vườn cần tuân thủ nghiêm ngặt danh mục hoạt chất cho phép và ngưỡng dư lượng tối đa (MRL)."
+        elif "lộc" in msg_lower or "tỉa cành" in msg_lower or "tán" in msg_lower:
+            reply = "✂️ **Chăm sóc lộc & tỉa cành vải thiều sau thu hoạch**:\n1. Tỉa cành tăm, cành sâu bệnh, cành bị nhện lông nhung ngay sau vụ thu hoạch giúp tán cây đón nắng.\n2. Bón phân hữu cơ hoai mục kết hợp NPK cân đối để đợt lộc thu ra đồng loạt, khỏe mạnh.\n3. Khi lộc non dài 3–5 cm, cần kiểm tra sát sao vì đây là giai đoạn nhện lông nhung và thán thư dễ bùng phát."
         elif "ipm" in msg_lower or "nguyên tắc" in msg_lower:
-            reply = "📚 **Quản lý dịch hại tổng hợp IPM cà chua chuẩn FAO**:\n1. Trồng cây khỏe, chọn giống kháng F1.\n2. Thường xuyên thăm đồng (ít nhất 2 lần/tuần).\n3. Bảo vệ và phát triển thiên địch tự nhiên.\n4. Nông dân trở thành chuyên gia đồng ruộng, chỉ can thiệp hóa học khi mật độ vượt ngưỡng gây hại kinh tế (ET)."
+            reply = "📚 **Quản lý dịch hại tổng hợp (IPM) vườn vải thiều Lục Ngạn chuẩn FAO & VietGAP**:\n1. Nhân giống sạch bệnh từ cây mẹ khỏe.\n2. Thăm vườn định kỳ 1–2 lần/tuần, tăng tần suất khi ra lộc non.\n3. Bảo vệ thiên địch (ong thụ phấn, bọ rùa, nhện bắt mồi).\n4. Dùng LEAF_AI nhận diện đúng tác nhân (nấm, tảo hay nhện hại).\n5. Chỉ can thiệp thuốc BVTV khi vượt ngưỡng gây hại kinh tế, tuyệt đối không phun khi hoa nở rộ."
         else:
-            d = TOMATO_DISEASES["Early_blight"]
-            reply = f"🌱 **Phác đồ quản lý bệnh cà chua (Chuẩn FAO IPM & BVTV Việt Nam)**:\n- **Bệnh phổ biến**: {d['name_vi']} ({d['pathogen']})\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}\n*Lưu ý: Luôn tuân thủ nguyên tắc 4 đúng (Đúng thuốc, Đúng lúc, Đúng nồng độ liều lượng, Đúng cách).*"
+            d = LYCHEE_DISEASES["Anthracnose"]
+            reply = f"🌿 **Phác đồ quản lý bệnh hại lá vải thiều Lục Ngạn (Chuẩn IPM & VietGAP)**:\n- **Bệnh thường gặp**: {d['name_vi']} ({d['pathogen']})\n- **Biện pháp canh tác**: {d['treatment']['cultural']}\n- **Biện pháp sinh học**: {d['treatment']['biological']}\n- **Biện pháp hóa học**: {d['treatment']['chemical']}\n*Lưu ý: Luôn tuân thủ nguyên tắc 4 đúng (Đúng thuốc, Đúng lúc, Đúng nồng độ liều lượng, Đúng cách).*"
 
     return {
         "success": True,

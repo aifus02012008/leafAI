@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Django Management Command: setup_supabase
-Khởi tạo và đồng bộ dữ liệu nông nghiệp LEAF_AI (6 bệnh cà chua & Cẩm nang IPM)
+Khởi tạo và đồng bộ dữ liệu nông nghiệp LEAF_AI (5 bệnh lá vải thiều Lục Ngạn & Cẩm nang IPM)
 vào cơ sở dữ liệu nội bộ SQLite và Supabase Cloud (nếu đã cấu hình).
 """
 
@@ -12,7 +12,7 @@ from Dermal.supabase_client import is_supabase_configured, seed_supabase_knowled
 
 
 class Command(BaseCommand):
-    help = "Khoi tao du lieu 6 benh ca chua & Cam nang IPM vao SQLite va dong bo len Supabase Cloud"
+    help = "Khoi tao du lieu 5 benh la vai thieu Luc Ngan & Cam nang IPM vao SQLite va dong bo len Supabase Cloud"
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("=== KHOI TAO DU LIEU LEAF_AI & SUPABASE ==="))

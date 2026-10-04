@@ -62,7 +62,7 @@ def get_supabase_client():
 
 def save_diagnosis_to_supabase(record_data: Dict[str, Any]) -> Optional[str]:
     """
-    Lưu kết quả chẩn đoán lá cà chua lên bảng 'leaf_diagnoses' của Supabase.
+    Lưu kết quả chẩn đoán lá vải thiều lên bảng 'leaf_diagnoses' của Supabase.
     Nếu Supabase chưa cấu hình hoặc mất mạng, trả về None mà không làm gián đoạn hệ thống.
     """
     client = get_supabase_client()
@@ -74,7 +74,7 @@ def save_diagnosis_to_supabase(record_data: Dict[str, Any]) -> Optional[str]:
         payload = {
             "local_id": record_data.get("id"),
             "model_version": record_data.get("model_version", "v3"),
-            "plant_type": record_data.get("plant_type", "tomato"),
+            "plant_type": record_data.get("plant_type", "lychee"),
             "primary_disease": record_data.get("primary_disease", ""),
             "primary_disease_vi": record_data.get("primary_disease_vi", ""),
             "confidence": float(record_data.get("confidence", 0.0)),

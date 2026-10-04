@@ -16,8 +16,8 @@ class Profile(models.Model):
 
 class Leaf_image(models.Model):
     """
-    Bản ghi chẩn đoán ảnh lá cây trồng (Cà chua).
-    Tích hợp YOLOv8n (Model V3 / V4), nhận diện đa bệnh đồng nhiễm (Co-infection),
+    Bản ghi chẩn đoán ảnh lá cây vải thiều Lục Ngạn (Bắc Giang).
+    Tích hợp ResNet-18 + Grad-CAM, nhận diện đa bệnh đồng nhiễm (Co-infection),
     lưu trữ cục bộ SQLite và đồng bộ tự động lên Supabase Database.
     """
     image = models.ImageField(upload_to='Leaf_images/', blank=True, null=True)
@@ -35,9 +35,9 @@ class Leaf_image(models.Model):
     illness_history = models.TextField(blank=True, default='')
     drug_history = models.TextField(blank=True, default='')
 
-    # Agricultural Leaf AI & YOLOv8 Fields
+    # Agricultural Leaf AI & Deep Learning Fields
     model_version = models.CharField(max_length=20, default='v3', help_text="Mô hình sử dụng: 'v3' hoặc 'v4'")
-    plant_type = models.CharField(max_length=50, default='tomato', help_text="Loại cây: Cà chua (tomato)")
+    plant_type = models.CharField(max_length=50, default='lychee', help_text="Loại cây: Vải thiều Lục Ngạn (lychee)")
     primary_disease = models.CharField(max_length=100, blank=True, default='', help_text="Mã bệnh chính")
     primary_disease_vi = models.CharField(max_length=150, blank=True, default='', help_text="Tên tiếng Việt")
     confidence = models.FloatField(default=0.0, help_text="Độ tin cậy %")
@@ -60,7 +60,7 @@ class Leaf_image(models.Model):
 
 class TomatoDisease(models.Model):
     """
-    Thư viện 6 bệnh cây trồng phổ biến trên cây cà chua chuẩn hóa FAO & UC Davis IPM.
+    Thư viện bệnh cây trồng chuẩn hóa FAO & VietGAP cho lá vải thiều Lục Ngạn.
     """
     disease_id = models.CharField(max_length=50, unique=True)
     name_en = models.CharField(max_length=100)
