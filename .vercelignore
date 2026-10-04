@@ -2,3 +2,9 @@
 ml/
 docs/
 .github/
+.venv/
+backend/.venv/
+**/__pycache__/
+*.docx
+*BAO_CAO*
+*POSTER*

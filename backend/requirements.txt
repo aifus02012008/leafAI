@@ -28,6 +28,7 @@ supabase
 
 # Authentication and password hashing
 bcrypt
+PyJWT
 
 # Static files and production server
 whitenoise

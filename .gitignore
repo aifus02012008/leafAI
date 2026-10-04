@@ -45,3 +45,4 @@ venv.bak/
 docs/product_images/
 docs/temp_shots/
 docs/*.py
+.vercel
