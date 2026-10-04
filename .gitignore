@@ -43,4 +43,5 @@ venv.bak/
 *POSTER*
 *.docx
 docs/product_images/
-docs/build_docx_report.py
+docs/temp_shots/
+docs/*.py

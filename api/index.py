@@ -698,3 +698,13 @@ def supabase_sync():
         "seed_result": seed_res,
         "diagnoses_synced": synced_count
     }
+
+
+# ==============================================================================
+# 7. STATIC FRONTEND SPA MOUNT
+# ==============================================================================
+frontend_dir = root_dir / "frontend"
+if frontend_dir.exists():
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="static")
+
