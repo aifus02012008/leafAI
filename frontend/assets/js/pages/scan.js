@@ -70,7 +70,6 @@
       const [result] = await Promise.all([api.diagnose(src, state.model), playScan(1700)]);
       if (runId !== state.runId) return;
 
-      setStep(3);
       renderer.setDetections(result.detections || []);
 
       const heatmapSrc = result.heatmap_base64 || result.heatmap_url || null;
@@ -85,7 +84,7 @@
       }
 
       renderResult(result);
-      setStep(4);
+      setStep(3);
       setStatus('done', result.analysis_unavailable
         ? 'Chưa phân tích được — hãy thử lại sau'
         : result.healthy
@@ -277,8 +276,8 @@
   cameraDialog.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => cameraDialog.close()));
   cameraDialog.addEventListener('close', () => camera.stopCamera());
 
-  $('btnProtocol').addEventListener('click', () => setStep(5));
-  $('btnTreat').addEventListener('click', () => setStep(5));
+  $('btnProtocol').addEventListener('click', () => setStep(3));
+  $('btnTreat').addEventListener('click', () => setStep(3));
 
   const btnModeBox = $('btnModeBox');
   const btnModeHeatmap = $('btnModeHeatmap');

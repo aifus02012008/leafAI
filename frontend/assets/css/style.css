@@ -444,17 +444,18 @@ code { font-size: 0.9em; background: var(--leaf-tint); padding: 1px 6px; border-
 
 /* ---------- Scan page ---------- */
 .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0 0 20px; list-style: none; padding: 0; }
-.stepper li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); font-size: var(--fs-xs); color: var(--ink-3); line-height: 1.3; }
-.stepper li b { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); font-size: 12px; color: var(--ink-2); }
-.stepper li.is-done { color: var(--ink-2); }
-.stepper li.is-done b { background: var(--leaf-soft); border-color: var(--leaf-soft); color: var(--leaf-deep); }
-.stepper li.is-active { color: var(--ink); border-color: var(--leaf); font-weight: 600; }
-.stepper li.is-active b { background: var(--leaf); border-color: var(--leaf); color: #fff; }
+.stepper.stepper-3 { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto 24px; }
+.stepper li { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--line); font-size: var(--fs-xs); color: var(--ink-3); line-height: 1.3; font-weight: 500; transition: all .2s ease; }
+.stepper li b { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); font-size: 12px; color: var(--ink-2); transition: all .2s ease; }
+.stepper li.is-done { color: var(--leaf-deep); border-color: var(--line-strong); background: var(--leaf-tint); }
+.stepper li.is-done b { background: var(--leaf); border-color: var(--leaf); color: #fff; }
+.stepper li.is-active { color: var(--leaf-deep); border-color: var(--leaf); font-weight: 700; background: #fff; box-shadow: 0 2px 10px rgba(30, 122, 76, 0.12); }
+.stepper li.is-active b { background: var(--leaf); border-color: var(--leaf); color: #fff; transform: scale(1.08); }
 @media (max-width: 760px) {
   .stepper { display: flex; overflow-x: auto; scrollbar-width: none; }
-  .stepper li { flex: none; }
-  .stepper li span { display: none; }
-  .stepper li.is-active span { display: inline; }
+  .stepper.stepper-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .stepper li { flex: 1; padding: 8px 10px; font-size: 12px; gap: 6px; }
+  .stepper li span { display: inline; }
 }
 
 .workspace { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -744,6 +745,61 @@ dialog.sheet::backdrop { background: rgba(18, 48, 31, .45); }
 }
 .auth-tab-btn.is-active { background: var(--ink); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
 .alert-danger { background: var(--tomato-soft); border: 1px solid rgba(212,69,42,0.25); color: #a8321b; padding: 10px 14px; border-radius: var(--r-md); }
+
+.btn-quick-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1.5px solid #86efac;
+  font-weight: 700;
+  font-size: 14.5px;
+  min-height: 44px;
+  width: 100%;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all .18s ease;
+  margin-bottom: 8px;
+}
+.btn-quick-login:hover {
+  background: #dcfce7;
+  border-color: #22c55e;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+  transform: translateY(-1px);
+}
+.btn-quick-login:active {
+  transform: translateY(0);
+}
+.auth-demo-hint {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.auth-demo-title {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.auth-demo-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.auth-demo-grid code {
+  font-weight: 600;
+  color: var(--leaf-deep);
+  background: var(--leaf-soft);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
 
 .btn-google {
   display: flex;
