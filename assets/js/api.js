@@ -412,6 +412,20 @@ class LeafApiService {
     return data;
   }
 
+  async googleLogin(email, fullName = '', avatarUrl = '') {
+    if (!(await this.isOnline())) {
+      throw new Error('Máy chủ đang ngoại tuyến. Vui lòng thử lại sau.');
+    }
+    const res = await this._fetch('/api/auth/google/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, full_name: fullName, avatar_url: avatarUrl })
+    }, 10000);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Đăng nhập Google không thành công.');
+    return data;
+  }
+
   async signup(username, email, password, birthDate = '') {
     if (!(await this.isOnline())) {
       throw new Error('Máy chủ đang ngoại tuyến. Vui lòng thử lại sau.');
