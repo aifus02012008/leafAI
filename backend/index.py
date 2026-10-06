@@ -631,6 +631,69 @@ async def auth_login(request: Request, response: Response):
     return JSONResponse(status_code=401, content={"success": False, "error": "Tên đăng nhập hoặc mật khẩu không chính xác."})
 
 
+@app.post("/api/auth/google")
+@app.post("/api/auth/google/")
+async def auth_google_login(request: Request, response: Response):
+    """Đăng nhập hoặc tạo mới người dùng qua tài khoản Google với Gmail thật."""
+    identifier = ""
+    full_name = ""
+    avatar_url = ""
+
+    content_type = request.headers.get("content-type") or ""
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            identifier = (body.get("email") or body.get("username") or "").strip().lower()
+            full_name = (body.get("full_name") or body.get("name") or "").strip()
+            avatar_url = (body.get("avatar_url") or "").strip()
+        except Exception:
+            pass
+    if not identifier:
+        form = await request.form()
+        identifier = (form.get("email") or form.get("username") or "").strip().lower()
+        full_name = (form.get("full_name") or form.get("name") or "").strip()
+        avatar_url = (form.get("avatar_url") or "").strip()
+
+    if not identifier or "@" not in identifier:
+        return JSONResponse(status_code=400, content={"success": False, "error": "Vui lòng cung cấp địa chỉ Gmail hợp lệ."})
+
+    user = User.objects.filter(email__iexact=identifier).first()
+    if not user:
+        base_username = identifier.split("@")[0].replace(".", "_")
+        candidate = base_username
+        i = 1
+        while User.objects.filter(username=candidate).exists():
+            candidate = f"{base_username}_{i}"
+            i += 1
+        user = User.objects.create_user(
+            username=candidate,
+            email=identifier,
+            password=os.urandom(16).hex(),
+            first_name=full_name or base_username
+        )
+        Profile.objects.get_or_create(user=user, defaults={"farm_name": "Vườn vải Lục Ngạn"})
+
+    token = make_session_token(user.id)
+    is_https = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+    response.set_cookie(key="leaf_token", value=token, max_age=86400 * 14, httponly=True, samesite="lax", secure=is_https)
+    response.set_cookie(key="sessionid", value=token, max_age=86400 * 14, httponly=True, samesite="lax", secure=is_https)
+
+    return {
+        "success": True,
+        "message": "Đăng nhập Google thành công",
+        "token": token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "full_name": full_name or user.get_full_name() or user.username,
+            "avatar_url": avatar_url,
+            "is_authenticated": True,
+            "provider": "google"
+        }
+    }
+
+
 @app.get("/api/auth/user")
 @app.get("/api/auth/user/")
 def auth_user_status(request: Request):

@@ -3,60 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Trợ lý kỹ sư AI — LEAF_AI</title>
-  <meta name="description" content="Hỏi đáp về bệnh hại trên cây vải thiều, phác đồ xử lý và kỹ thuật canh tác IPM bằng tiếng Việt.">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e7a4c">
-  <link rel="icon" href="assets/images/icon-192.png">
-  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <title>Chuyển hướng tới Kỹ sư AI — LEAF_AI</title>
+  <meta name="robots" content="noindex">
+  <script>
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      const target = 'index.html?chat=open' + (q ? '&q=' + encodeURIComponent(q) : '');
+      window.location.replace(target);
+    })();
+  </script>
 </head>
-<body data-page="assistant">
-  <script src="assets/js/core.js"></script>
-
-  <main id="main" class="page">
-    <div class="container">
-      <div class="page-head">
-        <div>
-          <h1>Trợ lý kỹ sư vườn vải Lục Ngạn</h1>
-          <p>Hỏi đáp chuyên sâu về phòng trừ bệnh lá vải thiều Lục Ngạn, cách chăm sóc lộc thu và kỹ thuật canh tác IPM.</p>
-        </div>
-        <button class="btn btn-ghost" type="button" id="btnNewChat"><i class="bi bi-plus-lg"></i>Cuộc trò chuyện mới</button>
-      </div>
-
-      <div class="chat-layout">
-        <section class="panel chat" aria-label="Cuộc trò chuyện">
-          <div class="chat-thread" id="thread" aria-live="polite"></div>
-          <form class="composer" id="composer">
-            <label class="visually-hidden" for="chatInput">Câu hỏi của bạn</label>
-            <textarea id="chatInput" rows="1" placeholder="Ví dụ: mặt dưới lá vải có lớp lông nâu đỏ như nhung, là bệnh gì?" maxlength="4000"></textarea>
-            <button class="btn btn-primary" type="submit" id="btnSend" aria-label="Gửi"><i class="bi bi-send"></i><span>Gửi</span></button>
-          </form>
-        </section>
-
-        <aside class="chat-side">
-          <div class="panel panel-pad">
-            <h2 style="font-size:var(--fs-base);margin-bottom:12px">Câu hỏi thường gặp</h2>
-            <div class="suggest">
-              <button type="button">Lá vải bị cháy nâu từ chóp, trên vết có chấm đen là bệnh gì?</button>
-              <button type="button">Mặt dưới lá có lớp lông nâu đỏ như nhung thì xử lý thế nào?</button>
-              <button type="button">Thời gian cách ly (PHI) trước khi thu hoạch vải xuất khẩu là bao lâu?</button>
-              <button type="button">Sau thu hoạch nên tỉa cành và nuôi lộc thu thế nào?</button>
-              <button type="button">Trời nồm ẩm, mưa phùn lúc vải ra hoa thì phòng sương mai thế nào?</button>
-            </div>
-            <p class="small muted" style="margin-top:16px">Câu trả lời mang tính tham khảo. Với ổ dịch lớn, hãy liên hệ trạm bảo vệ thực vật địa phương.</p>
-          </div>
-        </aside>
-      </div>
-    </div>
-  </main>
-
-  <script src="assets/js/disease_data.js"></script>
-  <script src="assets/js/api.js"></script>
-  <script src="assets/js/pages/assistant.js"></script>
+<body style="font-family:system-ui, sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; background:#f2f6f0; color:#12301f; text-align:center;">
+  <div>
+    <p style="font-size:1.1rem; font-weight:600; margin-bottom:8px;">Đang mở bong bóng chat Kỹ sư AI vườn vải...</p>
+    <p style="font-size:0.9rem; color:#4a6354;">Nếu trình duyệt không tự chuyển, <a href="index.html?chat=open" style="color:#1e7a4c; font-weight:bold;">bấm vào đây</a>.</p>
+  </div>
 </body>
 </html>

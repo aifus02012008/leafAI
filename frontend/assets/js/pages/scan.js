@@ -151,7 +151,7 @@
       $('btnTreat').hidden = true;
       $('btnProtocol').href = 'library.html';
       $('btnProtocol').innerHTML = '<i class="bi bi-journal-medical"></i>Xem thư viện bệnh';
-      $('btnAsk').href = 'assistant.html';
+      $('btnAsk').onclick = () => window.Leaf?.openChat('Lá vải này hiện chưa phân tích được, nhờ kỹ sư hỗ trợ tư vấn.');
       return;
     }
 
@@ -167,7 +167,7 @@
       $('btnTreat').hidden = true;
       $('btnProtocol').href = 'handbook.html#kiem-tra';
       $('btnProtocol').innerHTML = '<i class="bi bi-shield-check"></i>Xem quy trình kiểm tra vườn';
-      $('btnAsk').href = 'assistant.html';
+      $('btnAsk').onclick = () => window.Leaf?.openChat('Lá vải vườn tôi hiện khỏe mạnh, thời điểm này chăm sóc theo IPM thế nào?');
       return;
     }
 
@@ -203,7 +203,7 @@
     $('btnProtocol').href = diseases.url(primary.class);
     $('btnProtocol').innerHTML = `<i class="bi bi-journal-medical"></i>Xem phác đồ ${escapeHtml(info.name_vi ? info.name_vi.split(' (')[0].toLowerCase() : 'xử lý')}`;
     const q = `Lá vải của tôi được chẩn đoán ${primary.name_vi || primary.class} (${pct}%)${secondary.length ? ', kèm ' + secondary.map((s) => s.name_vi).join(', ') : ''}. Tôi nên xử lý thế nào?`;
-    $('btnAsk').href = `assistant.html?q=${encodeURIComponent(q)}`;
+    $('btnAsk').onclick = () => window.Leaf?.openChat(q);
   }
 
   async function saveRecord(result, src) {

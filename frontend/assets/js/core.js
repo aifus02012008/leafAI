@@ -13,8 +13,7 @@
   const NAV = [
     { id: 'library', href: 'library.html', label: 'Thư viện', icon: 'bi-journal-text' },
     { id: 'treatment', href: 'treatment.html', label: 'Phác đồ', icon: 'bi-clipboard2-pulse' },
-    { id: 'handbook', href: 'handbook.html', label: 'Cẩm nang', icon: 'bi-shield-check' },
-    { id: 'assistant', href: 'assistant.html', label: 'Kỹ sư AI', icon: 'bi-chat-dots' }
+    { id: 'handbook', href: 'handbook.html', label: 'Cẩm nang', icon: 'bi-shield-check' }
   ];
 
   const LEAF_MARK = `
@@ -65,7 +64,7 @@
       <a href="library.html"${isActive('library') || isActive('disease')}><i class="bi bi-journal-text"></i>Thư viện bệnh</a>
       <a href="treatment.html"${isActive('treatment')}><i class="bi bi-clipboard2-pulse"></i>Phác đồ điều trị</a>
       <a href="handbook.html"${isActive('handbook')}><i class="bi bi-shield-check"></i>Cẩm nang IPM</a>
-      <a href="assistant.html"${isActive('assistant')}><i class="bi bi-chat-dots"></i>Trợ lý kỹ sư AI</a>
+      <a href="javascript:void(0)" id="mobileDrawerChat"><i class="bi bi-chat-dots"></i>Hỏi kỹ sư AI (Chat)</a>
       <a href="history.html"${isActive('history')}><i class="bi bi-clock-history"></i>Lịch sử quét</a>
       <a href="about.html"${isActive('about')}><i class="bi bi-info-circle"></i>Giới thiệu</a>
     </nav>
@@ -73,8 +72,8 @@
       <a href="index.html"${isActive('home')}><i class="bi bi-house"></i><span>Trang chủ</span></a>
       <a href="library.html"${isActive('library') || isActive('disease')}><i class="bi bi-journal-text"></i><span>Thư viện</span></a>
       <a href="scan.html" class="fab"${isActive('scan')}><i class="bi bi-camera"></i><span>Quét lá</span></a>
-      <a href="history.html"${isActive('history')}><i class="bi bi-clock-history"></i><span>Lịch sử</span></a>
-      <a href="assistant.html"${isActive('assistant')}><i class="bi bi-chat-dots"></i><span>Trợ lý</span></a>
+      <a href="treatment.html"${isActive('treatment')}><i class="bi bi-clipboard2-pulse"></i><span>Phác đồ</span></a>
+      <a href="javascript:void(0)" id="btnBottomChat"><i class="bi bi-chat-dots"></i><span>Kỹ sư AI</span></a>
     </nav>`;
   document.body.insertAdjacentHTML('afterbegin', headerHtml);
 
@@ -97,7 +96,7 @@
             <li><a href="scan.html">Chẩn đoán lá</a></li>
             <li><a href="treatment.html">Phác đồ điều trị</a></li>
             <li><a href="history.html">Lịch sử quét</a></li>
-            <li><a href="assistant.html">Trợ lý kỹ sư AI</a></li>
+            <li><a href="javascript:void(0)" id="footerOpenChat">Trợ lý kỹ sư AI (Chat)</a></li>
           </ul>
         </div>
         <div>
@@ -164,8 +163,27 @@
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span>Đăng nhập với Google</span>
+          <span>Đăng nhập với Google (Gmail)</span>
         </button>
+
+        <!-- Khung nhập Gmail thật của người dùng -->
+        <div class="google-login-box" id="googleLoginBox" hidden>
+          <div class="google-box-title">
+            <i class="bi bi-envelope-at" style="color:#4285F4;font-size:1.1rem;"></i>
+            <strong>Nhập tài khoản Google (Gmail thật của bạn)</strong>
+          </div>
+          <p class="google-box-sub">Hệ thống sẽ lưu trữ phiên làm việc và lịch sử vườn vải gắn liền với Gmail này:</p>
+          <div class="google-input-row">
+            <input type="email" id="inputGoogleEmail" placeholder="ví dụ: aifus02012008@gmail.com" required autocomplete="email">
+            <button type="button" class="btn btn-primary btn-sm" id="btnConfirmGoogleEmail">
+              <span>Đăng nhập</span> <i class="bi bi-box-arrow-in-right"></i>
+            </button>
+          </div>
+          <div class="google-quick-hints">
+            <span class="muted" style="font-size:11px;">Gợi ý:</span>
+            <button type="button" class="btn-gmail-hint" data-email="aifus02012008@gmail.com">aifus02012008@gmail.com</button>
+          </div>
+        </div>
 
         <div class="auth-divider">
           <span>hoặc dùng Email / Tên đăng nhập</span>
@@ -226,7 +244,62 @@
           <button type="submit" class="btn btn-primary btn-block" id="btnSubmitSignup"><i class="bi bi-person-plus"></i> Đăng ký tài khoản</button>
         </form>
       </div>
-    </dialog>`;
+    </dialog>
+
+    <!-- Bong bóng chat nổi (Kỹ sư AI Vườn Vải Lục Ngạn) -->
+    <div class="chat-widget" id="chatWidget">
+      <section class="chat-widget-panel" id="chatWidgetPanel" hidden aria-label="Khung trò chuyện với Kỹ sư AI">
+        <header class="chat-widget-header">
+          <div class="chat-widget-header-info">
+            <span class="chat-widget-avatar">
+              <i class="bi bi-flower1"></i>
+              <span class="status-indicator"></span>
+            </span>
+            <div>
+              <h3 class="chat-widget-title">Kỹ sư AI Vườn Vải</h3>
+              <span class="chat-widget-subtitle">Tư vấn bệnh lá vải &amp; IPM Lục Ngạn</span>
+            </div>
+          </div>
+          <div class="chat-widget-header-actions">
+            <button type="button" class="btn-widget-icon" id="btnWidgetNewChat" title="Làm mới trò chuyện">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button type="button" class="btn-widget-icon" id="btnWidgetClose" title="Thu nhỏ">
+              <i class="bi bi-dash-lg"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="chat-widget-quick">
+          <span class="quick-title">Hỏi nhanh:</span>
+          <div class="quick-chips">
+            <button type="button" class="quick-chip" data-q="Lá vải bị cháy chóp nâu, có chấm đen là bệnh gì?">Lá cháy chóp</button>
+            <button type="button" class="quick-chip" data-q="Mặt dưới lá vải có lớp nhung nâu đỏ xử lý thế nào?">Nhện lông nhung</button>
+            <button type="button" class="quick-chip" data-q="Trời nồm ẩm, mưa phùn phòng trừ sương mai hoa vải ra sao?">Sương mai hoa vải</button>
+            <button type="button" class="quick-chip" data-q="Thời gian cách ly (PHI) trước khi thu hoạch vải là bao lâu?">Cách ly PHI</button>
+          </div>
+        </div>
+
+        <div class="chat-widget-thread" id="widgetThread" aria-live="polite"></div>
+
+        <form class="chat-widget-composer" id="widgetComposer">
+          <textarea id="widgetInput" rows="1" placeholder="Hỏi kỹ sư AI về lá vải Lục Ngạn..." maxlength="2000"></textarea>
+          <button type="submit" class="btn-widget-send" id="btnWidgetSend" aria-label="Gửi câu hỏi">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </form>
+        <div class="chat-widget-foot-note">
+          <span>Tư vấn kỹ thuật IPM theo thực tế Lục Ngạn, Bắc Giang</span>
+        </div>
+      </section>
+
+      <button type="button" class="chat-widget-fab" id="chatWidgetFab" aria-expanded="false" aria-controls="chatWidgetPanel" aria-label="Mở trợ lý kỹ sư AI">
+        <span class="fab-badge" id="chatFabBadge">1</span>
+        <span class="fab-icon-open"><i class="bi bi-chat-dots-fill"></i></span>
+        <span class="fab-icon-close"><i class="bi bi-x-lg"></i></span>
+        <span class="fab-label">Hỏi Kỹ sư AI</span>
+      </button>
+    </div>`;
 
   function mountFooterAndBehaviour() {
     document.body.insertAdjacentHTML('beforeend', footerHtml);
@@ -254,6 +327,7 @@
 
     initPwa();
     initAuth();
+    initChatWidget();
   }
 
   // ------------------------------------------------------------------
@@ -444,52 +518,103 @@
       });
     }
 
-    // Đăng nhập với Google
+    // Đăng nhập với Google bằng Gmail thật
+    const googleLoginBox = document.getElementById('googleLoginBox');
+    const inputGoogleEmail = document.getElementById('inputGoogleEmail');
+    const btnConfirmGoogle = document.getElementById('btnConfirmGoogleEmail');
+
     if (btnGoogle) {
-      btnGoogle.addEventListener('click', async () => {
-        btnGoogle.disabled = true;
-        authError.hidden = true;
-        try {
-          let user = null;
-          if (window.LeafAuth) {
-            const res = await window.LeafAuth.signInWithGoogle();
-            if (res && res.user) user = res.user;
+      btnGoogle.addEventListener('click', () => {
+        if (googleLoginBox) {
+          googleLoginBox.hidden = !googleLoginBox.hidden;
+          if (!googleLoginBox.hidden && inputGoogleEmail) {
+            inputGoogleEmail.focus();
           }
-          if (!user) {
-            user = {
-              id: 'google_farmer_' + Date.now().toString(36),
-              email: 'nongdan.lucngan@gmail.com',
-              username: 'Nông dân Lục Ngạn',
-              display_name: 'Nông dân Lục Ngạn (Google)',
-              avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-              is_authenticated: true,
-              provider: 'google'
-            };
+        }
+      });
+    }
+
+    // Gợi ý Gmail nhanh khi bấm chip
+    document.querySelectorAll('.btn-gmail-hint').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (inputGoogleEmail) {
+          inputGoogleEmail.value = btn.dataset.email || '';
+          handleGoogleSignIn(inputGoogleEmail.value);
+        }
+      });
+    });
+
+    if (btnConfirmGoogle) {
+      btnConfirmGoogle.addEventListener('click', () => {
+        if (inputGoogleEmail) handleGoogleSignIn(inputGoogleEmail.value);
+      });
+    }
+
+    if (inputGoogleEmail) {
+      inputGoogleEmail.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleGoogleSignIn(inputGoogleEmail.value);
+        }
+      });
+    }
+
+    async function handleGoogleSignIn(rawEmail) {
+      const email = (rawEmail || '').trim().toLowerCase();
+      if (!email || !email.includes('@') || email.length < 5) {
+        authError.textContent = 'Vui lòng nhập địa chỉ Gmail hợp lệ (ví dụ: aifus02012008@gmail.com).';
+        authError.hidden = false;
+        return;
+      }
+      authError.hidden = true;
+      if (btnConfirmGoogle) btnConfirmGoogle.disabled = true;
+      if (btnGoogle) btnGoogle.disabled = true;
+
+      try {
+        const usernamePrefix = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
+        const displayName = email.split('@')[0];
+        const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=1e7a4c,2d6a4f,52b788`;
+
+        let user = null;
+        // 1. Gửi lên Backend FastAPI (/api/auth/google/)
+        if (typeof LeafApiService !== 'undefined') {
+          try {
+            const api = new LeafApiService();
+            const res = await api.googleLogin(email, displayName, avatarUrl);
+            if (res && res.success && res.user) {
+              user = res.user;
+            }
+          } catch (apiErr) {
+            console.warn('[LEAF_AI] Backend Google Auth API notice:', apiErr);
           }
-          user.is_authenticated = true;
-          localStorage.setItem('leaf_last_user', JSON.stringify(user));
-          toast('Đăng nhập Google thành công! Chào mừng Nông dân Lục Ngạn.');
-          updateUi(user);
-          authModal.close();
-        } catch (err) {
-          console.warn('[LEAF_AI] Supabase Google OAuth fallback active:', err);
-          const googleUser = {
-            id: 'google_farmer_' + Date.now().toString(36),
-            email: 'nongdan.lucngan@gmail.com',
-            username: 'Nông dân Lục Ngạn',
-            display_name: 'Nông dân Lục Ngạn (Google)',
-            avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+        }
+
+        // 2. Dự phòng ngoại tuyến nếu backend không khả dụng
+        if (!user) {
+          user = {
+            id: 'google_' + usernamePrefix,
+            username: usernamePrefix,
+            email: email,
+            full_name: displayName,
+            display_name: `${displayName} (Google)`,
+            avatar_url: avatarUrl,
             is_authenticated: true,
             provider: 'google'
           };
-          localStorage.setItem('leaf_last_user', JSON.stringify(googleUser));
-          toast('Đăng nhập Google thành công! Chào mừng Nông dân Lục Ngạn.');
-          updateUi(googleUser);
-          authModal.close();
-        } finally {
-          btnGoogle.disabled = false;
         }
-      });
+
+        user.is_authenticated = true;
+        localStorage.setItem('leaf_last_user', JSON.stringify(user));
+        toast(`Đăng nhập Google thành công với ${user.email}!`);
+        updateUi(user);
+        authModal.close();
+      } catch (err) {
+        authError.textContent = err.message || 'Không thể đăng nhập với Google.';
+        authError.hidden = false;
+      } finally {
+        if (btnConfirmGoogle) btnConfirmGoogle.disabled = false;
+        if (btnGoogle) btnGoogle.disabled = false;
+      }
     }
 
     // Đăng nhập bằng Email & Tên đăng nhập
@@ -844,7 +969,208 @@
     });
   }
 
+  // ------------------------------------------------------------------
+  // Bong bóng chat nổi (Floating Chat Widget) — Kỹ sư AI Vườn Vải Lục Ngạn
+  // ------------------------------------------------------------------
+  let openChatFn = (q) => {};
+  let closeChatFn = () => {};
+  let toggleChatFn = () => {};
+
+  function initChatWidget() {
+    const widget = document.getElementById('chatWidget');
+    if (!widget) return;
+
+    const fab = document.getElementById('chatWidgetFab');
+    const panel = document.getElementById('chatWidgetPanel');
+    const badge = document.getElementById('chatFabBadge');
+    const btnClose = document.getElementById('btnWidgetClose');
+    const btnNewChat = document.getElementById('btnWidgetNewChat');
+    const thread = document.getElementById('widgetThread');
+    const composer = document.getElementById('widgetComposer');
+    const input = document.getElementById('widgetInput');
+    const btnSend = document.getElementById('btnWidgetSend');
+
+    let sending = false;
+
+    const WELCOME = `
+      <p><strong>Xin chào bà con!</strong> Em là trợ lý kỹ sư AI chuyên tư vấn cây vải thiều Lục Ngạn.</p>
+      <p>Bà con có thể mô tả triệu chứng vết bệnh trên lá vải, đọt non hoặc hỏi cách phun thuốc theo đúng IPM nhé!</p>`;
+
+    function mdToHtml(text) {
+      const lines = escapeHtml(text).split(/\n/);
+      let html = '';
+      let inList = false;
+      lines.forEach((line) => {
+        const li = line.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)/);
+        if (li) {
+          if (!inList) { html += '<ul>'; inList = true; }
+          html += `<li>${li[1]}</li>`;
+        } else {
+          if (inList) { html += '</ul>'; inList = false; }
+          if (line.trim()) html += `<p>${line}</p>`;
+        }
+      });
+      if (inList) html += '</ul>';
+      return html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+    }
+
+    function addMessage(html, who = 'bot') {
+      const el = document.createElement('div');
+      el.className = `widget-msg ${who === 'me' ? 'me' : 'bot'}`;
+      el.innerHTML = `<div class="widget-bubble">${html}</div>`;
+      thread.appendChild(el);
+      thread.scrollTop = thread.scrollHeight;
+      return el;
+    }
+
+    async function send(text) {
+      const msg = (text ?? input.value).trim();
+      if (!msg || sending) return;
+      sending = true;
+      if (btnSend) btnSend.disabled = true;
+      input.value = '';
+      input.style.height = 'auto';
+
+      addMessage(`<p>${escapeHtml(msg)}</p>`, 'me');
+      const typing = addMessage('<span class="typing-dots" aria-label="Đang trả lời"><i></i><i></i><i></i></span>', 'bot');
+
+      try {
+        let replyHtml = '';
+        if (typeof LeafApiService !== 'undefined') {
+          const api = new LeafApiService();
+          const res = await api.sendChatMessage(msg);
+          replyHtml = res.offline ? res.reply_html : mdToHtml(res.reply || '');
+        }
+        typing.querySelector('.widget-bubble').innerHTML = replyHtml || '<p>Em chưa có dữ liệu cho câu hỏi này. Bà con vui lòng mô tả chi tiết hơn nhé.</p>';
+      } catch (e) {
+        typing.querySelector('.widget-bubble').innerHTML = '<p>Không thể gửi câu hỏi lúc này. Vui lòng kiểm tra lại kết nối mạng.</p>';
+      } finally {
+        thread.scrollTop = thread.scrollHeight;
+        sending = false;
+        if (btnSend) btnSend.disabled = false;
+        input.focus();
+      }
+    }
+
+    function resetChat() {
+      thread.innerHTML = '';
+      addMessage(WELCOME, 'bot');
+    }
+
+    function openChat(question) {
+      panel.hidden = false;
+      widget.classList.add('is-open');
+      fab.setAttribute('aria-expanded', 'true');
+      if (badge) badge.hidden = true;
+      if (thread.children.length === 0) resetChat();
+      if (question) {
+        send(question);
+      } else {
+        setTimeout(() => input.focus(), 150);
+      }
+    }
+
+    function closeChat() {
+      panel.hidden = true;
+      widget.classList.remove('is-open');
+      fab.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleChat() {
+      if (panel.hidden) openChat();
+      else closeChat();
+    }
+
+    openChatFn = openChat;
+    closeChatFn = closeChat;
+    toggleChatFn = toggleChat;
+    if (window.Leaf) {
+      window.Leaf.openChat = openChat;
+      window.Leaf.closeChat = closeChat;
+      window.Leaf.toggleChat = toggleChat;
+    }
+
+    fab.addEventListener('click', toggleChat);
+    if (btnClose) btnClose.addEventListener('click', closeChat);
+    if (btnNewChat) btnNewChat.addEventListener('click', () => { resetChat(); input.focus(); });
+
+    if (composer) {
+      composer.addEventListener('submit', (e) => {
+        e.preventDefault();
+        send();
+      });
+    }
+
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = `${Math.min(input.scrollHeight, 100)}px`;
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    // Gợi ý nhanh
+    document.querySelectorAll('.quick-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const q = chip.dataset.q || chip.textContent.trim();
+        send(q);
+      });
+    });
+
+    // Nút mở chat từ các vị trí ngoài
+    const mobileBtn = document.getElementById('mobileDrawerChat');
+    if (mobileBtn) {
+      mobileBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const drawer = document.getElementById('mobileDrawer');
+        if (drawer) drawer.classList.remove('is-open');
+        openChat();
+      });
+    }
+
+    const bottomBtn = document.getElementById('btnBottomChat');
+    if (bottomBtn) {
+      bottomBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleChat();
+      });
+    }
+
+    const footerBtn = document.getElementById('footerOpenChat');
+    if (footerBtn) {
+      footerBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openChat();
+      });
+    }
+
+    // Tự động mở chat nếu URL có ?chat=open hoặc ?q=...
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('chat') === 'open' || urlParams.get('q')) {
+      openChat(urlParams.get('q'));
+    }
+  }
+
   const params = new URLSearchParams(location.search);
 
-  window.Leaf = { NAV, page, params, escapeHtml, sevClass, sevBadge, diseases, history, toast, confirm: confirmDialog, makeThumb };
+  window.Leaf = {
+    NAV,
+    page,
+    params,
+    escapeHtml,
+    sevClass,
+    sevBadge,
+    diseases,
+    history,
+    toast,
+    confirm: confirmDialog,
+    makeThumb,
+    openChat: (q) => openChatFn(q),
+    closeChat: () => closeChatFn(),
+    toggleChat: () => toggleChatFn()
+  };
 })();
