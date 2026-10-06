@@ -168,7 +168,9 @@ class ChatPayload(BaseModel):
 # 1. HEALTH & METADATA ENDPOINTS
 # ==============================================================================
 
+@app.get("/health")
 @app.get("/health/")
+@app.get("/api/health")
 @app.get("/api/health/")
 def health_check():
     """Kiểm tra sức khỏe dịch vụ FastAPI trên Vercel Serverless."""
@@ -181,6 +183,7 @@ def health_check():
     }
 
 
+@app.get("/api/diseases")
 @app.get("/api/diseases/")
 def get_diseases(category: Optional[str] = None, q: Optional[str] = None):
     """Trả về danh mục chi tiết 5 bệnh lá cây vải thiều Lục Ngạn chuẩn hóa FAO & VietGAP."""
@@ -213,6 +216,7 @@ def get_diseases(category: Optional[str] = None, q: Optional[str] = None):
     }
 
 
+@app.get("/api/handbook")
 @app.get("/api/handbook/")
 def get_handbook(section: Optional[str] = None):
     """Cẩm nang chăm sóc & phòng bệnh vườn vải Lục Ngạn chuẩn FAO & VietGAP: 8 nguyên tắc, 7 bước kiểm tra, 10 bước IPM."""
@@ -226,6 +230,7 @@ def get_handbook(section: Optional[str] = None):
     }
 
 
+@app.get("/api/models")
 @app.get("/api/models/")
 def get_models_info():
     """Thông số kiến trúc ResNet-18 + Grad-CAM cho lá vải thiều Lục Ngạn."""
@@ -235,6 +240,7 @@ def get_models_info():
     }
 
 
+@app.get("/api/stats")
 @app.get("/api/stats/")
 def get_stats():
     """Số liệu thống kê thực tế từ Database."""
@@ -272,6 +278,7 @@ def get_stats():
 # 2. DIAGNOSIS PIPELINE (YOLOV8 + GRAD-CAM EXPLAINABLE AI)
 # ==============================================================================
 
+@app.post("/api/diagnose")
 @app.post("/api/diagnose/")
 async def diagnose_leaf(request: Request):
     """
@@ -348,6 +355,7 @@ async def diagnose_leaf(request: Request):
 # 3. DIAGNOSIS HISTORY CRUD
 # ==============================================================================
 
+@app.get("/api/history")
 @app.get("/api/history/")
 def get_history(limit: int = 50):
     """Lấy danh sách lịch sử chẩn đoán gần nhất."""
@@ -376,7 +384,9 @@ def get_history(limit: int = 50):
     }
 
 
+@app.delete("/api/history/{record_id}/delete")
 @app.delete("/api/history/{record_id}/delete/")
+@app.post("/api/history/{record_id}/delete")
 @app.post("/api/history/{record_id}/delete/")
 def delete_history_record(record_id: int):
     """Xóa một bản ghi lịch sử khỏi SQLite và Supabase."""
@@ -398,7 +408,9 @@ def delete_history_record(record_id: int):
     }
 
 
+@app.delete("/api/history/clear")
 @app.delete("/api/history/clear/")
+@app.post("/api/history/clear")
 @app.post("/api/history/clear/")
 def clear_history_all():
     """Xóa toàn bộ lịch sử chẩn đoán."""
@@ -414,6 +426,7 @@ def clear_history_all():
 # 4. CHATBOT CONSULTATION (GEMINI AI + AGRO KNOWLEDGE)
 # ==============================================================================
 
+@app.post("/api/chat")
 @app.post("/api/chat/")
 async def chat_consult(payload: ChatPayload):
     """Trợ lý kỹ sư BVTV tư vấn bệnh lá cây vải thiều Lục Ngạn và quy trình IPM."""
@@ -469,6 +482,7 @@ async def chat_consult(payload: ChatPayload):
 # 5. USER AUTHENTICATION (FASTAPI REST ENDPOINTS)
 # ==============================================================================
 
+@app.post("/api/auth/signup")
 @app.post("/api/auth/signup/")
 async def auth_signup(request: Request, response: Response):
     """Đăng ký tài khoản người dùng mới (hỗ trợ cả JSON body và Form Data)."""
@@ -552,6 +566,7 @@ async def auth_signup(request: Request, response: Response):
         return JSONResponse(status_code=500, content={"success": False, "error": f"Lỗi tạo tài khoản: {str(e)}"})
 
 
+@app.post("/api/auth/login")
 @app.post("/api/auth/login/")
 async def auth_login(request: Request, response: Response):
     """Đăng nhập người dùng qua REST API (hỗ trợ cả JSON body và Form Data)."""
@@ -616,6 +631,7 @@ async def auth_login(request: Request, response: Response):
     return JSONResponse(status_code=401, content={"success": False, "error": "Tên đăng nhập hoặc mật khẩu không chính xác."})
 
 
+@app.get("/api/auth/user")
 @app.get("/api/auth/user/")
 def auth_user_status(request: Request):
     """Kiểm tra trạng thái xác thực của người dùng hiện tại."""
@@ -639,6 +655,7 @@ def auth_user_status(request: Request):
     }
 
 
+@app.post("/api/auth/logout")
 @app.post("/api/auth/logout/")
 def auth_logout(response: Response):
     """Đăng xuất và hủy bỏ session cookie."""
@@ -654,6 +671,7 @@ def auth_logout(response: Response):
 # 6. SUPABASE CLOUD SYNC
 # ==============================================================================
 
+@app.get("/api/supabase/status")
 @app.get("/api/supabase/status/")
 def supabase_status():
     """Kiểm tra trạng thái kết nối tới Supabase Cloud."""
@@ -663,6 +681,7 @@ def supabase_status():
     }
 
 
+@app.post("/api/supabase/sync")
 @app.post("/api/supabase/sync/")
 def supabase_sync():
     """Kích hoạt đồng bộ CSDL lên Supabase Cloud."""

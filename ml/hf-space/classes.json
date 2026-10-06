@@ -1,56 +1,36 @@
 {
   "classes": [
     "Healthy",
-    "Leaf_mold",
-    "Target_spot",
-    "Late_blight",
-    "Early_blight",
-    "Bacterial_spot",
-    "Septoria_leaf_spot",
-    "Tomato_mosaic_virus",
-    "Tomato_yellow_leaf_curl_virus",
-    "Spider_mites"
+    "Anthracnose",
+    "Downy_blight",
+    "Leaf_blight",
+    "Algal_spot",
+    "Erinose"
   ],
   "details": {
     "Healthy": {
-      "vi": "Lá khỏe mạnh",
+      "vi": "Lá vải khỏe mạnh",
       "pathogen": "None"
     },
-    "Leaf_mold": {
-      "vi": "Nấm mốc lá",
-      "pathogen": "Passalora fulva"
+    "Anthracnose": {
+      "vi": "Thán thư",
+      "pathogen": "Colletotrichum gloeosporioides"
     },
-    "Target_spot": {
-      "vi": "Đốm mắt cua",
-      "pathogen": "Corynespora cassiicola"
+    "Downy_blight": {
+      "vi": "Sương mai",
+      "pathogen": "Peronophythora litchii"
     },
-    "Late_blight": {
-      "vi": "Sương mai (Late Blight)",
-      "pathogen": "Phytophthora infestans"
+    "Leaf_blight": {
+      "vi": "Cháy lá",
+      "pathogen": "Pestalotiopsis spp."
     },
-    "Early_blight": {
-      "vi": "Úa sớm (Early Blight)",
-      "pathogen": "Alternaria solani"
+    "Algal_spot": {
+      "vi": "Đốm rong",
+      "pathogen": "Cephaleuros virescens"
     },
-    "Bacterial_spot": {
-      "vi": "Đốm vi khuẩn",
-      "pathogen": "Xanthomonas campestris"
-    },
-    "Septoria_leaf_spot": {
-      "vi": "Đốm lá Septoria",
-      "pathogen": "Septoria lycopersici"
-    },
-    "Tomato_mosaic_virus": {
-      "vi": "Khảm lá virus (ToMV)",
-      "pathogen": "Tomato mosaic tobamovirus"
-    },
-    "Tomato_yellow_leaf_curl_virus": {
-      "vi": "Xoăn vàng lá virus (TYLCV)",
-      "pathogen": "Tomato yellow leaf curl begomovirus"
-    },
-    "Spider_mites": {
-      "vi": "Nhện đỏ hai chấm",
-      "pathogen": "Tetranychus urticae"
+    "Erinose": {
+      "vi": "Nhện lông nhung",
+      "pathogen": "Aceria litchii"
     }
   }
 }

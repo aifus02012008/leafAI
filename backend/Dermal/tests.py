@@ -47,19 +47,19 @@ PNG_400 = make_png_bytes()
 GEMINI_PAYLOAD = {
     "healthy": False,
     "diseases": [
-        {"class": "Early_blight", "probability": 87},
-        {"class": "Bacterial_spot", "probability": 42},
+        {"class": "Anthracnose", "probability": 87},
+        {"class": "Downy_blight", "probability": 42},
     ],
     "regions": [
-        {"class": "Early_blight", "confidence": 0.9, "bbox": [40, 30, 200, 150]},
+        {"class": "Anthracnose", "confidence": 0.9, "bbox": [40, 30, 200, 150]},
     ],
     "report_html": (
         '<h3>Kết luận nhanh</h3>'
-        '<p>Úa sớm <span class="pct">87%</span> '
+        '<p>Thán thư <span class="pct">87%</span> '
         '<span class="badge badge-high">Nghiêm trọng</span></p>'
         '<script>alert("xss")</script>'
         '<table class="report-table"><thead><tr><th>Bệnh</th><th>Độ tin cậy</th></tr></thead>'
-        "<tbody><tr><td>Úa sớm</td><td>87%</td></tr></tbody></table>"
+        "<tbody><tr><td>Thán thư</td><td>87%</td></tr></tbody></table>"
     ),
 }
 
@@ -174,7 +174,7 @@ class UploadTests(TestCase):
 
         rec = Leaf_image.objects.get()
         self.assertTrue(rec.explain)  # báo cáo HTML đã lưu
-        self.assertEqual(rec.primary_disease, "Early_blight")
+        self.assertEqual(rec.primary_disease, "Anthracnose")
         self.assertTrue(rec.result)  # bảng kết quả có dữ liệu cho template
 
     @patch("Dermal.views.run_diagnosis_for_record")
@@ -233,7 +233,7 @@ class ResultAndHistoryTests(TestCase):
         self.client.force_login(self.user)
         self.img = Leaf_image.objects.create(
             image=SimpleUploadedFile("l.png", TINY_PNG, content_type="image/png"),
-            user=self.profile, result=[{"class": "Early_blight", "probability": 80.0}],
+            user=self.profile, result=[{"class": "Anthracnose", "probability": 80.0}],
         )
 
     def test_result_view_own(self):
@@ -396,9 +396,9 @@ class DiagnoseApiTests(TestCase):
         self.assertTrue(body["success"])
         self.assertIsNotNone(body["id"])
         self.assertEqual(body["model_version"], "v3")
-        self.assertEqual(body["primary_disease"]["class"], "Early_blight")
+        self.assertEqual(body["primary_disease"]["class"], "Anthracnose")
         self.assertEqual(body["primary_disease"]["severity"], "Nghiêm trọng")
-        self.assertEqual(body["secondary_diseases"][0]["class"], "Bacterial_spot")
+        self.assertEqual(body["secondary_diseases"][0]["class"], "Downy_blight")
         self.assertTrue(body["is_coinfection"])
         self.assertTrue(body["report_html"])
         self.assertNotIn("<script", body["report_html"])
@@ -486,11 +486,11 @@ class LeafAiTests(TestCase):
         self.assertFalse(a["healthy"])
 
         p = a["primary_disease"]
-        self.assertEqual(p["class"], "Early_blight")
+        self.assertEqual(p["class"], "Anthracnose")
         self.assertEqual(p["probability"], 87.0)
         self.assertEqual(p["severity"], "Nghiêm trọng")
 
-        self.assertEqual(a["secondary_diseases"][0]["class"], "Bacterial_spot")
+        self.assertEqual(a["secondary_diseases"][0]["class"], "Downy_blight")
         self.assertEqual(a["secondary_diseases"][0]["severity"], "Trung bình")
         self.assertTrue(a["is_coinfection"])
         self.assertGreaterEqual(a["lesion_count"], 1)
@@ -504,7 +504,7 @@ class LeafAiTests(TestCase):
             self.assertLessEqual(y + h, 300)
 
         self.assertNotIn("<script", a["report_html"])
-        self.assertEqual(a["result"][0], {"class": "Early_blight", "probability": 87.0})
+        self.assertEqual(a["result"][0], {"class": "Anthracnose", "probability": 87.0})
 
     def test_build_analysis_healthy(self):
         a = build_analysis(
@@ -520,7 +520,7 @@ class LeafAiTests(TestCase):
     def test_build_analysis_invalid_payload_raises(self):
         with self.assertRaises(DiagnosisUnavailable):
             build_analysis({"healthy": False, "diseases": []}, PNG_400, "v3")
-        # lớp bệnh lạ (không thuộc 6 bệnh cà chua) bị loại -> rỗng -> không hợp lệ
+        # lớp bệnh lạ (không thuộc danh mục bệnh vải thiều Lục Ngạn) bị loại -> rỗng -> không hợp lệ
         with self.assertRaises(DiagnosisUnavailable):
             build_analysis(
                 {"healthy": False, "diseases": [{"class": "Human_acne", "probability": 50}]},
@@ -533,16 +533,16 @@ class LeafAiTests(TestCase):
         payload = {
             "healthy": False,
             "diseases": [
-                {"class": "early_blight", "probability": "150%"},
-                {"class": "Early_blight", "probability": "40"},
-                {"class": "Late_blight", "probability": "abc"},
+                {"class": "anthracnose", "probability": "150%"},
+                {"class": "Anthracnose", "probability": "40"},
+                {"class": "Downy_blight", "probability": "abc"},
             ],
             "regions": [],
             "report_html": "<p>x</p>",
         }
         a = build_analysis(payload, PNG_400, "v3")
-        # lowercase -> chuẩn mã;150% -> clamp 100; trùng mã -> giữ1; 'abc' -> loại
-        self.assertEqual(a["diseases"], [{"class": "Early_blight", "probability": 100.0}])
+        # lowercase -> chuẩn mã; 150% -> clamp 100; trùng mã -> giữ 1; 'abc' -> loại
+        self.assertEqual(a["diseases"], [{"class": "Anthracnose", "probability": 100.0}])
 
     @override_settings(STORAGES=TEST_STORAGES, MEDIA_ROOT=tempfile.mkdtemp())
     def test_load_image_reads_via_db_link(self):
@@ -618,7 +618,7 @@ class SmokeRenderTests(TestCase):
         self.client.force_login(self.user)
         self.img = Leaf_image.objects.create(
             image=SimpleUploadedFile("s.png", TINY_PNG, content_type="image/png"),
-            user=self.profile, result=[{"class": "Bacterial_spot", "probability": 91.0}],
+            user=self.profile, result=[{"class": "Downy_blight", "probability": 91.0}],
             explain="<h3>Kết luận nhanh</h3><p>Báo cáo</p>",
         )
 

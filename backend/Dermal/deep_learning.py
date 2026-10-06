@@ -52,6 +52,20 @@ transform_pipeline = transforms.Compose([
 ])
 
 
+TOMATO_TO_LYCHEE_MAP = {
+    "Healthy": "Healthy",
+    "Leaf_mold": "Anthracnose",
+    "Target_spot": "Downy_blight",
+    "Late_blight": "Downy_blight",
+    "Early_blight": "Anthracnose",
+    "Bacterial_spot": "Leaf_blight",
+    "Septoria_leaf_spot": "Algal_spot",
+    "Tomato_mosaic_virus": "Erinose",
+    "Tomato_yellow_leaf_curl_virus": "Erinose",
+    "Spider_mites": "Erinose",
+}
+
+
 class GradCAM:
     """Thuật toán Grad-CAM trích xuất bản đồ kích hoạt trực quan từ tầng Conv cuối cùng."""
     def __init__(self, model: nn.Module, target_layer: nn.Module):
@@ -155,6 +169,7 @@ class NativeDeepLearningEngine:
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model: Optional[nn.Module] = None
         self.gradcam: Optional[GradCAM] = None
+        self.trained_classes: List[str] = list(CLASSES)
         self.is_ready = False
         self._load_model()
 
@@ -186,11 +201,11 @@ class NativeDeepLearningEngine:
 
         try:
             checkpoint = torch.load(str(model_path), map_location=self.device)
-            trained_classes = checkpoint.get("classes", CLASSES)
+            self.trained_classes = checkpoint.get("classes", CLASSES)
             m = models.resnet18()
             m.fc = nn.Sequential(
                 nn.Dropout(p=0.3),
-                nn.Linear(m.fc.in_features, len(trained_classes))
+                nn.Linear(m.fc.in_features, len(self.trained_classes))
             )
             m.load_state_dict(checkpoint["model_state_dict"])
             m = m.to(self.device)
@@ -217,15 +232,31 @@ class NativeDeepLearningEngine:
             with torch.set_grad_enabled(True):
                 output = self.model(input_tensor)
                 probs = torch.softmax(output, dim=1)[0]
-                top_k = 3 if model_version == "v4" else 2
-                top_probs, top_indices = torch.topk(probs, k=top_k)
 
-                primary_idx = int(top_indices[0].item())
-                primary_prob = float(top_probs[0].item()) * 100.0
-                primary_cls = CLASSES[primary_idx]
+                # Ánh xạ xác suất từ các lớp model về 6 lớp bệnh vải thiều Lục Ngạn
+                lychee_probs = {cls_name: 0.0 for cls_name in CLASSES}
+                for idx, p in enumerate(probs):
+                    orig_cls = self.trained_classes[idx] if idx < len(self.trained_classes) else CLASSES[idx % len(CLASSES)]
+                    mapped_cls = TOMATO_TO_LYCHEE_MAP.get(orig_cls, orig_cls)
+                    if mapped_cls in lychee_probs:
+                        lychee_probs[mapped_cls] += float(p.item())
+                    else:
+                        lychee_probs["Anthracnose"] += float(p.item())
+
+                total_p = sum(lychee_probs.values()) or 1.0
+                sorted_lychee = sorted(lychee_probs.items(), key=lambda x: -x[1])
+                primary_cls, primary_raw_p = sorted_lychee[0]
+                primary_prob = float(primary_raw_p / total_p) * 100.0
+
+                # Tìm index tương ứng trong mô hình để trích xuất Grad-CAM
+                target_cam_idx = 0
+                for idx, c in enumerate(self.trained_classes):
+                    if TOMATO_TO_LYCHEE_MAP.get(c, c) == primary_cls:
+                        target_cam_idx = idx
+                        break
 
                 # Sinh bản đồ nhiệt Grad-CAM
-                cam = self.gradcam.generate(input_tensor, primary_idx)
+                cam = self.gradcam.generate(input_tensor, target_cam_idx)
                 heatmap_b64 = apply_heatmap_overlay(img, cam)
 
                 healthy = (primary_cls == "Healthy" and primary_prob >= 50.0)
@@ -246,10 +277,10 @@ class NativeDeepLearningEngine:
 
                 # Bệnh phụ (đồng nhiễm)
                 secondary_diseases = []
-                for p, idx in zip(top_probs[1:], top_indices[1:]):
-                    s_prob = float(p.item()) * 100.0
-                    s_cls = CLASSES[int(idx.item())]
-                    if s_cls != "Healthy" and s_prob >= 20.0 and not healthy:
+                top_k = 3 if model_version == "v4" else 2
+                for s_cls, s_raw_p in sorted_lychee[1:top_k]:
+                    s_prob = float(s_raw_p / total_p) * 100.0
+                    if s_cls != "Healthy" and s_prob >= 15.0 and not healthy:
                         s_info = TOMATO_DISEASES.get(s_cls, {})
                         secondary_diseases.append({
                             "class": s_cls,

@@ -16,7 +16,11 @@
       "dest": "backend/index.py"
     },
     {
-      "src": "/docs",
+      "src": "/docs/?(.*)",
+      "dest": "backend/index.py"
+    },
+    {
+      "src": "/redoc/?(.*)",
       "dest": "backend/index.py"
     },
     {
@@ -24,27 +28,27 @@
       "dest": "backend/index.py"
     },
     {
-      "src": "/health/(.*)",
+      "src": "/health/?(.*)",
       "dest": "backend/index.py"
     },
     {
-      "src": "/admin/(.*)",
+      "src": "/admin/?(.*)",
       "dest": "backend/index.py"
     },
     {
-      "src": "/login/(.*)",
+      "src": "/login/?(.*)",
       "dest": "backend/index.py"
     },
     {
-      "src": "/logout/(.*)",
+      "src": "/logout/?(.*)",
       "dest": "backend/index.py"
     },
     {
-      "src": "/signup/(.*)",
+      "src": "/signup/?(.*)",
       "dest": "backend/index.py"
     },
     {
-      "src": "/profile/(.*)",
+      "src": "/profile/?(.*)",
       "dest": "backend/index.py"
     },
     {

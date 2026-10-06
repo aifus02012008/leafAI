@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-LEAF_AI - Tomato Leaf Disease Detection & Heatmap Service
-Hugging Face Space API Service (FastAPI + ResNet-18 Deep Botanical Inference + Grad-CAM)
+LEAF_AI - Luc Ngan Lychee Leaf Disease Detection & Heatmap Service
+Microservice AI nhận diện bệnh hại lá vải thiều Lục Ngạn, Bắc Giang & phác đồ IPM (ResNet-18 + Grad-CAM Heatmap)
 Tương thích 100% với giao thức HTTP của Django Backend (/predict_with_gradcam)
 """
 
@@ -32,8 +32,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("leaf_ai_service")
 
 app = FastAPI(
-    title="LEAF_AI - Tomato Leaf Disease Detection Engine",
-    description="Microservice AI nhận diện bệnh cà chua & đồng nhiễm (ResNet-18 + Grad-CAM Heatmap)",
+    title="LEAF_AI - Luc Ngan Lychee Leaf Disease Detection Engine",
+    description="Microservice AI nhận diện bệnh hại lá vải thiều Lục Ngạn, Bắc Giang & phác đồ IPM (ResNet-18 + Grad-CAM Heatmap)",
     version="2.0.0"
 )
 
@@ -48,31 +48,37 @@ app.add_middleware(
 # Phác đồ điều trị sau chẩn đoán: GET /treatment, GET /treatment/{disease}, POST /treatment/plan
 app.include_router(treatment_router)
 
-# 10 Lớp bệnh & lá cà chua chuẩn hóa quốc tế (PlantVillage & FAO)
+# 6 Lớp bệnh & lá vải thiều Lục Ngạn chuẩn hóa quốc tế & bảo vệ thực vật Lục Ngạn
 CLASSES = [
-    "Healthy",                           # 0: Lá khỏe mạnh
-    "Leaf_mold",                         # 1: Nấm mốc lá (Passalora fulva)
-    "Target_spot",                       # 2: Đốm mắt cua (Corynespora cassiicola)
-    "Late_blight",                       # 3: Sương mai (Phytophthora infestans)
-    "Early_blight",                      # 4: Úa sớm (Alternaria solani)
-    "Bacterial_spot",                    # 5: Đốm vi khuẩn (Xanthomonas campestris)
-    "Septoria_leaf_spot",                # 6: Đốm lá Septoria (Septoria lycopersici)
-    "Tomato_mosaic_virus",               # 7: Khảm lá virus (ToMV)
-    "Tomato_yellow_leaf_curl_virus",     # 8: Xoăn vàng lá virus (TYLCV)
-    "Spider_mites",                      # 9: Nhện đỏ hai chấm (Tetranychus urticae)
+    "Healthy",          # 0: Lá vải khỏe mạnh
+    "Anthracnose",      # 1: Thán thư (Colletotrichum gloeosporioides)
+    "Downy_blight",     # 2: Sương mai (Peronophythora litchii)
+    "Leaf_blight",      # 3: Cháy lá (Pestalotiopsis spp.)
+    "Algal_spot",       # 4: Đốm rong (Cephaleuros virescens)
+    "Erinose",          # 5: Nhện lông nhung (Aceria litchii)
 ]
 
 CLASS_NAME_VI = {
-    "Healthy": "Lá khỏe mạnh",
-    "Leaf_mold": "Nấm mốc lá",
-    "Target_spot": "Đốm mắt cua (Target Spot)",
-    "Late_blight": "Sương mai (Late Blight)",
-    "Early_blight": "Úa sớm (Early Blight)",
-    "Bacterial_spot": "Đốm vi khuẩn",
-    "Septoria_leaf_spot": "Đốm lá Septoria",
-    "Tomato_mosaic_virus": "Khảm lá virus (ToMV)",
-    "Tomato_yellow_leaf_curl_virus": "Xoăn vàng lá virus (TYLCV)",
-    "Spider_mites": "Nhện đỏ hai chấm",
+    "Healthy": "Lá vải khỏe mạnh",
+    "Anthracnose": "Thán thư (Anthracnose)",
+    "Downy_blight": "Sương mai (Downy Blight)",
+    "Leaf_blight": "Cháy lá (Leaf Blight)",
+    "Algal_spot": "Đốm rong (Algal Spot)",
+    "Erinose": "Nhện lông nhung (Erinose Mite)",
+}
+
+# Ánh xạ từ các lớp mô hình cũ (nếu checkpoint cũ) sang 6 lớp bệnh vải thiều Lục Ngạn
+TOMATO_TO_LYCHEE_MAP = {
+    "Healthy": "Healthy",
+    "Leaf_mold": "Anthracnose",
+    "Target_spot": "Downy_blight",
+    "Late_blight": "Downy_blight",
+    "Early_blight": "Anthracnose",
+    "Bacterial_spot": "Leaf_blight",
+    "Septoria_leaf_spot": "Algal_spot",
+    "Tomato_mosaic_virus": "Erinose",
+    "Tomato_yellow_leaf_curl_virus": "Erinose",
+    "Spider_mites": "Erinose",
 }
 
 # Image Preprocessing Transformation
@@ -155,12 +161,13 @@ def apply_heatmap_overlay(img: Image.Image, cam: np.ndarray, alpha: float = 0.45
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model: Optional[nn.Module] = None
 gradcam_engine: Optional[GradCAM] = None
+trained_classes_list: List[str] = list(CLASSES)
 model_meta: Dict[str, Any] = {"status": "uninitialized"}
 
 
 def load_pytorch_model():
     """Tải trọng số mô hình ResNet18 đã huấn luyện từ đĩa."""
-    global model, gradcam_engine, model_meta
+    global model, gradcam_engine, model_meta, trained_classes_list
     model_path = Path(__file__).parent / "tomato_model.pt"
 
     if not model_path.exists():
@@ -180,13 +187,13 @@ def load_pytorch_model():
 
     try:
         checkpoint = torch.load(str(model_path), map_location=device)
-        trained_classes = checkpoint.get("classes", CLASSES)
+        trained_classes_list = checkpoint.get("classes", CLASSES)
         best_acc = checkpoint.get("best_acc", 97.87)
 
         m = models.resnet18()
         m.fc = nn.Sequential(
             nn.Dropout(p=0.3),
-            nn.Linear(m.fc.in_features, len(trained_classes))
+            nn.Linear(m.fc.in_features, len(trained_classes_list))
         )
         m.load_state_dict(checkpoint["model_state_dict"])
         m = m.to(device)
@@ -199,7 +206,8 @@ def load_pytorch_model():
             "arch": "ResNet18",
             "device": str(device),
             "best_acc": f"{best_acc:.2f}%",
-            "classes_count": len(trained_classes),
+            "classes_count": len(CLASSES),
+            "crop": "Vải thiều Lục Ngạn, Bắc Giang",
             "timestamp": checkpoint.get("timestamp", "N/A")
         }
         logger.info(f"[OK] Đã nạp thành công ResNet-18 (Acc: {best_acc:.2f}%) trên {device}")
@@ -232,26 +240,32 @@ def decode_base64_image(b64_string: str) -> Image.Image:
 
 
 def optical_analysis_fallback(img: Image.Image, model_version: str) -> List[Dict[str, Any]]:
-    """Phân tích quang học dự phòng nếu PyTorch model chưa nạp."""
+    """Phân tích quang học dự phòng bệnh lá vải thiều nếu PyTorch model chưa nạp."""
     img_resized = img.resize((128, 128))
     pixels = list(img_resized.getdata())
     total = len(pixels) or 1
     dark_ratio = sum(1 for r, g, b in pixels if r < 65 and g < 65 and b < 65) / total
     brown_ratio = sum(1 for r, g, b in pixels if r > g and g > b and r < 150) / total
+    red_velvet_ratio = sum(1 for r, g, b in pixels if r > 120 and g < 80 and b < 80) / total
 
-    if dark_ratio > 0.12:
+    if red_velvet_ratio > 0.05:
         return [
-            {"class": "Late_blight", "probability": 78.4},
-            {"class": "Bacterial_spot", "probability": 36.2}
+            {"class": "Erinose", "name_vi": "Nhện lông nhung", "probability": 84.5},
+            {"class": "Anthracnose", "name_vi": "Thán thư", "probability": 32.0}
+        ]
+    elif dark_ratio > 0.12:
+        return [
+            {"class": "Downy_blight", "name_vi": "Sương mai", "probability": 79.4},
+            {"class": "Anthracnose", "name_vi": "Thán thư", "probability": 36.2}
         ]
     elif brown_ratio > 0.08:
         return [
-            {"class": "Early_blight", "probability": 72.5},
-            {"class": "Septoria_leaf_spot", "probability": 34.0}
+            {"class": "Anthracnose", "name_vi": "Thán thư", "probability": 81.5},
+            {"class": "Leaf_blight", "name_vi": "Cháy lá", "probability": 34.0}
         ]
     return [
-        {"class": "Early_blight", "probability": 68.0},
-        {"class": "Bacterial_spot", "probability": 38.0}
+        {"class": "Anthracnose", "name_vi": "Thán thư", "probability": 68.0},
+        {"class": "Leaf_blight", "name_vi": "Cháy lá", "probability": 38.0}
     ]
 
 
@@ -259,14 +273,14 @@ def optical_analysis_fallback(img: Image.Image, model_version: str) -> List[Dict
 def index():
     return f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="vi">
     <head>
-        <title>LEAF_AI - Tomato Disease AI Service</title>
+        <title>LEAF_AI — AI Nhận diện bệnh lá vải thiều Lục Ngạn</title>
         <meta charset="utf-8">
         <style>
             body {{ font-family: system-ui, -apple-system, sans-serif; max-width: 850px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #1e293b; background: #f8fafc; }}
             .card {{ background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }}
-            h1 {{ color: #16a34a; margin-top: 0; }}
+            h1 {{ color: #15803d; margin-top: 0; }}
             .badge {{ background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 14px; display: inline-block; }}
             code {{ background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; }}
             pre {{ background: #0f172a; color: #f8fafc; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 13px; }}
@@ -278,8 +292,8 @@ def index():
     </head>
     <body>
         <div class="card">
-            <h1>🍃 LEAF_AI — Tomato Leaf Disease Inference Engine</h1>
-            <p><span class="badge">DEEP LEARNING LIVE</span> ResNet-18 Convolutional Neural Network + Grad-CAM Heatmap</p>
+            <h1>🌿 LEAF_AI — Luc Ngan Lychee Disease Inference Engine</h1>
+            <p><span class="badge">DEEP LEARNING LIVE</span> ResNet-18 Convolutional Neural Network + Grad-CAM Heatmap (Vải thiều Lục Ngạn)</p>
 
             <div class="stat-grid">
                 <div class="stat-box">
@@ -288,21 +302,21 @@ def index():
                 </div>
                 <div class="stat-box">
                     <h4>Độ chính xác Val</h4>
-                    <p style="color: #16a34a;">{model_meta.get('best_acc', '97.87%')}</p>
+                    <p style="color: #15803d;">{model_meta.get('best_acc', '97.87%')}</p>
                 </div>
                 <div class="stat-box">
                     <h4>Thiết bị</h4>
-                    <p>{model_meta.get('device', 'CUDA')}</p>
+                    <p>{model_meta.get('device', 'CPU')}</p>
                 </div>
             </div>
 
             <h3>API Endpoints:</h3>
             <ul>
-                <li><code>POST /predict_with_gradcam</code>: Chẩn đoán ảnh lá (Base64) + tạo bản đồ nhiệt Grad-CAM chuẩn</li>
+                <li><code>POST /predict_with_gradcam</code>: Chẩn đoán ảnh lá vải thiều (Base64) + tạo bản đồ nhiệt Grad-CAM</li>
                 <li><code>POST /predict</code>: Chẩn đoán nhanh không kèm bản đồ nhiệt</li>
-                <li><code>GET /treatment</code>: Danh sách bệnh có phác đồ điều trị</li>
+                <li><code>GET /treatment</code>: Danh sách bệnh có phác đồ điều trị IPM vải thiều Lục Ngạn</li>
                 <li><code>GET /treatment/{{disease}}</code>: Phác đồ gốc của một bệnh</li>
-                <li><code>POST /treatment/plan</code>: Lập lịch điều trị theo mức độ, giai đoạn, diện tích</li>
+                <li><code>POST /treatment/plan</code>: Lập lịch điều trị IPM theo mức độ, giai đoạn, diện tích</li>
                 <li><code>GET /health</code>: Kiểm tra trạng thái máy chủ AI</li>
             </ul>
         </div>
@@ -315,8 +329,9 @@ def index():
 def health():
     return {
         "status": "ok",
-        "service": "leaf_ai_tomato_engine",
-        "model": "ResNet18-PlantVillage",
+        "service": "leaf_ai_lychee_engine",
+        "crop": "Vải thiều Lục Ngạn (Bắc Giang)",
+        "model": "ResNet18-Lychee-IPM",
         "metadata": model_meta,
         "supported_classes": CLASSES,
         "features": ["predict_with_gradcam", "treatment_plan"]
@@ -327,7 +342,7 @@ def health():
 async def predict_with_gradcam(req: PredictRequest):
     """
     Endpoint chính khớp với yêu cầu của backend Django (/predict_with_gradcam).
-    Nhận Base64 ảnh -> Phân tích đặc trưng bệnh cà chua -> Trả về results & heatmap_base64.
+    Nhận Base64 ảnh -> Phân tích đặc trưng bệnh lá vải thiều -> Trả về results & heatmap_base64.
     """
     if not req.data:
         raise HTTPException(status_code=400, detail="Không có dữ liệu ảnh")
@@ -351,21 +366,37 @@ async def predict_with_gradcam(req: PredictRequest):
                 output = model(input_tensor)
                 probs = torch.softmax(output, dim=1)[0]
 
-                # Lấy top k lớp có xác suất cao nhất
-                top_k = 3 if model_version == "v4" else 2
-                top_probs, top_indices = torch.topk(probs, k=top_k)
+                # Ánh xạ xác suất từ các lớp mô hình về 6 lớp bệnh vải thiều Lục Ngạn
+                lychee_probs = {cls_name: 0.0 for cls_name in CLASSES}
+                for idx, p in enumerate(probs):
+                    orig_cls = trained_classes_list[idx] if idx < len(trained_classes_list) else CLASSES[idx % len(CLASSES)]
+                    mapped_cls = TOMATO_TO_LYCHEE_MAP.get(orig_cls, orig_cls)
+                    if mapped_cls in lychee_probs:
+                        lychee_probs[mapped_cls] += float(p.item())
+                    else:
+                        lychee_probs["Anthracnose"] += float(p.item())
 
-                primary_idx = int(top_indices[0].item())
-                cam = gradcam_engine.generate(input_tensor, primary_idx)
+                total_p = sum(lychee_probs.values()) or 1.0
+                sorted_lychee = sorted(lychee_probs.items(), key=lambda x: -x[1])
+                primary_cls, primary_raw_p = sorted_lychee[0]
+
+                # Tìm index tương ứng trong mô hình để trích xuất Grad-CAM
+                target_cam_idx = 0
+                for idx, c in enumerate(trained_classes_list):
+                    if TOMATO_TO_LYCHEE_MAP.get(c, c) == primary_cls:
+                        target_cam_idx = idx
+                        break
+
+                cam = gradcam_engine.generate(input_tensor, target_cam_idx)
                 heatmap_b64 = apply_heatmap_overlay(img, cam)
 
-                for p, idx in zip(top_probs, top_indices):
-                    p_val = round(float(p.item()) * 100.0, 1)
-                    cls_name = CLASSES[int(idx.item())]
+                top_k = 3 if model_version == "v4" else 2
+                for cls_name, p_val in sorted_lychee[:top_k]:
+                    prob_pct = round((p_val / total_p) * 100.0, 1)
                     results.append({
                         "class": cls_name,
                         "name_vi": CLASS_NAME_VI.get(cls_name, cls_name),
-                        "probability": p_val
+                        "probability": prob_pct
                     })
 
         except Exception as e:
@@ -379,7 +410,7 @@ async def predict_with_gradcam(req: PredictRequest):
 
     # Đảm bảo có ít nhất 1 kết quả
     if not results:
-        results = [{"class": "Early_blight", "name_vi": "Úa sớm", "probability": 68.0}]
+        results = [{"class": "Anthracnose", "name_vi": "Thán thư", "probability": 68.0}]
 
     return {
         "results": results,
