@@ -149,13 +149,7 @@
           </div>
         </div>
 
-        <!-- Nút Đăng nhập Nhanh Nông dân (1 chạm) -->
-        <button type="button" class="btn btn-quick-login btn-block" id="btnQuickLogin">
-          <i class="bi bi-patch-check-fill" style="color:var(--leaf);font-size:1.15rem;"></i>
-          <span>🌾 Vào nhanh bằng tài khoản Nông dân (Demo)</span>
-        </button>
-
-        <!-- Nút Đăng nhập với Google -->
+        <!-- Nút Đăng nhập với Google qua Supabase -->
         <button type="button" class="btn btn-google btn-block" id="btnGoogleLogin">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -163,30 +157,11 @@
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span>Đăng nhập với Google (Gmail)</span>
+          <span>Đăng nhập với Google</span>
         </button>
 
-        <!-- Khung nhập Gmail thật của người dùng -->
-        <div class="google-login-box" id="googleLoginBox" hidden>
-          <div class="google-box-title">
-            <i class="bi bi-envelope-at" style="color:#4285F4;font-size:1.1rem;"></i>
-            <strong>Nhập tài khoản Google (Gmail thật của bạn)</strong>
-          </div>
-          <p class="google-box-sub">Hệ thống sẽ lưu trữ phiên làm việc và lịch sử vườn vải gắn liền với Gmail này:</p>
-          <div class="google-input-row">
-            <input type="email" id="inputGoogleEmail" placeholder="ví dụ: aifus02012008@gmail.com" required autocomplete="email">
-            <button type="button" class="btn btn-primary btn-sm" id="btnConfirmGoogleEmail">
-              <span>Đăng nhập</span> <i class="bi bi-box-arrow-in-right"></i>
-            </button>
-          </div>
-          <div class="google-quick-hints">
-            <span class="muted" style="font-size:11px;">Gợi ý:</span>
-            <button type="button" class="btn-gmail-hint" data-email="aifus02012008@gmail.com">aifus02012008@gmail.com</button>
-          </div>
-        </div>
-
         <div class="auth-divider">
-          <span>hoặc dùng Email / Tên đăng nhập</span>
+          <span>hoặc dùng Email / Mật khẩu</span>
         </div>
 
         <div class="alert alert-danger" id="authError" hidden style="margin-bottom:14px;font-size:var(--fs-xs);"></div>
@@ -197,7 +172,7 @@
             <label for="loginUser" style="display:block;font-size:var(--fs-xs);font-weight:600;margin-bottom:6px;">Tên đăng nhập hoặc Email</label>
             <div style="position:relative;">
               <i class="bi bi-person" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3);"></i>
-              <input type="text" id="loginUser" name="username" required placeholder="nongdan hoặc admin hoặc nhanong@example.com" style="width:100%;padding:10px 12px 10px 36px;border:1px solid var(--line);border-radius:var(--r-md);font:inherit;font-size:var(--fs-sm);box-sizing:border-box;">
+              <input type="text" id="loginUser" name="username" required placeholder="nhanong@example.com hoặc tên tài khoản" style="width:100%;padding:10px 12px 10px 36px;border:1px solid var(--line);border-radius:var(--r-md);font:inherit;font-size:var(--fs-sm);box-sizing:border-box;">
             </div>
           </div>
           <div style="margin-bottom:18px;">
@@ -208,14 +183,6 @@
             </div>
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="btnSubmitLogin"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</button>
-          
-          <div class="auth-demo-hint">
-            <span class="auth-demo-title"><i class="bi bi-key"></i> Tài khoản có sẵn:</span>
-            <div class="auth-demo-grid">
-              <div><span>Nông dân:</span> <code>nongdan</code> / <code>Password123@</code></div>
-              <div><span>Quản trị:</span> <code>admin</code> / <code>admin123</code></div>
-            </div>
-          </div>
         </form>
 
         <!-- Form Đăng ký -->
@@ -475,146 +442,59 @@
       }
     }
 
-    // Đăng nhập nhanh 1 chạm cho Nông dân (Demo)
-    const btnQuick = document.getElementById('btnQuickLogin');
-    if (btnQuick) {
-      btnQuick.addEventListener('click', async () => {
-        btnQuick.disabled = true;
+    // Đăng nhập với Google qua Supabase OAuth (Mở màn hình Chọn tài khoản Google như Hình 2)
+    if (btnGoogle) {
+      btnGoogle.addEventListener('click', async () => {
+        btnGoogle.disabled = true;
         authError.hidden = true;
         try {
-          let user = null;
-          // Thử xác thực với Backend API trước
-          try {
-            if (typeof LeafApiService !== 'undefined') {
-              const api = new LeafApiService();
-              const res = await api.login('nongdan', 'Password123@');
-              if (res?.success && res?.user) user = res.user;
-            }
-          } catch (e) {
-            console.warn('[LEAF_AI] Backend quick login notice:', e);
+          if (window.LeafAuth) {
+            await window.LeafAuth.signInWithGoogle();
+          } else {
+            throw new Error('Supabase client chưa tải xong, vui lòng thử lại sau giây lát.');
           }
-
-          if (!user) {
-            user = {
-              id: 'farmer_demo_lucngan',
-              username: 'nongdan',
-              email: 'nongdan@leafai.vn',
-              display_name: 'Bác Ba — Nông dân Lục Ngạn',
-              is_authenticated: true,
-              provider: 'local'
-            };
-          }
-          user.is_authenticated = true;
-          localStorage.setItem('leaf_last_user', JSON.stringify(user));
-          toast(`Chào mừng ${user.display_name || user.username} đến với vườn vải Lục Ngạn!`);
-          updateUi(user);
-          authModal.close();
         } catch (err) {
-          authError.textContent = err.message || 'Không thể đăng nhập nhanh.';
+          console.error('[LEAF_AI] Supabase Google OAuth error:', err);
+          const msg = err.message || '';
+          if (msg.includes('provider is not enabled') || msg.includes('Unsupported provider') || msg.includes('validation_failed')) {
+            authError.innerHTML = `
+              <strong><i class="bi bi-shield-exclamation"></i> Google OAuth chưa được kích hoạt trên Supabase:</strong>
+              <div style="margin-top:6px;line-height:1.5;font-size:12px;">
+                1. Vào <a href="https://supabase.com/dashboard/project/ribpggqkojqghutyverv/auth/providers" target="_blank" rel="noopener" style="text-decoration:underline;font-weight:600;color:var(--leaf-deep);">Supabase Dashboard &gt; Auth &gt; Providers</a>.<br>
+                2. Tìm mục <strong>Google</strong> &rarr; gạt <strong>Enable Google: ON</strong>.<br>
+                3. Nhập <strong>Client ID</strong> &amp; <strong>Client Secret</strong> từ Google Cloud Console.<br>
+                4. Callback URL: <code>https://ribpggqkojqghutyverv.supabase.co/auth/v1/callback</code>.
+              </div>
+            `;
+          } else {
+            authError.textContent = msg || 'Không thể mở phiên đăng nhập Google.';
+          }
           authError.hidden = false;
         } finally {
-          btnQuick.disabled = false;
+          btnGoogle.disabled = false;
         }
       });
     }
 
-    // Đăng nhập với Google bằng Gmail thật
-    const googleLoginBox = document.getElementById('googleLoginBox');
-    const inputGoogleEmail = document.getElementById('inputGoogleEmail');
-    const btnConfirmGoogle = document.getElementById('btnConfirmGoogleEmail');
-
-    if (btnGoogle) {
-      btnGoogle.addEventListener('click', () => {
-        if (googleLoginBox) {
-          googleLoginBox.hidden = !googleLoginBox.hidden;
-          if (!googleLoginBox.hidden && inputGoogleEmail) {
-            inputGoogleEmail.focus();
-          }
-        }
-      });
-    }
-
-    // Gợi ý Gmail nhanh khi bấm chip
-    document.querySelectorAll('.btn-gmail-hint').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        if (inputGoogleEmail) {
-          inputGoogleEmail.value = btn.dataset.email || '';
-          handleGoogleSignIn(inputGoogleEmail.value);
-        }
-      });
-    });
-
-    if (btnConfirmGoogle) {
-      btnConfirmGoogle.addEventListener('click', () => {
-        if (inputGoogleEmail) handleGoogleSignIn(inputGoogleEmail.value);
-      });
-    }
-
-    if (inputGoogleEmail) {
-      inputGoogleEmail.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          handleGoogleSignIn(inputGoogleEmail.value);
-        }
-      });
-    }
-
-    async function handleGoogleSignIn(rawEmail) {
-      const email = (rawEmail || '').trim().toLowerCase();
-      if (!email || !email.includes('@') || email.length < 5) {
-        authError.textContent = 'Vui lòng nhập địa chỉ Gmail hợp lệ (ví dụ: aifus02012008@gmail.com).';
-        authError.hidden = false;
-        return;
-      }
-      authError.hidden = true;
-      if (btnConfirmGoogle) btnConfirmGoogle.disabled = true;
-      if (btnGoogle) btnGoogle.disabled = true;
-
-      try {
-        const usernamePrefix = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
-        const displayName = email.split('@')[0];
-        const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=1e7a4c,2d6a4f,52b788`;
-
-        let user = null;
-        // 1. Gửi lên Backend FastAPI (/api/auth/google/)
-        if (typeof LeafApiService !== 'undefined') {
-          try {
-            const api = new LeafApiService();
-            const res = await api.googleLogin(email, displayName, avatarUrl);
-            if (res && res.success && res.user) {
-              user = res.user;
+    // Lắng nghe khi Google OAuth chuyển hướng về website thành công
+    if (window.LeafAuth && typeof window.LeafAuth.onAuthStateChange === 'function') {
+      window.LeafAuth.onAuthStateChange(async (event, user) => {
+        if (user && user.is_authenticated) {
+          // Tự động đồng bộ với backend FastAPI
+          if (typeof LeafApiService !== 'undefined') {
+            try {
+              const api = new LeafApiService();
+              await api.googleLogin(user.email, user.display_name, user.avatar_url);
+            } catch (e) {
+              console.warn('[LEAF_AI] Backend sync user notice:', e);
             }
-          } catch (apiErr) {
-            console.warn('[LEAF_AI] Backend Google Auth API notice:', apiErr);
           }
+          localStorage.setItem('leaf_last_user', JSON.stringify(user));
+          updateUi(user);
+          if (authModal && authModal.open) authModal.close();
+          toast(`Chào mừng ${user.display_name || user.email} đến với LEAF_AI!`);
         }
-
-        // 2. Dự phòng ngoại tuyến nếu backend không khả dụng
-        if (!user) {
-          user = {
-            id: 'google_' + usernamePrefix,
-            username: usernamePrefix,
-            email: email,
-            full_name: displayName,
-            display_name: `${displayName} (Google)`,
-            avatar_url: avatarUrl,
-            is_authenticated: true,
-            provider: 'google'
-          };
-        }
-
-        user.is_authenticated = true;
-        localStorage.setItem('leaf_last_user', JSON.stringify(user));
-        toast(`Đăng nhập Google thành công với ${user.email}!`);
-        updateUi(user);
-        authModal.close();
-      } catch (err) {
-        authError.textContent = err.message || 'Không thể đăng nhập với Google.';
-        authError.hidden = false;
-      } finally {
-        if (btnConfirmGoogle) btnConfirmGoogle.disabled = false;
-        if (btnGoogle) btnGoogle.disabled = false;
-      }
+      });
     }
 
     // Đăng nhập bằng Email & Tên đăng nhập

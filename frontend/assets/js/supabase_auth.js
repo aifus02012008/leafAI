@@ -97,54 +97,28 @@
       return null;
     },
 
-    /** Đăng nhập bằng tài khoản Google */
+    /** Đăng nhập bằng tài khoản Google qua Supabase OAuth */
     async signInWithGoogle() {
-      // Kiểm tra xem provider Google có được kích hoạt trên Supabase không
-      try {
-        const settingsRes = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
-          headers: { apikey: SUPABASE_ANON_KEY }
-        });
-        if (settingsRes.ok) {
-          const settings = await settingsRes.json();
-          if (settings.external && settings.external.google === false) {
-            // Google OAuth chưa được kích hoạt trong Supabase dashboard -> hoàn tất đăng nhập Google an toàn
-            const googleUser = {
-              id: 'google_farmer_' + Date.now().toString(36),
-              email: 'nongdan.lucngan@gmail.com',
-              username: 'Nông dân Lục Ngạn',
-              display_name: 'Nông dân Lục Ngạn (Google)',
-              avatar_url: 'https://lh3.googleusercontent.com/a/default-user',
-              is_authenticated: true,
-              provider: 'google'
-            };
-            localStorage.setItem('leaf_last_user', JSON.stringify(googleUser));
-            return { user: googleUser, session: null };
-          }
-        }
-      } catch (e) {
-        console.warn('[LEAF_AI] Error probing Supabase settings:', e);
-      }
-
       const client = await getClient();
       if (!client) {
         throw new Error('Chưa kết nối được máy chủ Supabase. Vui lòng kiểm tra kết nối mạng.');
       }
 
-      // Giữ trang hiện tại làm callback redirect
-      const currentUrl = window.location.href.split('#')[0];
+      // Giữ trang hiện tại làm callback redirect (loại bỏ query params/hash tạm thời)
+      const currentUrl = window.location.href.split('#')[0].split('?')[0];
       const { data, error } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: currentUrl,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'select_account'
           }
         }
       });
 
       if (error) {
-        throw new Error(error.message || 'Đăng nhập Google thất bại');
+        throw error;
       }
       return data;
     },
