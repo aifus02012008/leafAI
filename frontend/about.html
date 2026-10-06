@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Giới thiệu dự án — LEAF_AI</title>
+  <meta name="description" content="Mục tiêu, cách hoạt động và mô hình ResNet-18 + Grad-CAM của LEAF_AI, ứng dụng nhận diện bệnh trên lá vải thiều Lục Ngạn.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e7a4c">
+  <link rel="icon" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="about">
+  <script src="assets/js/core.js"></script>
+
+  <main id="main" class="page">
+    <div class="container">
+      <div class="page-head">
+        <div>
+          <h1>Về LEAF_AI</h1>
+          <p>Dự án ứng dụng thị giác máy tính giúp người trồng vải thiều Lục Ngạn phát hiện bệnh trên lá sớm hơn và dùng ít thuốc hơn.</p>
+        </div>
+      </div>
+
+      <div class="about-grid">
+        <section class="panel panel-pad" aria-labelledby="h-mission">
+          <h2 id="h-mission" style="font-size:var(--fs-lg)">Vì sao có LEAF_AI</h2>
+          <div class="prose" style="margin-top:12px">
+            <p>Lục Ngạn là vùng vải thiều lớn nhất cả nước, quả vải được xuất khẩu sang nhiều thị trường khắt khe về dư lượng thuốc. Những đợt mưa phùn, nồm ẩm khi cây ra lộc, ra hoa là lúc thán thư, sương mai bùng phát. Trong khi đó, vết bệnh do nấm và tổn thương do nhện lông nhung ở giai đoạn đầu khá giống nhau, dễ dẫn tới phun nhầm thuốc hoặc phun thừa “cho chắc”.</p>
+            <p>LEAF_AI giúp người trồng nhận ra bệnh ngay dưới tán vải, rồi đưa ra cách xử lý theo thứ tự an toàn của IPM.</p>
+          </div>
+          <ul class="check-list">
+            <li><i class="bi bi-camera"></i><div><strong>Chẩn đoán tại vườn</strong>Chụp bằng điện thoại, không cần gửi mẫu đi xét nghiệm.</div></li>
+            <li><i class="bi bi-fire"></i><div><strong>Kết quả có giải thích</strong>Bản đồ nhiệt Grad-CAM cho thấy vùng lá AI dựa vào; khi hai bệnh cùng có xác suất cao, hệ thống cảnh báo nghi đồng nhiễm.</div></li>
+            <li><i class="bi bi-tree"></i><div><strong>Giảm thuốc hóa học</strong>Phác đồ luôn bắt đầu từ canh tác và sinh học, đúng tinh thần nông nghiệp bền vững.</div></li>
+          </ul>
+        </section>
+
+        <section class="panel panel-pad" aria-labelledby="h-how">
+          <h2 id="h-how" style="font-size:var(--fs-lg)">Hệ thống gồm những gì</h2>
+          <ul class="check-list">
+            <li><i class="bi bi-cpu"></i><div><strong>Máy chủ AI</strong>FastAPI chạy mô hình ResNet-18 huấn luyện trên ảnh lá vải, kèm Grad-CAM.</div></li>
+            <li><i class="bi bi-hdd-stack"></i><div><strong>Backend Django</strong>Lưu lịch sử, đồng bộ Supabase, trợ lý hỏi đáp dùng Gemini.</div></li>
+            <li><i class="bi bi-phone"></i><div><strong>Web app cài được (PWA)</strong>Thư viện bệnh và cẩm nang vẫn xem được khi mất sóng.</div></li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="hb-section" id="mo-hinh" style="margin-top:48px" aria-labelledby="h-model">
+        <div class="section-head" style="margin-bottom:24px">
+          <h2 id="h-model" style="font-size:var(--fs-xl)">Mô hình ResNet-18 và Grad-CAM</h2>
+          <p>Mạng ResNet-18 khởi tạo từ trọng số ImageNet, được tinh chỉnh trên ảnh lá vải để phân loại 5 bệnh, dịch hại và lá khỏe. Grad-CAM tạo bản đồ nhiệt từ tầng tích chập cuối để giải thích từng kết quả.</p>
+        </div>
+        <div class="spec-wrap">
+          <table class="spec-table">
+            <thead><tr><th scope="col">Thông số</th><th scope="col">Giá trị</th></tr></thead>
+            <tbody>
+              <tr><td>Kiến trúc</td><td>ResNet-18 (PyTorch), tinh chỉnh toàn bộ mạng</td></tr>
+              <tr><td>Lớp nhận diện</td><td>Thán thư, sương mai, cháy lá, đốm rong, nhện lông nhung, lá khỏe</td></tr>
+              <tr><td>Ảnh đầu vào</td><td class="num">224 × 224 px</td></tr>
+              <tr><td>Giải thích kết quả</td><td>Grad-CAM tại tầng layer4</td></tr>
+              <tr><td>Cảnh báo nghi đồng nhiễm</td><td>Lớp thứ nhất ≥ 50% và lớp thứ hai ≥ 25%</td></tr>
+              <tr><td>Độ chính xác</td><td>Xem báo cáo kết quả nghiên cứu của dự án</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="hb-section" id="nguon" style="margin-top:48px" aria-labelledby="h-src">
+        <h2 id="h-src" style="font-size:var(--fs-xl);margin-bottom:16px">Nguồn tham khảo</h2>
+        <ul class="check-list" style="margin-top:0">
+          <li><i class="bi bi-book"></i><div><strong>FAO, The Lychee Crop in Asia and the Pacific (Menzel, 2002)</strong>Kỹ thuật canh tác và sâu bệnh hại chính trên cây vải.</div></li>
+          <li><i class="bi bi-book"></i><div><strong>Bộ Nông nghiệp và PTNT, QCVN 01-38:2010/BNNPTNT</strong>Phương pháp điều tra phát hiện dịch hại cây trồng.</div></li>
+          <li><i class="bi bi-book"></i><div><strong>He và cộng sự (2016); Selvaraju và cộng sự (2017)</strong>Kiến trúc ResNet và phương pháp giải thích Grad-CAM.</div></li>
+        </ul>
+      </section>
+    </div>
+  </main>
+  <script src="assets/js/api.js"></script>
+</body>
+</html>

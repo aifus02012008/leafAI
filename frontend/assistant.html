@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Chuyển hướng tới Kỹ sư AI — LEAF_AI</title>
+  <meta name="robots" content="noindex">
+  <script>
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      const target = 'index.html?chat=open' + (q ? '&q=' + encodeURIComponent(q) : '');
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+<body style="font-family:system-ui, sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; background:#f2f6f0; color:#12301f; text-align:center;">
+  <div>
+    <p style="font-size:1.1rem; font-weight:600; margin-bottom:8px;">Đang mở bong bóng chat Kỹ sư AI vườn vải...</p>
+    <p style="font-size:0.9rem; color:#4a6354;">Nếu trình duyệt không tự chuyển, <a href="index.html?chat=open" style="color:#1e7a4c; font-weight:bold;">bấm vào đây</a>.</p>
+  </div>
+</body>
+</html>

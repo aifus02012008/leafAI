@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>LEAF_AI — Nhận diện bệnh lá vải thiều Lục Ngạn bằng AI</title>
+  <meta name="description" content="Chụp một lá vải thiều, LEAF_AI nhận diện bệnh bằng mạng ResNet-18, chỉ ra vùng lá AI dựa vào bằng Grad-CAM và gợi ý cách xử lý theo hướng IPM: canh tác, sinh học trước, hóa học sau cùng.">
+  <meta property="og:title" content="LEAF_AI — Nhận diện bệnh lá vải thiều Lục Ngạn bằng AI">
+  <meta property="og:description" content="Nhận diện bệnh trên lá vải, xem vùng lá AI dựa vào và nhận phác đồ IPM ngay tại vườn.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e7a4c">
+  <link rel="icon" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+  <script src="assets/js/core.js"></script>
+
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <h1>Chụp một lá vải. Biết ngay cây đang mắc bệnh gì.</h1>
+          <p class="hero-lead">LEAF_AI nhận diện bệnh hại trên lá vải thiều Lục Ngạn, chỉ ra vùng lá mà AI dựa vào để kết luận và gợi ý cách xử lý bắt đầu từ canh tác, sinh học. Thuốc hóa học chỉ là bước cuối.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="scan.html"><i class="bi bi-camera"></i>Quét lá ngay</a>
+            <a class="btn btn-lg" href="library.html"><i class="bi bi-journal-text"></i>Tra cứu 5 bệnh hại</a>
+          </div>
+          <div class="hero-trust">
+            <span><i class="bi bi-phone"></i>Dùng được trên điện thoại</span>
+            <span><i class="bi bi-wifi-off"></i>Xem cẩm nang khi mất sóng</span>
+            <span><i class="bi bi-geo-alt"></i>Dành cho vườn vải Lục Ngạn</span>
+          </div>
+        </div>
+
+        <figure class="demo" aria-label="Minh họa: AI nhận diện bệnh thán thư trên lá vải và tô bản đồ nhiệt Grad-CAM" style="margin:0">
+          <div class="demo-bar">
+            <span class="demo-live"><strong>Đang phân tích</strong><span class="demo-sub">ảnh minh họa lá vải</span></span>
+            <button class="btn btn-ghost btn-sm" id="btnReplay" type="button"><i class="bi bi-arrow-repeat"></i>Xem lại</button>
+          </div>
+          <div class="demo-stage" id="demoStage">
+            <img src="assets/samples/sample_anthracnose.jpg" alt="Lá vải có các vết nâu ở chóp và mép lá chét" width="800" height="600">
+            <img class="demo-cam" src="assets/samples/cam_anthracnose.jpg" alt="" width="800" height="600">
+            <span class="demo-chip"><i class="bi bi-fire"></i>Vùng AI dựa vào (Grad-CAM)</span>
+            <div class="demo-scanline" aria-hidden="true"></div>
+          </div>
+          <figcaption class="demo-result">
+            <div>
+              <div class="name">Thán thư (Colletotrichum gloeosporioides)</div>
+              <div class="meta">Mức nghiêm trọng. Nên cắt bỏ lộc, lá bệnh và tỉa tán cho thoáng trước khi tính đến thuốc.</div>
+            </div>
+            <div class="demo-score">91%</div>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ DISEASE STRIP ============ -->
+    <div class="strip">
+      <div class="container strip-inner">
+        <span class="strip-label">5 bệnh hại lá vải Lục Ngạn</span>
+        <a href="disease.html?id=anthracnose"><span class="dot" style="--dot:#c2410c"></span>Thán thư</a>
+        <a href="disease.html?id=downy_blight"><span class="dot" style="--dot:#dc2626"></span>Sương mai</a>
+        <a href="disease.html?id=leaf_blight"><span class="dot" style="--dot:#a16207"></span>Cháy lá</a>
+        <a href="disease.html?id=algal_spot"><span class="dot" style="--dot:#0e7490"></span>Đốm rong</a>
+        <a href="disease.html?id=erinose"><span class="dot" style="--dot:#7e22ce"></span>Nhện lông nhung</a>
+      </div>
+    </div>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head text-center">
+          <h2>Quy trình 3 bước nhanh chóng</h2>
+          <p>Nhận diện chính xác ngay dưới tán vải thiều — tiện lợi trên điện thoại di động và máy tính.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <h3>Chụp ảnh lá vải</h3>
+            <p>Chụp cận cảnh lá có đốm bệnh bằng camera hoặc tải ảnh sẵn có trong máy.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <h3>AI phân tích & Grad-CAM</h3>
+            <p>Mô hình ResNet-18 chẩn đoán bệnh và tô vùng tổn thương bằng bản đồ nhiệt trực quan.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <h3>Phác đồ điều trị IPM</h3>
+            <p>Xem lịch trình xử lý cụ thể theo từng giai đoạn, ưu tiên sinh học trước hóa học.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ IPM LADDER ============ -->
+    <section class="section section-tight">
+      <div class="container ipm">
+        <div>
+          <h2 style="font-size:clamp(1.75rem,3.2vw,2.4rem);letter-spacing:-0.03em;">Bảo vệ quả vải, giảm thuốc hóa học</h2>
+          <div class="prose">
+            <p>Quản lý dịch hại tổng hợp (IPM) giúp bảo vệ hệ sinh thái vườn vải Lục Ngạn. Phát hiện sớm giúp nhà nông xử lý bằng biện pháp canh tác và chế phẩm sinh học an toàn, đáp ứng tiêu chuẩn xuất khẩu.</p>
+          </div>
+          <a class="btn btn-soft" href="handbook.html" style="margin-top:20px"><i class="bi bi-shield-check"></i>Xem cẩm nang IPM</a>
+        </div>
+        <div>
+          <div class="ladder" role="list" aria-label="Thứ tự ưu tiên xử lý">
+            <div class="rung rung-1" role="listitem"><i class="bi bi-flower2"></i><strong>1. Canh tác</strong><span>Vệ sinh tán, tỉa cành thông thoáng, bón phân cân đối</span></div>
+            <div class="rung rung-2" role="listitem"><i class="bi bi-bug"></i><strong>2. Sinh học</strong><span>Chế phẩm Trichoderma, vi sinh đối kháng, dầu khoáng</span></div>
+            <div class="rung rung-3" role="listitem"><i class="bi bi-droplet-half"></i><strong>3. Hóa học</strong><span>Chỉ dùng khi dịch vượt ngưỡng, tuân thủ nghiêm ngặt 4 Đúng</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head text-center">
+          <h2>Bộ công cụ chuyên biệt cho vườn vải</h2>
+          <p>Thiết kế tinh gọn, dễ dàng thao tác ngay tại vườn.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <i class="bi bi-camera"></i>
+            <h3>Quét lá tức thì</h3>
+            <p>Chẩn đoán bệnh lá với độ chính xác cao và bản đồ nhiệt Grad-CAM.</p>
+            <a href="scan.html">Quét ngay &rarr;</a>
+          </div>
+          <div class="feature">
+            <i class="bi bi-clipboard2-pulse"></i>
+            <h3>Lập phác đồ điều trị</h3>
+            <p>Lịch phun và xử lý theo từng đợt lộc non hoặc giai đoạn hoa quả.</p>
+            <a href="treatment.html">Xem phác đồ &rarr;</a>
+          </div>
+          <div class="feature">
+            <i class="bi bi-journal-text"></i>
+            <h3>Thư viện 5 bệnh hại</h3>
+            <p>Tra cứu triệu chứng, tác nhân và hoạt chất phòng trị chuẩn Lục Ngạn.</p>
+            <a href="library.html">Tra cứu &rarr;</a>
+          </div>
+          <div class="feature">
+            <i class="bi bi-chat-dots"></i>
+            <h3>Kỹ sư AI tư vấn</h3>
+            <p>Hỏi đáp trực tiếp về liều lượng thuốc, thời gian cách ly và kỹ thuật vải.</p>
+            <a href="javascript:void(0)" onclick="window.Leaf?.openChat()">Hỏi kỹ sư AI &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="section section-tight">
+      <div class="container">
+        <div class="cta-band">
+          <svg class="vein" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+            <path d="M180 20C90 22 30 62 22 140c-2 20 6 34 18 40C70 120 110 86 150 64 118 90 86 126 64 172c14 6 30 6 46-2 64-30 74-90 70-150Z" stroke="#fff" stroke-width="3"/>
+            <path d="M40 180C80 120 120 80 176 24" stroke="#fff" stroke-width="3"/>
+          </svg>
+          <div>
+            <h2>Thấy lá vải lạ trong vườn?</h2>
+            <p>Chụp ngay khi vết bệnh còn nhỏ, nhất là trên các đợt lộc non. Phát hiện ở giai đoạn 1 giúp xử lý dễ nhất và tốn ít thuốc nhất.</p>
+          </div>
+          <a class="btn btn-lg" href="scan.html"><i class="bi bi-camera"></i>Quét lá ngay</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/pages/landing.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cẩm nang IPM — LEAF_AI</title>
+  <meta name="description" content="8 nguyên tắc canh tác, 7 bước kiểm tra vườn, 10 bước IPM và quy tắc an toàn khi dùng thuốc BVTV cho vườn vải thiều.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e7a4c">
+  <link rel="icon" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="handbook">
+  <script src="assets/js/core.js"></script>
+
+  <main id="main" class="page">
+    <div class="container">
+      <div class="page-head">
+        <div>
+          <h1>Cẩm nang vườn vải thiều Lục Ngạn &amp; IPM</h1>
+          <p>Quản lý dịch hại tổng hợp (IPM) cho vườn vải thiều Lục Ngạn, viết gọn để áp dụng ngay dưới tán. Hỗ trợ xem ngoại tuyến khi mất sóng.</p>
+        </div>
+      </div>
+
+      <div class="handbook">
+        <nav class="toc" id="toc" aria-label="Mục lục cẩm nang">
+          <a href="#nguyen-tac"><i class="bi bi-flower2"></i>8 nguyên tắc canh tác</a>
+          <a href="#kiem-tra"><i class="bi bi-search"></i>7 bước kiểm tra vườn</a>
+          <a href="#ipm"><i class="bi bi-diagram-3"></i>10 bước IPM</a>
+          <a href="#an-toan"><i class="bi bi-shield-exclamation"></i>An toàn thuốc BVTV</a>
+        </nav>
+
+        <div>
+          <section class="hb-section" id="nguyen-tac" aria-labelledby="h-nt">
+            <header>
+              <h2 id="h-nt">8 nguyên tắc canh tác</h2>
+              <p>Nền móng phòng bệnh. Làm tốt từ khâu cắt tỉa sau thu hoạch thì phần lớn bệnh lá không có cơ hội bùng phát.</p>
+            </header>
+            <div class="principles" id="listPrinciples"></div>
+          </section>
+
+          <section class="hb-section" id="kiem-tra" aria-labelledby="h-kt">
+            <header>
+              <h2 id="h-kt">7 bước kiểm tra vườn</h2>
+              <p>Đi thăm vườn vào sáng sớm, 1–2 lần mỗi tuần và dày hơn khi cây ra lộc, ra hoa, theo đúng thứ tự dưới đây.</p>
+            </header>
+            <ol class="seq" id="listInspection"></ol>
+          </section>
+
+          <section class="hb-section" id="ipm" aria-labelledby="h-ipm">
+            <header>
+              <h2 id="h-ipm">10 bước quản lý dịch hại tổng hợp</h2>
+              <p>Biện pháp hóa học đứng gần cuối và chỉ dùng khi dịch hại vượt ngưỡng, không phun định kỳ theo lịch.</p>
+            </header>
+            <ol class="seq" id="listIpm"></ol>
+          </section>
+
+          <section class="hb-section" id="an-toan" aria-labelledby="h-at">
+            <header>
+              <h2 id="h-at">An toàn khi dùng thuốc BVTV</h2>
+              <p>Nguyên tắc 4 đúng, thời gian cách ly và bảo hộ lao động. Áp dụng mỗi lần pha thuốc.</p>
+            </header>
+            <div class="rules" id="listSafe"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/js/disease_data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/pages/handbook.js"></script>
+</body>
+</html>

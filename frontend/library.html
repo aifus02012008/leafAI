@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Thư viện bệnh lá vải — LEAF_AI</title>
+  <meta name="description" content="Tra cứu 5 bệnh, dịch hại thường gặp trên lá vải thiều: triệu chứng theo giai đoạn, điều kiện phát sinh và phác đồ xử lý IPM.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e7a4c">
+  <link rel="icon" href="assets/images/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="library">
+  <script src="assets/js/core.js"></script>
+
+  <main id="main" class="page">
+    <div class="container">
+      <div class="page-head">
+        <div>
+          <h1>Thư viện bệnh hại lá vải thiều Lục Ngạn</h1>
+          <p>Năm bệnh, dịch hại thường gặp trên lá vải thiều tại vùng chuyên canh Lục Ngạn. Chọn một bệnh để xem triệu chứng 3 giai đoạn và phác đồ IPM.</p>
+        </div>
+      </div>
+
+      <div class="toolbar-row">
+        <label class="field">
+          <i class="bi bi-search"></i>
+          <span class="visually-hidden">Tìm bệnh</span>
+          <input type="search" id="libSearch" placeholder="Tìm tên bệnh, tác nhân, triệu chứng" autocomplete="off">
+        </label>
+        <div class="filter-chips" role="group" aria-label="Lọc bệnh">
+          <button class="chip" type="button" data-filter="all" aria-pressed="true">Tất cả</button>
+          <button class="chip" type="button" data-filter="fungus" aria-pressed="false">Do nấm</button>
+          <button class="chip" type="button" data-filter="other" aria-pressed="false">Tảo, nhện hại</button>
+          <button class="chip" type="button" data-filter="severe" aria-pressed="false">Nghiêm trọng</button>
+        </div>
+      </div>
+
+      <p class="small muted" id="libCount" aria-live="polite" style="margin-bottom:14px"></p>
+      <div class="disease-grid" id="libGrid"></div>
+    </div>
+  </main>
+
+  <script src="assets/js/disease_data.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/pages/library.js"></script>
+</body>
+</html>

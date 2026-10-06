@@ -1,0 +1,22 @@
+{
+  "name": "LEAF_AI — Bác sĩ lá vải Lục Ngạn",
+  "short_name": "LEAF_AI",
+  "description": "Chụp lá vải thiều để AI nhận diện bệnh, xem bản đồ nhiệt Grad-CAM, tra cứu phác đồ IPM, dùng được cả khi mất sóng.",
+  "lang": "vi",
+  "start_url": "scan.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f2f6f0",
+  "theme_color": "#1e7a4c",
+  "icons": [
+    { "src": "assets/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Quét lá", "short_name": "Quét lá", "description": "Chụp và chẩn đoán lá vải", "url": "scan.html" },
+    { "name": "Thư viện bệnh", "short_name": "Thư viện", "description": "Tra cứu triệu chứng và phác đồ", "url": "library.html" },
+    { "name": "Cẩm nang IPM", "short_name": "Cẩm nang", "description": "10 bước IPM và an toàn BVTV", "url": "handbook.html" },
+    { "name": "Lịch sử quét", "short_name": "Lịch sử", "description": "Nhật ký đồng ruộng", "url": "history.html" }
+  ]
+}
