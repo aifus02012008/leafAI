@@ -7,6 +7,7 @@
   <meta name="description" content="Chụp một lá vải thiều, LEAF_AI nhận diện bệnh bằng mạng ResNet-18, chỉ ra vùng lá AI dựa vào bằng Grad-CAM và gợi ý cách xử lý theo hướng IPM: canh tác, sinh học trước, hóa học sau cùng.">
   <meta property="og:title" content="LEAF_AI — Nhận diện bệnh lá vải thiều Lục Ngạn bằng AI">
   <meta property="og:description" content="Nhận diện bệnh trên lá vải, xem vùng lá AI dựa vào và nhận phác đồ IPM ngay tại vườn.">
+  <script src="assets/js/site_gate.js"></script>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e7a4c">
   <link rel="icon" href="assets/images/icon-192.png">
@@ -35,6 +36,14 @@
             <span><i class="bi bi-phone"></i>Dùng được trên điện thoại</span>
             <span><i class="bi bi-wifi-off"></i>Xem cẩm nang khi mất sóng</span>
             <span><i class="bi bi-geo-alt"></i>Dành cho vườn vải Lục Ngạn</span>
+          </div>
+          <div class="hero-photos">
+            <span class="hero-photo-stack" aria-hidden="true">
+              <img src="assets/images/lychee/qua-vai-chin-la.webp" alt="" width="56" height="56" decoding="async">
+              <img src="assets/images/lychee/hoa-vai.webp" alt="" width="56" height="56" decoding="async">
+              <img src="assets/images/lychee/cay-vai-sai-qua.webp" alt="" width="56" height="56" decoding="async">
+            </span>
+            <span>Đồng hành cùng vườn vải từ lúc ra hoa đến ngày thu hoạch</span>
           </div>
         </div>
 
@@ -71,6 +80,58 @@
         <a href="disease.html?id=erinose"><span class="dot" style="--dot:#7e22ce"></span>Nhện lông nhung</a>
       </div>
     </div>
+
+    <!-- ============ MỘT MÙA VẢI ============ -->
+    <section class="section season-section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Một mùa vải thiều Lục Ngạn</h2>
+          <p>Mỗi giai đoạn của cây vải đối mặt với một nhóm bệnh khác nhau. Thăm vườn đúng lúc giúp phát hiện sớm và dùng ít thuốc hơn.</p>
+        </div>
+        <ol class="season-grid">
+          <li class="season-card">
+            <figure>
+              <img src="assets/images/lychee/hoa-vai.webp" alt="Chùm hoa vải nở rộ đầu mùa" width="800" height="1067" loading="lazy" decoding="async" data-lightbox>
+              <span class="season-month">Tháng 2 – 3</span>
+            </figure>
+            <div class="season-body">
+              <h3>Ra hoa</h3>
+              <p>Mưa phùn, nồm ẩm dễ làm bùng phát <a href="disease.html?id=downy_blight">sương mai</a> và <a href="disease.html?id=anthracnose">thán thư</a> trên chùm hoa.</p>
+            </div>
+          </li>
+          <li class="season-card">
+            <figure>
+              <img src="assets/images/lychee/qua-vai-non.webp" alt="Chùm quả vải non màu xanh vàng trên cành" width="1000" height="1000" loading="lazy" decoding="async" data-lightbox>
+              <span class="season-month">Tháng 4</span>
+            </figure>
+            <div class="season-body">
+              <h3>Đậu quả non</h3>
+              <p>Lá non dễ bị <a href="disease.html?id=erinose">nhện lông nhung</a> và <a href="disease.html?id=leaf_blight">cháy lá</a>. Nên thăm vườn 1–2 lần mỗi tuần.</p>
+            </div>
+          </li>
+          <li class="season-card">
+            <figure>
+              <img src="assets/images/lychee/chum-vai-chin.webp" alt="Chùm vải chín đỏ trĩu cành giữa tán lá" width="1200" height="900" loading="lazy" decoding="async" data-lightbox>
+              <span class="season-month">Tháng 5 – 6</span>
+            </figure>
+            <div class="season-body">
+              <h3>Quả chín đỏ</h3>
+              <p>Ưu tiên biện pháp sinh học. Ngừng phun thuốc trước thu hoạch đúng thời gian cách ly (PHI).</p>
+            </div>
+          </li>
+          <li class="season-card">
+            <figure>
+              <img src="assets/images/lychee/thu-hoach-vai.webp" alt="Nhà vườn thu hoạch, đóng thùng vải thiều" width="800" height="1067" loading="lazy" decoding="async" data-lightbox>
+              <span class="season-month">Tháng 6 – 7</span>
+            </figure>
+            <div class="season-body">
+              <h3>Thu hoạch</h3>
+              <p>Sau thu hoạch, tỉa cành và vệ sinh vườn để đợt lộc thu ra khỏe, sạch <a href="disease.html?id=algal_spot">đốm rong</a>.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
 
     <!-- ============ HOW IT WORKS ============ -->
     <section class="section">
@@ -155,10 +216,47 @@
       </div>
     </section>
 
+    <!-- ============ VƯỜN VẢI QUA ỐNG KÍNH ============ -->
+    <section class="section section-tight">
+      <div class="container">
+        <div class="section-head">
+          <h2>Vườn vải qua ống kính</h2>
+          <p>Cây vải, quả vải và những vườn vải xanh tốt. Đây là thứ LEAF_AI giúp nhà nông bảo vệ mỗi mùa.</p>
+        </div>
+        <div class="photo-mosaic">
+          <figure class="pm-a">
+            <img src="assets/images/lychee/vuon-vai-chinh-vu.webp" alt="Tán vải phủ kín quả chín vào mùa thu hoạch" width="1400" height="1050" loading="lazy" decoding="async" data-lightbox>
+            <figcaption>Tán vải phủ kín quả chín vào chính vụ</figcaption>
+          </figure>
+          <figure class="pm-b">
+            <img src="assets/images/lychee/qua-vai-chin-la.webp" alt="Hai quả vải chín đỏ giữa tán lá xanh bóng" width="1200" height="803" loading="lazy" decoding="async" data-lightbox>
+            <figcaption>Quả vải chín giữa tán lá xanh bóng</figcaption>
+          </figure>
+          <figure class="pm-c">
+            <img src="assets/images/lychee/qua-vai-thieu-cam-tay.webp" alt="Bàn tay cầm những quả vải thiều đã bóc vỏ, cùi trắng" width="800" height="1067" loading="lazy" decoding="async" data-lightbox>
+            <figcaption>Vải thiều cùi trắng, dày</figcaption>
+          </figure>
+          <figure class="pm-d">
+            <img src="assets/images/lychee/cay-vai.webp" alt="Một cây vải tán tròn đang sinh trưởng" width="1000" height="932" loading="lazy" decoding="async" data-lightbox>
+            <figcaption>Cây vải đang sinh trưởng</figcaption>
+          </figure>
+          <figure class="pm-e">
+            <img src="assets/images/lychee/cay-vai-sai-qua.webp" alt="Cây vải sai quả chín đỏ vào chính vụ" width="1200" height="900" loading="lazy" decoding="async" data-lightbox>
+            <figcaption>Cây vải sai quả vào chính vụ</figcaption>
+          </figure>
+          <figure class="pm-f">
+            <img src="assets/images/lychee/vuon-vai-ven-song.webp" alt="Vườn vải thiều xanh tốt ven kênh" width="960" height="720" loading="lazy" decoding="async" data-lightbox>
+            <figcaption>Vườn vải thiều xanh tốt ven kênh</figcaption>
+          </figure>
+        </div>
+        <p class="photo-credit-note">Ảnh: Wikimedia Commons (giấy phép Creative Commons). Xem tác giả tại <a href="about.html#nguon-anh">trang Giới thiệu</a>.</p>
+      </div>
+    </section>
+
     <!-- ============ CTA ============ -->
     <section class="section section-tight">
       <div class="container">
-        <div class="cta-band">
+        <div class="cta-band has-photo">
           <svg class="vein" viewBox="0 0 200 200" fill="none" aria-hidden="true">
             <path d="M180 20C90 22 30 62 22 140c-2 20 6 34 18 40C70 120 110 86 150 64 118 90 86 126 64 172c14 6 30 6 46-2 64-30 74-90 70-150Z" stroke="#fff" stroke-width="3"/>
             <path d="M40 180C80 120 120 80 176 24" stroke="#fff" stroke-width="3"/>
@@ -175,5 +273,6 @@
 
   <script src="assets/js/api.js"></script>
   <script src="assets/js/pages/landing.js"></script>
+  <script src="assets/js/gallery.js" defer></script>
 </body>
 </html>

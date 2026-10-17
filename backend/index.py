@@ -62,6 +62,7 @@ from Dermal.supabase_client import (
     get_supabase_status,
 )
 from Dermal.api_views import diagnose_leaf_image
+from Dermal import site_access
 
 from fastapi import FastAPI, Request, Response, UploadFile, File, Form, Body, Query, HTTPException, status
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -481,6 +482,51 @@ async def chat_consult(payload: ChatPayload):
 # ==============================================================================
 # 5. USER AUTHENTICATION (FASTAPI REST ENDPOINTS)
 # ==============================================================================
+
+@app.get("/api/site-access")
+@app.get("/api/site-access/")
+def site_access_status(request: Request):
+    """Kiểm tra trình duyệt đã nhập đúng mật khẩu website chưa (cookie hoặc Bearer token)."""
+    if not site_access.is_gate_enabled():
+        return {"success": True, "enabled": False, "unlocked": True}
+    token = request.cookies.get(site_access.COOKIE_NAME)
+    if not token:
+        auth_header = request.headers.get("X-Site-Access") or request.headers.get("Authorization") or ""
+        token = auth_header[7:].strip() if auth_header.startswith("Bearer ") else auth_header.strip()
+    return {"success": True, "enabled": True, "unlocked": site_access.verify_access_token(token)}
+
+
+@app.post("/api/site-access")
+@app.post("/api/site-access/")
+async def site_access_unlock(request: Request, response: Response):
+    """Xác thực mật khẩu website, cấp token truy cập 30 ngày (HttpOnly cookie + JSON)."""
+    if not site_access.is_gate_enabled():
+        return {"success": True, "enabled": False, "token": None, "expires_at": None}
+
+    client_ip = request.client.host if request.client else "?"
+    if throttled(f"site-access:{client_ip}", limit=10, seconds=60):
+        return JSONResponse(status_code=429, content={"success": False, "error": "Bạn nhập sai quá nhiều lần. Vui lòng thử lại sau 1 phút."})
+
+    password = ""
+    try:
+        if "application/json" in (request.headers.get("content-type") or ""):
+            password = (await request.json()).get("password") or ""
+        else:
+            password = (await request.form()).get("password") or ""
+    except Exception:
+        password = ""
+
+    if not site_access.check_password(str(password)):
+        return JSONResponse(status_code=401, content={"success": False, "error": "Mật khẩu không đúng. Vui lòng thử lại."})
+
+    token, expires_at = site_access.make_access_token()
+    is_https = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+    response.set_cookie(
+        key=site_access.COOKIE_NAME, value=token, max_age=site_access.TOKEN_TTL_SECONDS,
+        httponly=True, samesite="lax", secure=is_https,
+    )
+    return {"success": True, "enabled": True, "token": token, "expires_at": expires_at}
+
 
 @app.post("/api/auth/signup")
 @app.post("/api/auth/signup/")

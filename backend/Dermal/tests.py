@@ -639,3 +639,38 @@ class SmokeRenderTests(TestCase):
     def test_admin_login_page(self):
         resp = self.client.get("/admin/login/")
         self.assertEqual(resp.status_code, 200)
+
+
+class SiteAccessTests(TestCase):
+    """Mật khẩu truy cập website (Dermal/site_access.py)."""
+
+    def setUp(self):
+        from . import site_access
+        self.sa = site_access
+        patcher = patch.dict("os.environ", {"SITE_PASSWORD": "thcs biên sơn 2026@"})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_accepts_exact_and_lenient_variants(self):
+        for pw in ["thcs biên sơn 2026@", "THCS Biên Sơn 2026@", "thcs bien son 2026@", "  thcsbienson2026@ "]:
+            self.assertTrue(self.sa.check_password(pw), pw)
+
+    def test_accepts_decomposed_unicode(self):
+        import unicodedata
+        self.assertTrue(self.sa.check_password(unicodedata.normalize("NFD", "thcs biên sơn 2026@")))
+
+    def test_rejects_wrong_password(self):
+        for pw in ["", "thcs bien son 2026", "thcs bien son 2025@", "123456"]:
+            self.assertFalse(self.sa.check_password(pw), pw)
+
+    def test_token_roundtrip_and_expiry(self):
+        token, exp = self.sa.make_access_token(now=1_000_000)
+        self.assertTrue(self.sa.verify_access_token(token, now=1_000_001))
+        self.assertFalse(self.sa.verify_access_token(token, now=exp + 1))
+        self.assertFalse(self.sa.verify_access_token(token[:-1] + "0", now=1_000_001))
+        self.assertFalse(self.sa.verify_access_token("garbage"))
+
+    def test_changing_password_invalidates_tokens(self):
+        token, _ = self.sa.make_access_token()
+        with patch.dict("os.environ", {"SITE_PASSWORD": "mat khau moi"}):
+            self.assertFalse(self.sa.verify_access_token(token))

@@ -714,8 +714,9 @@
       });
     }
 
-    // Chạy kiểm tra sau khi khởi tạo
-    setTimeout(checkAuth, 50);
+    // Chạy kiểm tra sau khi đã qua cổng mật khẩu website (site_gate.js)
+    const siteReady = window.LeafSiteGate ? window.LeafSiteGate.ready : Promise.resolve(true);
+    siteReady.then(() => setTimeout(checkAuth, 50));
   }
 
 
