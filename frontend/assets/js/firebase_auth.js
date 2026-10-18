@@ -149,7 +149,10 @@
           return null;
         }
         const friendlyMessage = {
-          'auth/unauthorized-domain': 'Tên miền chưa được cấp phép trong Firebase Auth Console. Vui lòng thêm domain vào Authorized Domains.',
+          'auth/configuration-not-found': 'Dự án Firebase mới chưa kích hoạt Authentication. Bạn chỉ cần vào Firebase Console > Authentication bấm "Get started" để bật hệ thống xác thực.',
+          'auth/operation-not-allowed': 'Phương thức đăng nhập Google chưa được bật trong Firebase Console > Authentication > Sign-in method.',
+          'auth/unauthorized-domain': 'Tên miền chưa được cấp phép trong Firebase Auth. Vui lòng thêm domain vào Authorized Domains trong Settings.',
+          'auth/popup-blocked': 'Trình duyệt đang chặn cửa sổ Popup. Vui lòng cho phép popup để đăng nhập.',
           'auth/popup-closed-by-user': 'Hộp thoại đăng nhập Google đã bị đóng trước khi hoàn tất.',
           'auth/cancelled-popup-request': 'Thao tác đăng nhập Google bị hủy do có yêu cầu mới.',
           'auth/network-request-failed': 'Lỗi kết nối mạng khi liên hệ máy chủ Google.'
