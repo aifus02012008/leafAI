@@ -222,7 +222,7 @@
       secondary: (result.secondary_diseases || []).map((s) => s.name_vi || s.class),
       lesions: (result.detections || []).length,
       simulated: Boolean(result.simulated),
-      synced_to_supabase: Boolean(result.synced_to_supabase),
+      synced_to_firebase: Boolean(result.synced_to_firebase || result.synced_to_supabase),
       thumb
     });
   }

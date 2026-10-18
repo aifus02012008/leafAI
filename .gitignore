@@ -51,3 +51,5 @@ docs/anh_phac_do_dieu_tri/
 docs/video_recordings/
 record_demo.py
 .vercel
+capture_all_screens.py
+screenshots_giao_dien/

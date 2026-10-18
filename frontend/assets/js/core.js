@@ -149,7 +149,7 @@
           </div>
         </div>
 
-        <!-- Nút Đăng nhập với Google qua Supabase -->
+        <!-- Nút Đăng nhập với Google qua Firebase Auth -->
         <button type="button" class="btn btn-google btn-block" id="btnGoogleLogin">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -298,7 +298,7 @@
   }
 
   // ------------------------------------------------------------------
-  // Supabase Authentication & Auth Gate Management
+  // Firebase Authentication & Auth Gate Management
   // ------------------------------------------------------------------
   const PROTECTED_PAGES = ['scan', 'treatment', 'assistant', 'history'];
   const isProtectedPage = PROTECTED_PAGES.includes(page);
@@ -315,7 +315,7 @@
     }
     if (!window.LeafAuth) {
       const s = document.createElement('script');
-      s.src = 'assets/js/supabase_auth.js';
+      s.src = 'assets/js/firebase_auth.js';
       document.head.appendChild(s);
     }
 
@@ -442,7 +442,7 @@
       }
     }
 
-    // Đăng nhập với Google qua Supabase OAuth (Mở màn hình Chọn tài khoản Google như Hình 2)
+    // Đăng nhập với Google qua Firebase Auth (Google Sign-In)
     if (btnGoogle) {
       btnGoogle.addEventListener('click', async () => {
         btnGoogle.disabled = true;
@@ -451,24 +451,11 @@
           if (window.LeafAuth) {
             await window.LeafAuth.signInWithGoogle();
           } else {
-            throw new Error('Supabase client chưa tải xong, vui lòng thử lại sau giây lát.');
+            throw new Error('Firebase Auth chưa tải xong, vui lòng thử lại sau giây lát.');
           }
         } catch (err) {
-          console.error('[LEAF_AI] Supabase Google OAuth error:', err);
-          const msg = err.message || '';
-          if (msg.includes('provider is not enabled') || msg.includes('Unsupported provider') || msg.includes('validation_failed')) {
-            authError.innerHTML = `
-              <strong><i class="bi bi-shield-exclamation"></i> Google OAuth chưa được kích hoạt trên Supabase:</strong>
-              <div style="margin-top:6px;line-height:1.5;font-size:12px;">
-                1. Vào <a href="https://supabase.com/dashboard/project/ribpggqkojqghutyverv/auth/providers" target="_blank" rel="noopener" style="text-decoration:underline;font-weight:600;color:var(--leaf-deep);">Supabase Dashboard &gt; Auth &gt; Providers</a>.<br>
-                2. Tìm mục <strong>Google</strong> &rarr; gạt <strong>Enable Google: ON</strong>.<br>
-                3. Nhập <strong>Client ID</strong> &amp; <strong>Client Secret</strong> từ Google Cloud Console.<br>
-                4. Callback URL: <code>https://ribpggqkojqghutyverv.supabase.co/auth/v1/callback</code>.
-              </div>
-            `;
-          } else {
-            authError.textContent = msg || 'Không thể mở phiên đăng nhập Google.';
-          }
+          console.error('[LEAF_AI] Firebase Google Sign-In error:', err);
+          authError.textContent = err.message || 'Không thể mở phiên đăng nhập Google.';
           authError.hidden = false;
         } finally {
           btnGoogle.disabled = false;
@@ -524,19 +511,19 @@
             }
           }
 
-          // 2. Nếu Backend không thành công, thử qua Supabase
+          // 2. Nếu Backend không thành công, thử qua Firebase Auth
           if (!user && window.LeafAuth) {
             try {
-              let emailForSupabase = rawIdentifier;
-              if (!emailForSupabase.includes('@')) {
-                emailForSupabase = `${emailForSupabase}@leafai.local`;
+              let emailForAuth = rawIdentifier;
+              if (!emailForAuth.includes('@')) {
+                emailForAuth = `${emailForAuth}@leafai.local`;
               }
-              const sbRes = await window.LeafAuth.signInWithEmail(emailForSupabase, password);
-              if (sbRes && sbRes.user) {
-                user = sbRes.user;
+              const fbRes = await window.LeafAuth.signInWithEmail(emailForAuth, password);
+              if (fbRes && fbRes.user) {
+                user = fbRes.user;
               }
-            } catch (sbErr) {
-              if (!lastErr) lastErr = sbErr;
+            } catch (fbErr) {
+              if (!lastErr) lastErr = fbErr;
             }
           }
 
@@ -603,7 +590,7 @@
             }
           }
 
-          // 2. Thử Supabase
+          // 2. Thử Firebase Auth
           if (!user && window.LeafAuth) {
             try {
               const res = await window.LeafAuth.signUpWithEmail(email, password, username);
@@ -659,7 +646,7 @@
         }
       } catch {}
 
-      // 2. Thử đồng bộ phiên từ Backend hoặc Supabase
+      // 2. Thử đồng bộ phiên từ Backend hoặc Firebase Auth
       try {
         if (typeof LeafApiService !== 'undefined') {
           const api = new LeafApiService();
@@ -671,9 +658,9 @@
           }
         }
         if (!user && window.LeafAuth) {
-          const sbUser = await window.LeafAuth.getCurrentUser();
-          if (sbUser) {
-            user = sbUser;
+          const fbUser = await window.LeafAuth.getCurrentUser();
+          if (fbUser) {
+            user = fbUser;
             user.is_authenticated = true;
             localStorage.setItem('leaf_last_user', JSON.stringify(user));
           }
@@ -702,7 +689,7 @@
       }
     });
 
-    // Lắng nghe thay đổi trạng thái từ Supabase OAuth
+    // Lắng nghe thay đổi trạng thái từ Firebase Auth
     if (window.LeafAuth && typeof window.LeafAuth.onAuthStateChange === 'function') {
       window.LeafAuth.onAuthStateChange((event, user) => {
         if (user) {

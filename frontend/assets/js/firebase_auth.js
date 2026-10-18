@@ -1,0 +1,240 @@
+/**
+ * LEAF_AI — Firebase Authentication Client
+ * Cung cấp xác thực đăng nhập: Google OAuth (Google Sign-In), Email & Password và quản lý phiên.
+ */
+(function (global) {
+  'use strict';
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyCxqeXXTBqBx5EMvufU2gBcoR1iHGGUSJk",
+    authDomain: "gen-lang-client-0595612537.firebaseapp.com",
+    databaseURL: "https://gen-lang-client-0595612537-default-rtdb.firebaseio.com",
+    projectId: "gen-lang-client-0595612537",
+    storageBucket: "gen-lang-client-0595612537.firebasestorage.app",
+    messagingSenderId: "1022447215307",
+    appId: "1:1022447215307:web:996dfc62896ae7b4d2314e",
+    measurementId: "G-JW9877Z1N0"
+  };
+
+  const APP_URL = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+  const AUTH_URL = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+
+  let firebaseAuth = null;
+  let authModules = null;
+  let initPromise = null;
+  const authStateListeners = [];
+
+  async function getAuthInstance() {
+    if (firebaseAuth && authModules) return { auth: firebaseAuth, mod: authModules };
+    if (initPromise) return initPromise;
+
+    initPromise = (async () => {
+      try {
+        const { initializeApp, getApps, getApp } = await import(APP_URL);
+        const {
+          getAuth,
+          GoogleAuthProvider,
+          signInWithPopup,
+          signInWithRedirect,
+          getRedirectResult,
+          signInWithEmailAndPassword,
+          createUserWithEmailAndPassword,
+          updateProfile,
+          signOut,
+          onAuthStateChanged
+        } = await import(AUTH_URL);
+
+        const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+        firebaseAuth = getAuth(app);
+        authModules = {
+          GoogleAuthProvider,
+          signInWithPopup,
+          signInWithRedirect,
+          getRedirectResult,
+          signInWithEmailAndPassword,
+          createUserWithEmailAndPassword,
+          updateProfile,
+          signOut,
+          onAuthStateChanged
+        };
+
+        // Lắng nghe sự kiện thay đổi phiên đăng nhập
+        onAuthStateChanged(firebaseAuth, (user) => {
+          const formatted = formatUser(user);
+          if (formatted) {
+            localStorage.setItem('leaf_last_user', JSON.stringify(formatted));
+          }
+          authStateListeners.forEach((fn) => {
+            try { fn('AUTH_STATE_CHANGE', formatted, user); } catch (err) { console.error(err); }
+          });
+        });
+
+        // Bắt kết quả nếu trước đó dùng redirect
+        getRedirectResult(firebaseAuth).then((result) => {
+          if (result && result.user) {
+            const formatted = formatUser(result.user);
+            localStorage.setItem('leaf_last_user', JSON.stringify(formatted));
+          }
+        }).catch((err) => {
+          console.warn('[LEAF_AI] Firebase getRedirectResult notice:', err);
+        });
+
+        return { auth: firebaseAuth, mod: authModules };
+      } catch (err) {
+        console.warn('[LEAF_AI] Không thể khởi tạo Firebase Auth SDK:', err);
+        return null;
+      }
+    })();
+
+    return initPromise;
+  }
+
+  function formatUser(user) {
+    if (!user) return null;
+    const email = user.email || '';
+    const name = user.displayName || email.split('@')[0] || 'Nông dân Lục Ngạn';
+    return {
+      id: user.uid,
+      uid: user.uid,
+      email: email,
+      username: name,
+      display_name: name,
+      avatar_url: user.photoURL || null,
+      is_authenticated: true,
+      provider: user.providerData && user.providerData[0] ? user.providerData[0].providerId : 'firebase'
+    };
+  }
+
+  const LeafAuth = {
+    isConfigured: true,
+    provider: 'firebase',
+
+    async getCurrentUser() {
+      // 1. Kiểm tra từ SDK
+      const instance = await getAuthInstance();
+      if (instance && instance.auth && instance.auth.currentUser) {
+        const u = formatUser(instance.auth.currentUser);
+        localStorage.setItem('leaf_last_user', JSON.stringify(u));
+        return u;
+      }
+      // 2. Fallback localStorage
+      try {
+        const local = localStorage.getItem('leaf_last_user');
+        if (local) {
+          const u = JSON.parse(local);
+          if (u && u.is_authenticated) return u;
+        }
+      } catch {}
+      return null;
+    },
+
+    async signInWithGoogle() {
+      const instance = await getAuthInstance();
+      if (!instance) {
+        throw new Error('Chưa kết nối được Firebase Auth. Vui lòng kiểm tra kết nối mạng.');
+      }
+      const { auth, mod } = instance;
+      const provider = new mod.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      try {
+        const res = await mod.signInWithPopup(auth, provider);
+        const user = formatUser(res.user);
+        if (user) {
+          localStorage.setItem('leaf_last_user', JSON.stringify(user));
+        }
+        return { user, credential: res };
+      } catch (err) {
+        console.error('[LEAF_AI] Firebase Google Sign-In error:', err);
+        if (err.code === 'auth/popup-blocked') {
+          await mod.signInWithRedirect(auth, provider);
+          return null;
+        }
+        const friendlyMessage = {
+          'auth/unauthorized-domain': 'Tên miền chưa được cấp phép trong Firebase Auth Console. Vui lòng thêm domain vào Authorized Domains.',
+          'auth/popup-closed-by-user': 'Hộp thoại đăng nhập Google đã bị đóng trước khi hoàn tất.',
+          'auth/cancelled-popup-request': 'Thao tác đăng nhập Google bị hủy do có yêu cầu mới.',
+          'auth/network-request-failed': 'Lỗi kết nối mạng khi liên hệ máy chủ Google.'
+        }[err.code] || (err.message || 'Đăng nhập Google thất bại.');
+        throw new Error(friendlyMessage);
+      }
+    },
+
+    async signInWithEmail(email, password) {
+      const instance = await getAuthInstance();
+      if (!instance) {
+        throw new Error('Chưa kết nối được Firebase Auth. Vui lòng thử lại sau.');
+      }
+      const { auth, mod } = instance;
+      try {
+        const res = await mod.signInWithEmailAndPassword(auth, email.trim(), password);
+        const user = formatUser(res.user);
+        if (user) {
+          localStorage.setItem('leaf_last_user', JSON.stringify(user));
+        }
+        return { user, credential: res };
+      } catch (err) {
+        const friendlyMessage = {
+          'auth/invalid-credential': 'Email hoặc mật khẩu không chính xác.',
+          'auth/user-not-found': 'Tài khoản không tồn tại. Vui lòng đăng ký tài khoản mới.',
+          'auth/wrong-password': 'Mật khẩu không chính xác.',
+          'auth/invalid-email': 'Định dạng email không hợp lệ.',
+          'auth/too-many-requests': 'Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút.'
+        }[err.code] || (err.message || 'Đăng nhập thất bại.');
+        throw new Error(friendlyMessage);
+      }
+    },
+
+    async signUpWithEmail(email, password, username) {
+      const instance = await getAuthInstance();
+      if (!instance) {
+        throw new Error('Chưa kết nối được Firebase Auth. Vui lòng thử lại sau.');
+      }
+      const { auth, mod } = instance;
+      try {
+        const res = await mod.createUserWithEmailAndPassword(auth, email.trim(), password);
+        if (username && res.user) {
+          await mod.updateProfile(res.user, { displayName: username.trim() }).catch(() => {});
+        }
+        const user = formatUser(res.user);
+        if (user) {
+          if (username) {
+            user.username = username.trim();
+            user.display_name = username.trim();
+          }
+          localStorage.setItem('leaf_last_user', JSON.stringify(user));
+        }
+        return { user, credential: res };
+      } catch (err) {
+        const friendlyMessage = {
+          'auth/email-already-in-use': 'Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.',
+          'auth/weak-password': 'Mật khẩu quá yếu (yêu cầu tối thiểu 6 ký tự).',
+          'auth/invalid-email': 'Địa chỉ email không đúng định dạng.'
+        }[err.code] || (err.message || 'Đăng ký thất bại.');
+        throw new Error(friendlyMessage);
+      }
+    },
+
+    async signOut() {
+      localStorage.removeItem('leaf_last_user');
+      const instance = await getAuthInstance();
+      if (instance && instance.auth) {
+        try {
+          await instance.mod.signOut(instance.auth);
+        } catch (e) {
+          console.warn('[LEAF_AI] Firebase signOut notice:', e);
+        }
+      }
+      return { success: true };
+    },
+
+    onAuthStateChange(listener) {
+      if (typeof listener === 'function') {
+        authStateListeners.push(listener);
+      }
+    }
+  };
+
+  global.LeafAuth = LeafAuth;
+  getAuthInstance();
+})(typeof window !== 'undefined' ? window : this);

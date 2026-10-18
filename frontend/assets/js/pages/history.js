@@ -44,7 +44,7 @@
       lesions: r.lesions,
       thumb: r.thumb || thumbs[String(r.id)] || '',
       simulated: Boolean(r.simulated),
-      synced: Boolean(r.synced_to_supabase)
+      synced: Boolean(r.synced_to_firebase || r.synced_to_supabase)
     };
   }
 
