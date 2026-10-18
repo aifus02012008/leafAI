@@ -1,0 +1,311 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model & Architecture: Leaf AI (Vải Thiều Lục Ngạn)
+// ===============================================================
+//
+// 1. Collection: users
+//    Document ID: {userId} (Must match request.auth.uid)
+//    Description: Hồ sơ người dùng / nông dân canh tác vải thiều Lục Ngạn
+//    Fields:
+//      - id / uid: string (optional, matches request.auth.uid)
+//      - email: string (optional, valid email format, max 120 chars)
+//      - username: string (optional, 1..100 chars)
+//      - display_name: string (optional, 1..100 chars)
+//      - avatar_url: string (optional, max 1000 chars)
+//      - phone: string (optional, max 25 chars)
+//      - provider: string (optional, max 50 chars)
+//      - is_authenticated: bool (optional)
+//      - role: string (optional, ['user', 'farmer'])
+//      - createdAt: timestamp or string (optional, immutable)
+//      - updatedAt: timestamp or string (optional)
+//
+// 2. Collection: scan_history
+//    Document ID: {scanId}
+//    Description: Nhật ký quét chẩn đoán bệnh hại lá vải thiều
+//    Fields:
+//      - userId: string (required, immutable, matches request.auth.uid)
+//      - id: string or number (optional, max 100 chars if string)
+//      - name: string (optional, max 200 chars)
+//      - primary_disease: string or map (optional)
+//      - primary_disease_vi: string (optional, max 200 chars)
+//      - healthy: bool (optional)
+//      - prob / probability / confidence: number (optional, 0..100)
+//      - severity: string (optional, max 50 chars)
+//      - model / model_version / model_badge: string (optional, max 100 chars)
+//      - timestamp / time / rawTime: timestamp or string (optional, max 100 chars)
+//      - createdAt: timestamp or string (optional, max 100 chars, immutable)
+//      - updatedAt: timestamp or string (optional, max 100 chars)
+//      - coinf / is_coinfection: bool (optional)
+//      - warning_banner: string or null (optional, max 200 chars)
+//      - secondary / secondary_diseases: list (optional, max 20 items)
+//      - lesions / lesion_count: number or null (optional)
+//      - thumb / imageUrl / image_url / heatmap_url: string (optional, max 2048 chars)
+//      - heatmap_base64: string (optional, max 500000 chars)
+//      - simulated: bool (optional)
+//      - synced / synced_to_firebase / synced_to_supabase: bool (optional)
+//      - detections: list (optional, max 50 items)
+//      - report_html: string (optional, max 50000 chars)
+//      - note / notes: string or list (optional)
+//      - location / crop / variety: string or map (optional)
+//
+// 3. Collection: treatment_plans
+//    Document ID: {planId}
+//    Description: Phác đồ điều trị và lịch phun thuốc quản lý dịch hại (IPM)
+//    Fields:
+//      - id: string or number (optional)
+//      - userId / authorId: string (optional, max 128 chars)
+//      - scanId: string (optional, max 100 chars)
+//      - title / name: string (optional, max 200 chars)
+//      - disease: map or string (optional)
+//      - severity: map or string (optional)
+//      - growth_stage: map or string (optional)
+//      - area_m2: number (optional, >= 0)
+//      - start_date / end_date: string (optional, max 50 chars)
+//      - duration_days / days_to_harvest: number (optional)
+//      - spray: map (optional)
+//      - steps: list (optional, max 50 items)
+//      - rules: list (optional, max 30 items)
+//      - notes: list or string (optional)
+//      - monitor / success / source / generated_by / version: string (optional)
+//      - createdAt: timestamp or string (optional, immutable)
+//      - updatedAt: timestamp or string (optional)
+//
+// 4. Collection: feedback
+//    Document ID: {feedbackId}
+//    Description: Đóng góp ý kiến và đánh giá từ người dùng
+//    Fields:
+//      - id: string or number (optional)
+//      - userId: string (optional, max 128 chars, matches auth.uid if present)
+//      - rating: number (optional, 1..5)
+//      - category / type: string (optional, max 100 chars)
+//      - content / comment / message: string (optional, max 2000 chars)
+//      - scanId / planId: string (optional, max 100 chars)
+//      - userEmail: string (optional, max 120 chars, valid email)
+//      - userName / display_name: string (optional, max 100 chars)
+//      - device_info: string or map (optional)
+//      - status: string (optional, max 50 chars)
+//      - createdAt: timestamp or string (optional, immutable)
+//      - updatedAt: timestamp or string (optional)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Xác thực người dùng đã đăng nhập Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Kiểm tra người dùng có đúng UID tương ứng hay không
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Kiểm tra danh sách các trường bắt buộc phải có
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Kiểm tra payload chỉ chứa các trường nằm trong danh sách cho phép
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Kiểm tra các trường bất biến không bị thay đổi trong thao tác update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // Kiểm tra định dạng email hợp lệ
+    function isValidEmail(email) {
+      return email is string &&
+             email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    // ===============================================================
+    // Domain Validators (Gọi đồng thời trong cả create và update)
+    // ===============================================================
+
+    // 1. Validator cho collection `users`
+    function isValidUser(data) {
+      return hasOnlyAllowedFields([
+        'id', 'uid', 'email', 'username', 'display_name',
+        'avatar_url', 'is_authenticated', 'provider', 'phone',
+        'role', 'createdAt', 'updatedAt'
+      ]) &&
+      (!('id' in data) || (data.id is string && data.id == request.auth.uid)) &&
+      (!('uid' in data) || (data.uid is string && data.uid == request.auth.uid)) &&
+      (!('email' in data) || (data.email is string && data.email.size() <= 120 && isValidEmail(data.email))) &&
+      (!('username' in data) || (data.username is string && data.username.size() >= 1 && data.username.size() <= 100)) &&
+      (!('display_name' in data) || (data.display_name is string && data.display_name.size() >= 1 && data.display_name.size() <= 100)) &&
+      (!('avatar_url' in data) || data.avatar_url == null || (data.avatar_url is string && data.avatar_url.size() <= 1000)) &&
+      (!('phone' in data) || (data.phone is string && data.phone.size() <= 25)) &&
+      (!('provider' in data) || (data.provider is string && data.provider.size() <= 50)) &&
+      (!('is_authenticated' in data) || data.is_authenticated is bool) &&
+      (!('role' in data) || (data.role is string && data.role in ['user', 'farmer'])) &&
+      (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+      (!('updatedAt' in data) || data.updatedAt is timestamp || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    // 2. Validator cho collection `scan_history`
+    function isValidScanRecord(data) {
+      return hasRequiredFields(['userId']) &&
+      data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+      hasOnlyAllowedFields([
+        'id', 'userId', 'name', 'primary_disease', 'primary_disease_vi',
+        'healthy', 'prob', 'probability', 'confidence', 'severity',
+        'model', 'model_version', 'model_badge', 'timestamp', 'time',
+        'rawTime', 'createdAt', 'updatedAt', 'coinf', 'is_coinfection',
+        'warning_banner', 'secondary', 'secondary_diseases', 'lesions',
+        'lesion_count', 'thumb', 'imageUrl', 'image_url', 'heatmap_url',
+        'heatmap_base64', 'simulated', 'synced', 'synced_to_firebase',
+        'synced_to_supabase', 'detections', 'report_html', 'note', 'notes',
+        'location', 'crop', 'variety'
+      ]) &&
+      (!('name' in data) || (data.name is string && data.name.size() <= 200)) &&
+      (!('primary_disease_vi' in data) || (data.primary_disease_vi is string && data.primary_disease_vi.size() <= 200)) &&
+      (!('healthy' in data) || data.healthy is bool) &&
+      (!('prob' in data) || (data.prob is number && data.prob >= 0 && data.prob <= 100)) &&
+      (!('probability' in data) || (data.probability is number && data.probability >= 0 && data.probability <= 100)) &&
+      (!('confidence' in data) || (data.confidence is number && data.confidence >= 0 && data.confidence <= 100)) &&
+      (!('severity' in data) || (data.severity is string && data.severity.size() <= 50)) &&
+      (!('model' in data) || (data.model is string && data.model.size() <= 100)) &&
+      (!('model_version' in data) || (data.model_version is string && data.model_version.size() <= 100)) &&
+      (!('model_badge' in data) || (data.model_badge is string && data.model_badge.size() <= 100)) &&
+      (!('rawTime' in data) || (data.rawTime is string && data.rawTime.size() <= 100)) &&
+      (!('coinf' in data) || data.coinf is bool) &&
+      (!('is_coinfection' in data) || data.is_coinfection is bool) &&
+      (!('warning_banner' in data) || data.warning_banner == null || (data.warning_banner is string && data.warning_banner.size() <= 200)) &&
+      (!('secondary' in data) || (data.secondary is list && data.secondary.size() <= 20)) &&
+      (!('secondary_diseases' in data) || (data.secondary_diseases is list && data.secondary_diseases.size() <= 20)) &&
+      (!('thumb' in data) || (data.thumb is string && data.thumb.size() <= 2048)) &&
+      (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 2048)) &&
+      (!('image_url' in data) || (data.image_url is string && data.image_url.size() <= 2048)) &&
+      (!('heatmap_url' in data) || (data.heatmap_url is string && data.heatmap_url.size() <= 2048)) &&
+      (!('heatmap_base64' in data) || (data.heatmap_base64 is string && data.heatmap_base64.size() <= 500000)) &&
+      (!('simulated' in data) || data.simulated is bool) &&
+      (!('synced' in data) || data.synced is bool) &&
+      (!('synced_to_firebase' in data) || data.synced_to_firebase is bool) &&
+      (!('synced_to_supabase' in data) || data.synced_to_supabase is bool) &&
+      (!('detections' in data) || (data.detections is list && data.detections.size() <= 50)) &&
+      (!('report_html' in data) || (data.report_html is string && data.report_html.size() <= 50000)) &&
+      (!('note' in data) || (data.note is string && data.note.size() <= 2000)) &&
+      (!('crop' in data) || (data.crop is string && data.crop.size() <= 100)) &&
+      (!('variety' in data) || (data.variety is string && data.variety.size() <= 100));
+    }
+
+    // 3. Validator cho collection `treatment_plans`
+    function isValidTreatmentPlan(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'authorId', 'disease', 'severity', 'growth_stage',
+        'area_m2', 'start_date', 'end_date', 'duration_days', 'days_to_harvest',
+        'spray', 'steps', 'rules', 'notes', 'monitor', 'success', 'source',
+        'generated_by', 'version', 'title', 'name', 'scanId', 'createdAt', 'updatedAt'
+      ]) &&
+      (!('userId' in data) || (data.userId is string && data.userId.size() <= 128)) &&
+      (!('authorId' in data) || (data.authorId is string && data.authorId.size() <= 128)) &&
+      (!('start_date' in data) || (data.start_date is string && data.start_date.size() <= 50)) &&
+      (!('end_date' in data) || (data.end_date is string && data.end_date.size() <= 50)) &&
+      (!('duration_days' in data) || (data.duration_days is number && data.duration_days >= 0)) &&
+      (!('area_m2' in data) || (data.area_m2 is number && data.area_m2 >= 0)) &&
+      (!('steps' in data) || (data.steps is list && data.steps.size() <= 50)) &&
+      (!('rules' in data) || (data.rules is list && data.rules.size() <= 30)) &&
+      (!('monitor' in data) || (data.monitor is string && data.monitor.size() <= 2000)) &&
+      (!('success' in data) || (data.success is string && data.success.size() <= 2000)) &&
+      (!('source' in data) || (data.source is string && data.source.size() <= 200)) &&
+      (!('generated_by' in data) || (data.generated_by is string && data.generated_by.size() <= 100)) &&
+      (!('version' in data) || (data.version is string && data.version.size() <= 50)) &&
+      (!('title' in data) || (data.title is string && data.title.size() <= 200)) &&
+      (!('name' in data) || (data.name is string && data.name.size() <= 200)) &&
+      (!('scanId' in data) || (data.scanId is string && data.scanId.size() <= 100));
+    }
+
+    // 4. Validator cho collection `feedback`
+    function isValidFeedback(data) {
+      return hasOnlyAllowedFields([
+        'id', 'userId', 'rating', 'category', 'type', 'content', 'comment',
+        'message', 'scanId', 'planId', 'userEmail', 'userName', 'display_name',
+        'device_info', 'status', 'createdAt', 'updatedAt'
+      ]) &&
+      (!('userId' in data) || (data.userId is string && data.userId.size() <= 128)) &&
+      (!('rating' in data) || (data.rating is number && data.rating >= 1 && data.rating <= 5)) &&
+      (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+      (!('type' in data) || (data.type is string && data.type.size() <= 100)) &&
+      (!('content' in data) || (data.content is string && data.content.size() <= 2000)) &&
+      (!('comment' in data) || (data.comment is string && data.comment.size() <= 2000)) &&
+      (!('message' in data) || (data.message is string && data.message.size() <= 2000)) &&
+      (!('scanId' in data) || (data.scanId is string && data.scanId.size() <= 100)) &&
+      (!('planId' in data) || (data.planId is string && data.planId.size() <= 100)) &&
+      (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 120 && isValidEmail(data.userEmail))) &&
+      (!('userName' in data) || (data.userName is string && data.userName.size() <= 100)) &&
+      (!('display_name' in data) || (data.display_name is string && data.display_name.size() <= 100)) &&
+      (!('status' in data) || (data.status is string && data.status.size() <= 50));
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. Hồ sơ người dùng: Bảo vệ PII, chỉ chủ sở hữu được đọc và ghi
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) &&
+                       isValidUser(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['id', 'uid', 'createdAt']) &&
+                       (!('role' in request.resource.data) || request.resource.data.role == resource.data.role);
+      allow delete: if isOwner(userId);
+    }
+
+    // 2. Lịch sử quét chẩn đoán: Người dùng chỉ được thao tác trên bản ghi của chính mình
+    match /scan_history/{scanId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       isValidScanRecord(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.userId == resource.data.userId &&
+                       isValidScanRecord(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['userId', 'createdAt', 'id']);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // 3. Phác đồ điều trị: Người dùng đã đăng nhập được đọc và ghi (kèm kiểm tra tính toàn vẹn dữ liệu)
+    match /treatment_plans/{planId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isValidTreatmentPlan(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isValidTreatmentPlan(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['id', 'createdAt']);
+      allow delete: if isAuthenticated();
+    }
+
+    // 4. Phản hồi người dùng: Cho phép người dùng đăng nhập gửi và đọc phản hồi
+    match /feedback/{feedbackId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isValidFeedback(request.resource.data) &&
+                       (!('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid);
+      allow update: if false; // Phản hồi không được chỉnh sửa sau khi gửi để bảo đảm tính xác thực
+      allow delete: if isAuthenticated() &&
+                       (('userId' in resource.data && resource.data.userId == request.auth.uid) ||
+                        (!('userId' in resource.data)));
+    }
+
+    // ===============================================================
+    // Default Deny Fallback
+    // ===============================================================
+    // Chặn toàn bộ truy cập đến bất kỳ collection nào khác
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

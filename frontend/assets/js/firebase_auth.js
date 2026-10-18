@@ -6,14 +6,12 @@
   'use strict';
 
   const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyCxqeXXTBqBx5EMvufU2gBcoR1iHGGUSJk",
-    authDomain: "gen-lang-client-0595612537.firebaseapp.com",
-    databaseURL: "https://gen-lang-client-0595612537-default-rtdb.firebaseio.com",
-    projectId: "gen-lang-client-0595612537",
-    storageBucket: "gen-lang-client-0595612537.firebasestorage.app",
-    messagingSenderId: "1022447215307",
-    appId: "1:1022447215307:web:996dfc62896ae7b4d2314e",
-    measurementId: "G-JW9877Z1N0"
+    apiKey: "AIzaSyBjmtw_sJSM6IMwJqJkwRhmbLsgAsYJkmQ",
+    authDomain: "leaf-ai-app-2026.firebaseapp.com",
+    projectId: "leaf-ai-app-2026",
+    storageBucket: "leaf-ai-app-2026.firebasestorage.app",
+    messagingSenderId: "985474944909",
+    appId: "1:985474944909:web:d3ab39b458d3d8b492b7c4"
   };
 
   const APP_URL = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
