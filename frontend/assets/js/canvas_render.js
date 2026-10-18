@@ -129,25 +129,54 @@ class LeafCanvasRenderer {
 
   drawBoundingBoxes() {
     const scale = this.displayScale;
+    const canvasW = this.canvas.width;
+    const canvasH = this.canvas.height;
+    const imgNaturalW = (this.currentImage && this.currentImage.naturalWidth) || 640;
+    const imgNaturalH = (this.currentImage && this.currentImage.naturalHeight) || 640;
 
     this.detections.forEach((det) => {
-      const [x, y, bw, bh] = det.bbox;
-      const color = det.color || '#ea580c';
-      const shortName = String(det.name_vi || det.class).split(' (')[0];
-      const label = `${shortName} ${Math.round(det.probability_percent || det.confidence * 100)}%`;
+      let x = 0, y = 0, bw = 0, bh = 0;
 
-      const sx = x * scale;
-      const sy = y * scale;
-      const sw = bw * scale;
-      const sh = bh * scale;
+      if (Array.isArray(det.bbox) && det.bbox.length === 4) {
+        [x, y, bw, bh] = det.bbox;
+        // Nếu tọa độ normalized 0..1
+        if (x <= 1.0 && y <= 1.0 && bw <= 1.0 && bh <= 1.0) {
+          x *= imgNaturalW;
+          y *= imgNaturalH;
+          bw *= imgNaturalW;
+          bh *= imgNaturalH;
+        }
+      } else if (Array.isArray(det.box) && det.box.length === 4) {
+        // [ymin, xmin, ymax, xmax] normalized
+        const [ymin, xmin, ymax, xmax] = det.box;
+        x = xmin * imgNaturalW;
+        y = ymin * imgNaturalH;
+        bw = (xmax - xmin) * imgNaturalW;
+        bh = (ymax - ymin) * imgNaturalH;
+      } else {
+        return;
+      }
+
+      if (bw <= 2 || bh <= 2) return;
+
+      const color = det.color || '#ea580c';
+      const shortName = String(det.name_vi || det.label || det.class).split(' (')[0];
+      const prob = Math.round(det.probability_percent || (det.confidence ? det.confidence * 100 : 0));
+      const label = prob > 0 ? `${shortName} ${prob}%` : shortName;
+
+      // Ánh xạ sang tọa độ canvas và giới hạn an toàn (Clamp)
+      let sx = Math.max(2, Math.min(canvasW - 10, x * scale));
+      let sy = Math.max(2, Math.min(canvasH - 10, y * scale));
+      let sw = Math.min(canvasW - sx - 2, Math.max(10, bw * scale));
+      let sh = Math.min(canvasH - sy - 2, Math.max(10, bh * scale));
 
       this.ctx.save();
 
-      // Vùng phủ bán trong suốt nhẹ làm nổi bật vết bệnh
-      this.ctx.fillStyle = this.hexToRgba(color, 0.12);
+      // Vùng phủ bán trong suốt làm nổi bật vị trí vết bệnh
+      this.ctx.fillStyle = this.hexToRgba(color, 0.15);
       this.ctx.fillRect(sx, sy, sw, sh);
 
-      // Viền khung rõ ràng, mềm mại (Không chói neon)
+      // Viền khung vết bệnh rõ ràng, bo góc nhẹ
       this.ctx.strokeStyle = color;
       this.ctx.lineWidth = 2.5;
       this.ctx.strokeRect(sx, sy, sw, sh);
@@ -156,16 +185,23 @@ class LeafCanvasRenderer {
       this.ctx.font = '600 12px "Be Vietnam Pro", system-ui, sans-serif';
       const textWidth = this.ctx.measureText(label).width;
       const badgeH = 22;
-      const badgeW = textWidth + 14;
-      const badgeY = sy - badgeH > 0 ? sy - badgeH : sy;
+      const badgeW = Math.min(canvasW - 4, textWidth + 14);
 
-      // Nền nhãn màu solid
+      // Đặt nhãn luôn nằm gọn trong khung nhìn canvas
+      let badgeX = sx;
+      if (badgeX + badgeW > canvasW - 2) {
+        badgeX = Math.max(2, canvasW - badgeW - 2);
+      }
+      let badgeY = sy - badgeH >= 2 ? sy - badgeH : sy + 2;
+
+      // Nền nhãn màu đậm nét
       this.ctx.fillStyle = color;
-      this.ctx.fillRect(sx, badgeY, badgeW, badgeH);
+      this.ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
 
       // Chữ màu trắng tương phản cao
       this.ctx.fillStyle = '#ffffff';
-      this.ctx.fillText(label, sx + 7, badgeY + 15);
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText(label, badgeX + 7, badgeY + badgeH / 2);
 
       this.ctx.restore();
     });

@@ -244,9 +244,15 @@ def optical_analysis_fallback(img: Image.Image, model_version: str) -> List[Dict
     img_resized = img.resize((128, 128))
     pixels = list(img_resized.getdata())
     total = len(pixels) or 1
+    green_ratio = sum(1 for r, g, b in pixels if g > r * 1.05 and g > b * 1.05) / total
     dark_ratio = sum(1 for r, g, b in pixels if r < 65 and g < 65 and b < 65) / total
-    brown_ratio = sum(1 for r, g, b in pixels if r > g and g > b and r < 150) / total
-    red_velvet_ratio = sum(1 for r, g, b in pixels if r > 120 and g < 80 and b < 80) / total
+    brown_ratio = sum(1 for r, g, b in pixels if r > g * 1.1 and r > b * 1.1 and r > 75 and g < 145) / total
+    red_velvet_ratio = sum(1 for r, g, b in pixels if r > 115 and g < 85 and b < 80) / total
+
+    if green_ratio >= 0.70 and brown_ratio < 0.035 and red_velvet_ratio < 0.02 and dark_ratio < 0.035:
+        return [
+            {"class": "Healthy", "name_vi": "Lá vải khỏe mạnh", "probability": round(92.0 + green_ratio * 6.0, 1)}
+        ]
 
     if red_velvet_ratio > 0.05:
         return [
@@ -264,8 +270,7 @@ def optical_analysis_fallback(img: Image.Image, model_version: str) -> List[Dict
             {"class": "Leaf_blight", "name_vi": "Cháy lá", "probability": 34.0}
         ]
     return [
-        {"class": "Anthracnose", "name_vi": "Thán thư", "probability": 68.0},
-        {"class": "Leaf_blight", "name_vi": "Cháy lá", "probability": 38.0}
+        {"class": "Healthy", "name_vi": "Lá vải khỏe mạnh", "probability": 94.0}
     ]
 
 

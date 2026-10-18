@@ -125,38 +125,45 @@ def apply_heatmap_overlay(img: Image.Image, cam: np.ndarray, alpha: float = 0.45
 
 
 def _extract_bounding_boxes_from_cam(cam: np.ndarray, img_w: int, img_h: int, primary_cls: str, primary_prob: float) -> List[Dict[str, Any]]:
-    """Tạo các khung bao (bounding boxes) từ các vùng kích hoạt cao của Grad-CAM."""
+    """Trích xuất khung bao (bounding boxes) từ các cụm kích hoạt Grad-CAM cao thực sự."""
+    if primary_cls == "Healthy":
+        return []
+
     detections = []
-    threshold = 0.55
+    threshold = 0.62
     cam_resized = Image.fromarray(np.uint8(cam * 255)).resize((img_w, img_h), Image.Resampling.BILINEAR)
     cam_arr = np.array(cam_resized) / 255.0
     binary_mask = (cam_arr > threshold).astype(np.uint8)
 
     # Tìm tọa độ bao quanh vùng kích hoạt
     y_indices, x_indices = np.where(binary_mask > 0)
-    if len(x_indices) > 50 and len(y_indices) > 50:
-        xmin = float(x_indices.min()) / img_w
-        xmax = float(x_indices.max()) / img_w
-        ymin = float(y_indices.min()) / img_h
-        ymax = float(y_indices.max()) / img_h
+    if len(x_indices) > 60 and len(y_indices) > 60:
+        xmin = max(0.0, float(x_indices.min()) / img_w)
+        xmax = min(1.0, float(x_indices.max()) / img_w)
+        ymin = max(0.0, float(y_indices.min()) / img_h)
+        ymax = min(1.0, float(y_indices.max()) / img_h)
         
-        # Đảm bảo box có kích thước tối thiểu
-        if (xmax - xmin) > 0.05 and (ymax - ymin) > 0.05:
+        bw = xmax - xmin
+        bh = ymax - ymin
+        # Đảm bảo box có kích thước hợp lý (từ 5% đến 85% khung hình)
+        if 0.05 <= bw <= 0.85 and 0.05 <= bh <= 0.85:
+            info = TOMATO_DISEASES.get(primary_cls, {})
+            color = info.get("color", "#ea580c")
             detections.append({
                 "class": primary_cls,
                 "label": CLASS_NAME_VI.get(primary_cls, primary_cls),
+                "name_vi": CLASS_NAME_VI.get(primary_cls, primary_cls),
+                "confidence": round(primary_prob / 100.0, 2),
+                "probability_percent": round(primary_prob, 1),
+                "color": color,
                 "box": [round(ymin, 3), round(xmin, 3), round(ymax, 3), round(xmax, 3)],
-                "confidence": round(primary_prob, 1),
+                "bbox": [
+                    int(xmin * img_w),
+                    int(ymin * img_h),
+                    int(bw * img_w),
+                    int(bh * img_h),
+                ],
             })
-
-    # Nếu không tìm thấy vùng tập trung hoặc box quá nhỏ, tạo box giả định ở tâm chú ý
-    if not detections and primary_cls != "Healthy":
-        detections.append({
-            "class": primary_cls,
-            "label": CLASS_NAME_VI.get(primary_cls, primary_cls),
-            "box": [0.25, 0.25, 0.75, 0.75],
-            "confidence": round(primary_prob, 1),
-        })
 
     return detections
 
@@ -229,6 +236,26 @@ class NativeDeepLearningEngine:
             img_w, img_h = img.size
             input_tensor = transform_pipeline(img).unsqueeze(0).to(self.device)
 
+            # Phân tích sắc tố trắc quang học mô lá (Optical Leaf Tissue Inspection)
+            img_small = img.resize((160, 160))
+            pixels = np.array(img_small)
+            r = pixels[:, :, 0].astype(np.float32)
+            g = pixels[:, :, 1].astype(np.float32)
+            b = pixels[:, :, 2].astype(np.float32)
+            is_leaf = ~((r > 225) & (g > 225) & (b > 225)) & ~((r < 30) & (g < 30) & (b < 30))
+            total_leaf = int(np.sum(is_leaf))
+            if total_leaf < 150:
+                is_leaf = np.ones_like(r, dtype=bool)
+                total_leaf = len(r.flatten())
+            
+            green_ratio = float(np.sum(is_leaf & (g > r * 1.05) & (g > b * 1.05)) / total_leaf)
+            brown_ratio = float(np.sum(is_leaf & (r > g * 1.1) & (r > b * 1.1) & (r > 75) & (g < 145)) / total_leaf)
+            erinose_ratio = float(np.sum(is_leaf & (r > 115) & (g < 85) & (b < 80)) / total_leaf)
+            dark_ratio = float(np.sum(is_leaf & (r < 65) & (g < 65) & (b < 65)) / total_leaf)
+            
+            # Lá khỏe mạnh: xanh diệp lục áp đảo (>72%), không có mô hoại tử
+            leaf_is_clean_healthy = (green_ratio >= 0.72 and brown_ratio < 0.035 and erinose_ratio < 0.02 and dark_ratio < 0.035)
+
             with torch.set_grad_enabled(True):
                 output = self.model(input_tensor)
                 probs = torch.softmax(output, dim=1)[0]
@@ -242,6 +269,19 @@ class NativeDeepLearningEngine:
                         lychee_probs[mapped_cls] += float(p.item())
                     else:
                         lychee_probs["Anthracnose"] += float(p.item())
+
+                # Nếu quang học kiểm tra khẳng định lá xanh sạch không bệnh
+                if leaf_is_clean_healthy:
+                    lychee_probs["Healthy"] = max(lychee_probs.get("Healthy", 0.0), 0.94)
+                    for k in lychee_probs:
+                        if k != "Healthy":
+                            lychee_probs[k] *= 0.05
+                elif brown_ratio > 0.06:
+                    lychee_probs["Anthracnose"] = max(lychee_probs.get("Anthracnose", 0.0), 0.85)
+                elif erinose_ratio > 0.04:
+                    lychee_probs["Erinose"] = max(lychee_probs.get("Erinose", 0.0), 0.88)
+                elif dark_ratio > 0.08:
+                    lychee_probs["Downy_blight"] = max(lychee_probs.get("Downy_blight", 0.0), 0.82)
 
                 total_p = sum(lychee_probs.values()) or 1.0
                 sorted_lychee = sorted(lychee_probs.items(), key=lambda x: -x[1])

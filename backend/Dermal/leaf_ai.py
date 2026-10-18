@@ -161,22 +161,34 @@ không markdown, không lời dẫn, không giải thích ngoài JSON.
 
 Các bệnh được phép chẩn đoán (chỉ dùng đúng mã này cho trường "class"):
 {_active_disease_lines(model_version)}
-Nếu lá không thấy dấu hiệu bệnh nào, đặt "healthy": true và để diseases/regions rỗng.
 
-CẤU TRÚC JSON:
+QUY TẮC NHẬN DIỆN LÁ KHỎE MẠNH (HEALTHY):
+- Nếu phiến lá vải màu xanh tươi, gân lá đều, bề mặt tự nhiên, không có đốm hoại tử màu nâu/đen/vàng, không có lớp lông nhung xù xì, không bị cháy chóp/cháy mép:
+  BẮT BUỘC ĐẶT: "healthy": true, "diseases": [], "regions": []
+  Và viết report_html ghi nhận lá vải khỏe mạnh, khuyến nghị tiếp tục duy trì chăm sóc theo IPM.
+
+CẤU TRÚC JSON MẪU:
+Trường hợp 1 (Có bệnh):
 {{
   "healthy": false,
-  "diseases": [{{"class": "Anthracnose", "probability": 87}}],
-  "regions": [{{"class": "Anthracnose", "confidence": 0.87, "bbox": [512, 96, 224, 192]}}],
-  "report_html": "<h3>Kết luận nhanh</h3><p>...</p>"
+  "diseases": [{{"class": "<Mã_Bệnh>", "probability": 85}}],
+  "regions": [],
+  "report_html": "<h3>Kết luận nhanh</h3><p>Phát hiện dấu hiệu bệnh...</p>..."
+}}
+
+Trường hợp 2 (Lá khỏe mạnh):
+{{
+  "healthy": true,
+  "diseases": [],
+  "regions": [],
+  "report_html": "<h3>Kết luận nhanh</h3><p>Lá vải thiều phát triển xanh tốt, không phát hiện dấu hiệu bệnh hại.</p>..."
 }}
 
 QUY TẮC BẮT BUỘC:
-1. "diseases": tối đa 3 mục, sắp theo "probability" GIẢM DẦN; "probability" là số 0-100
+1. "diseases": tối đa 3 mục, sắp theo "probability" GIẢM DẦN; "probability" là số nguyên hoặc thực 0-100
    (không kèm dấu %, không chuỗi chữ). Không trùng mã bệnh. healthy=true thì diseases=[].
-2. "regions": tối đa 4 vùng khoanh rõ nhất trên ảnh; "bbox" = [x, y, w, h] toạ độ TUYỆT ĐỐI
-   theo thang 0-1000 (góc trên-trái ảnh = 0,0; x sang phải, y xuống dưới).
-   Không chắc chắn vị trí thì để regions=[].
+2. "regions": để rỗng [] vì hệ thống sử dụng Bản đồ nhiệt Grad-CAM để trực quan hóa vùng bệnh.
+   Chỉ đưa vào regions nếu xác định được chính xác tọa độ vết bệnh [x, y, w, h] theo thang 0-1000.
 3. "report_html": tiếng Việt, HTML semantic thuần. CẤM TUYỆT: <style>, <script>, <img>,
    <iframe>, thuộc tính style/on*, markdown (#, **). Chỉ dùng thẻ:
    h3, h4, p, ul, ol, li, strong, em, b, i, br, hr, div, span, table, thead, tbody,
@@ -184,17 +196,14 @@ QUY TẮC BẮT BUỘC:
    Chỉ dùng các class: badge, badge-high, badge-mid, badge-low, pct, report-table,
    callout, callout-warn, callout-info.
 4. report_html đúng 6 phần, mỗi phần mở đầu bằng <h3>:
-   a) <h3>Kết luận nhanh</h3> — 1-2 câu chốt bệnh chính + số % và
+   a) <h3>Kết luận nhanh</h3> — 1-2 câu chốt tình trạng lá, tên bệnh + % (nếu có) và
       <span class="badge badge-high|badge-mid|badge-low">Mức độ</span>
-      (badge-high = Nghiêm trọng, badge-mid = Trung bình, badge-low = Nhẹ).
-   b) <h3>Quan sát trên ảnh</h3> — mô tả cụ thể những gì THẤY được trên ảnh:
-      hình dạng, màu, kích thước ước lượng, vị trí (mặt trên/mặt dưới lá, mép/giữa,
-      lá già/lá non). Không bịa thêm triệu chứng không nhìn thấy.
-   c) <h3>Bệnh chính và mức độ</h3> — nêu tên bệnh kèm <span class="pct">87%</span>;
-      nếu nhiều bệnh, dùng <table class="report-table"> với cột: Bệnh | Độ tin cậy | Mức độ.
-   d) <h3>Nguyên nhân và điều kiện thuận lợi</h3> — thời tiết/ẩm độ thường khiến bệnh bùng.
-   e) <h3>Phác đồ xử lý</h3> — 3 nhóm gạch đầu dòng: Canh tác / Sinh học / Hóa học;
-      nhóm hóa học nhắc nguyên tắc 4 đúng (đúng thuốc, đúng lúc, đúng nồng độ, đúng cách).
+      (badge-high = Nghiêm trọng, badge-mid = Trung bình, badge-low = Nhẹ; nếu lá khỏe thì ghi rõ "Lá khỏe").
+   b) <h3>Quan sát trên ảnh</h3> — mô tả trung thực những gì THẤY được trên ảnh:
+      màu sắc phiến lá, tình trạng mép lá, chóp lá, gân lá, mặt trên/mặt dưới. Tuyệt đối không bịa đặt triệu chứng không có.
+   c) <h3>Bệnh chính và mức độ</h3> — nêu tên bệnh (nếu có); nếu lá khỏe, khẳng định lá xanh tốt.
+   d) <h3>Nguyên nhân và điều kiện thuận lợi</h3> — điều kiện ẩm độ, thời tiết cần lưu ý trong mùa vụ.
+   e) <h3>Phác đồ xử lý</h3> — 3 nhóm gạch đầu dòng: Canh tác / Sinh học / Hóa học (nếu lá khỏe thì nêu biện pháp duy trì).
    f) <h3>Phòng ngừa và lưu ý</h3> — kết thúc đúng câu:
       "AI chỉ hỗ trợ chẩn đoán sơ bộ cho vườn vải thiều Lục Ngạn — hãy tham khảo cán bộ khuyến nông hoặc trạm Trồng trọt & BVTV Lục Ngạn trước khi phun thuốc."
 5. Mức độ theo "probability": >=60 → "Nghiêm trọng"; 35-59 → "Trung bình"; <35 → "Nhẹ".
@@ -639,10 +648,8 @@ def build_analysis(payload, data, model_version=MODEL_V3):
             })
 
     detections = []
-    if not healthy:
+    if not healthy and payload.get("regions"):
         detections = _detections_from_regions(payload.get("regions"), size)
-        if not detections and diseases:
-            detections = fallback_detections(diseases, size[0], size[1])
 
     is_coinfection = len(diseases) > 1
     result = [{"class": d["class"], "probability": d["probability"]} for d in diseases]

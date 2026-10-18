@@ -68,19 +68,31 @@
       await loadImage(src);
       $('dropZone').classList.add('has-image');
       const [result] = await Promise.all([api.diagnose(src, state.model), playScan(1700)]);
-      if (runId !== state.runId) return;
-
-      renderer.setDetections(result.detections || []);
-
       const heatmapSrc = result.heatmap_base64 || result.heatmap_url || null;
-      if (heatmapSrc) {
-        renderer.setHeatmap(heatmapSrc);
-        if ($('viewModeBar')) $('viewModeBar').hidden = false;
-        // Ảnh thật chỉ có bản đồ nhiệt (mô hình phân loại cả ảnh), nên mở sẵn chế độ Grad-CAM
-        setViewMode((result.detections || []).length ? 'box' : 'heatmap');
+
+      // Nếu lá khỏe mạnh: tuyệt đối không vẽ box bệnh giả
+      if (result.healthy) {
+        renderer.setDetections([]);
+        if (heatmapSrc) {
+          renderer.setHeatmap(heatmapSrc);
+          if ($('viewModeBar')) $('viewModeBar').hidden = false;
+        } else {
+          renderer.setHeatmap(null);
+          if ($('viewModeBar')) $('viewModeBar').hidden = true;
+        }
+        setViewMode('box'); // Lá khỏe xem ảnh gốc sạch đẹp tự nhiên
       } else {
-        renderer.setHeatmap(null);
-        if ($('viewModeBar')) $('viewModeBar').hidden = true;
+        renderer.setDetections(result.detections || []);
+        if (heatmapSrc) {
+          renderer.setHeatmap(heatmapSrc);
+          if ($('viewModeBar')) $('viewModeBar').hidden = false;
+          // Chuẩn khoa học XAI: Ưu tiên mở Bản đồ nhiệt Grad-CAM trực quan hóa vùng bệnh
+          setViewMode('heatmap');
+        } else {
+          renderer.setHeatmap(null);
+          if ($('viewModeBar')) $('viewModeBar').hidden = true;
+          setViewMode('box');
+        }
       }
 
       renderResult(result);
@@ -88,10 +100,10 @@
       setStatus('done', result.analysis_unavailable
         ? 'Chưa phân tích được — hãy thử lại sau'
         : result.healthy
-          ? 'Không phát hiện dấu hiệu bệnh'
+          ? 'Không phát hiện dấu hiệu bệnh hại — Lá vải khỏe mạnh'
           : (result.detections || []).length
-            ? `Đã khoanh vùng ${result.detections.length} vết bệnh`
-            : 'Đã phân loại xong, xem vùng bệnh trên bản đồ nhiệt Grad-CAM');
+            ? `Đã nhận diện bệnh và khoanh vùng chú ý (Grad-CAM)`
+            : 'Đã phân loại xong — xem vùng bệnh trên Bản đồ nhiệt Grad-CAM');
 
       if (save) await saveRecord(result, src);
     } catch (err) {
