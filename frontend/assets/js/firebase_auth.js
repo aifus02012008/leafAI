@@ -21,6 +21,11 @@
   let authModules = null;
   let initPromise = null;
   const authStateListeners = [];
+  // Trạng thái đăng nhập đầu tiên Firebase khôi phục được (user | null); undefined = SDK không tải được (offline)
+  let resolveReady;
+  const readyPromise = new Promise((r) => { resolveReady = r; });
+  let readySettled = false;
+  const settleReady = (v) => { if (!readySettled) { readySettled = true; resolveReady(v); } };
 
   async function getAuthInstance() {
     if (firebaseAuth && authModules) return { auth: firebaseAuth, mod: authModules };
@@ -38,6 +43,7 @@
           signInWithEmailAndPassword,
           createUserWithEmailAndPassword,
           updateProfile,
+          sendPasswordResetEmail,
           signOut,
           onAuthStateChanged
         } = await import(AUTH_URL);
@@ -52,6 +58,7 @@
           signInWithEmailAndPassword,
           createUserWithEmailAndPassword,
           updateProfile,
+          sendPasswordResetEmail,
           signOut,
           onAuthStateChanged
         };
@@ -62,6 +69,7 @@
           if (formatted) {
             localStorage.setItem('leaf_last_user', JSON.stringify(formatted));
           }
+          settleReady(formatted);
           authStateListeners.forEach((fn) => {
             try { fn('AUTH_STATE_CHANGE', formatted, user); } catch (err) { console.error(err); }
           });
@@ -80,6 +88,7 @@
         return { auth: firebaseAuth, mod: authModules };
       } catch (err) {
         console.warn('[LEAF_AI] Không thể khởi tạo Firebase Auth SDK:', err);
+        settleReady(undefined);
         return null;
       }
     })();
@@ -106,6 +115,27 @@
   const LeafAuth = {
     isConfigured: true,
     provider: 'firebase',
+
+    /** Chờ Firebase khôi phục phiên: user | null; undefined nếu SDK không tải được (vd mất mạng). Tối đa 8 giây. */
+    whenReady(timeoutMs = 8000) {
+      return Promise.race([readyPromise, new Promise((r) => setTimeout(() => r(undefined), timeoutMs))]);
+    },
+
+    async resetPassword(email) {
+      const instance = await getAuthInstance();
+      if (!instance) throw new Error('Chưa kết nối được máy chủ đăng nhập. Kiểm tra mạng rồi thử lại.');
+      try {
+        await instance.mod.sendPasswordResetEmail(instance.auth, String(email || '').trim());
+        return { success: true };
+      } catch (err) {
+        throw new Error({
+          'auth/invalid-email': 'Email không đúng định dạng.',
+          'auth/missing-email': 'Nhập email trước khi lấy lại mật khẩu.',
+          'auth/user-not-found': 'Không có tài khoản nào dùng email này.',
+          'auth/too-many-requests': 'Bạn yêu cầu quá nhiều lần. Thử lại sau ít phút.'
+        }[err.code] || 'Không gửi được email đặt lại mật khẩu.');
+      }
+    },
 
     async getCurrentUser() {
       // 1. Kiểm tra từ SDK
@@ -177,6 +207,8 @@
       } catch (err) {
         const friendlyMessage = {
           'auth/invalid-credential': 'Email hoặc mật khẩu không chính xác.',
+          'auth/operation-not-allowed': 'Đăng nhập bằng email chưa được bật trong Firebase Console > Authentication > Sign-in method.',
+          'auth/network-request-failed': 'Mất kết nối mạng. Kiểm tra mạng rồi thử lại.',
           'auth/user-not-found': 'Tài khoản không tồn tại. Vui lòng đăng ký tài khoản mới.',
           'auth/wrong-password': 'Mật khẩu không chính xác.',
           'auth/invalid-email': 'Định dạng email không hợp lệ.',

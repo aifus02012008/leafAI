@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Quét lá vải — LEAF_AI</title>
-  <meta name="description" content="Chụp một lá vải thiều, AI cho biết lá bị bệnh gì, cách xử lý, và kỹ sư AI trả lời thắc mắc ngay bên dưới.">
+  <meta name="description" content="Chụp một lá vải thiều, AI cho biết lá bị bệnh gì và cách xử lý; kỹ sư AI trả lời thắc mắc ngay bên dưới.">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e7a4c">
+  <meta name="theme-color" content="#0F3B26">
   <link rel="icon" href="assets/images/icon-192.png">
   <link rel="apple-touch-icon" href="assets/images/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,85 +18,84 @@
 <body data-page="scan">
   <script src="assets/js/core.js"></script>
 
-  <main id="main" class="page scan3">
-    <div class="container scan3-wrap">
-      <header class="scan3-head">
-        <h1>Lá vải của bạn bị bệnh gì?</h1>
-        <p>Chụp rõ một lá — AI trả lời trong vài giây, kỹ sư AI hỗ trợ ngay bên dưới.</p>
-      </header>
+  <main id="main" class="scanv4">
+    <h1 class="visually-hidden">Quét lá vải</h1>
 
-      <div class="scan3-grid">
-        <!-- Cột trái: ảnh lá -->
-        <section class="scan3-card scan3-capture" aria-labelledby="captureTitle">
-          <h2 id="captureTitle" class="visually-hidden">Ảnh lá cần chẩn đoán</h2>
-
-          <div class="scan3-stage" id="dropZone" tabindex="0" role="button" aria-label="Chọn ảnh lá hoặc kéo thả ảnh vào đây">
-            <canvas id="scanCanvas" width="640" height="420"></canvas>
-            <div class="scan3-empty" id="stageEmpty">
-              <span class="scan3-empty-icon"><i class="bi bi-camera"></i></span>
-              <strong>Chụp hoặc chọn ảnh lá vải</strong>
-              <span>Kéo thả ảnh vào đây trên máy tính</span>
-            </div>
-            <div class="scan3-view" id="viewToggle" hidden role="group" aria-label="Chế độ xem">
-              <button type="button" id="btnModeBox" aria-pressed="true">Ảnh gốc</button>
-              <button type="button" id="btnModeHeatmap" aria-pressed="false">Vùng AI chú ý</button>
-            </div>
-            <input type="file" id="fileInput" accept="image/*" hidden>
+    <div class="scanv4-grid">
+      <!-- Khung ngắm + nút chụp -->
+      <section class="scan3-capture scanv4-cam" aria-label="Chụp ảnh lá">
+        <div class="vf" id="dropZone" tabindex="0" role="button" aria-label="Chọn ảnh lá, hoặc kéo thả ảnh vào đây">
+          <canvas id="scanCanvas" width="640" height="420"></canvas>
+          <span class="vf-corner tl" aria-hidden="true"></span>
+          <span class="vf-corner tr" aria-hidden="true"></span>
+          <span class="vf-corner bl" aria-hidden="true"></span>
+          <span class="vf-corner br" aria-hidden="true"></span>
+          <div class="vf-empty" id="stageEmpty">
+            <svg class="vf-leaf" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+              <path d="M98 22C62 22 32 38 25 67c-3 11 0 20 6 26 18-23 35-35 51-43-14 10-28 25-39 43 5 2 12 2 18 0C87 84 101 56 98 22Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M31 93C43 75 60 58 82 50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <strong>Đặt lá vải vào giữa khung</strong>
+            <span>Bấm nút chụp, hoặc chọn ảnh có sẵn trong máy</span>
           </div>
-
-          <div class="scan3-actions">
-            <button class="btn btn-primary btn-lg" id="btnOpenCamera" type="button"><i class="bi bi-camera"></i>Chụp ảnh</button>
-            <button class="btn btn-lg" id="btnPickFile" type="button"><i class="bi bi-image"></i>Chọn ảnh</button>
+          <div class="vf-toggle" id="viewToggle" hidden role="group" aria-label="Chế độ xem ảnh">
+            <button type="button" id="btnModeBox" aria-pressed="true">Ảnh gốc</button>
+            <button type="button" id="btnModeHeatmap" aria-pressed="false">Vùng AI chú ý</button>
           </div>
+          <input type="file" id="fileInput" accept="image/*" hidden>
+        </div>
 
-          <div class="scan3-surface">
-            <span>Mặt lá:</span>
-            <div class="segmented segmented-sm" role="group" aria-label="Mặt lá trong ảnh" id="surfaceGroup">
-              <button type="button" data-surface="" aria-pressed="true">Tự nhận</button>
-              <button type="button" data-surface="top" aria-pressed="false">Mặt trên</button>
-              <button type="button" data-surface="bottom" aria-pressed="false">Mặt dưới</button>
-            </div>
+        <div class="vf-surface">
+          <span id="surfaceLabel">Mặt lá trong ảnh</span>
+          <div class="segmented segmented-sm" role="group" aria-labelledby="surfaceLabel" id="surfaceGroup">
+            <button type="button" data-surface="" aria-pressed="true">Tự nhận</button>
+            <button type="button" data-surface="top" aria-pressed="false">Mặt trên</button>
+            <button type="button" data-surface="bottom" aria-pressed="false">Mặt dưới</button>
           </div>
+        </div>
+
+        <div class="shutter-row">
+          <button class="side-btn" id="btnPickFile" type="button"><i class="bi bi-images" aria-hidden="true"></i><span>Chọn ảnh</span></button>
+          <button class="shutter" id="btnOpenCamera" type="button" aria-label="Chụp ảnh lá"><i class="bi bi-camera-fill" aria-hidden="true"></i></button>
+          <button class="side-btn" id="btnTrySample" type="button"><i class="bi bi-stars" aria-hidden="true"></i><span>Ảnh mẫu</span></button>
+        </div>
+      </section>
+
+      <div class="scanv4-side">
+        <!-- Trước lần quét đầu: mẹo chụp ngắn -->
+        <section class="scanv4-tips" id="resultIntro" aria-labelledby="tipsTitle">
+          <h2 id="tipsTitle">Chụp sao cho AI nhận đúng</h2>
+          <ul>
+            <li><i class="bi bi-brightness-high" aria-hidden="true"></i>Đủ sáng, tránh nắng gắt chiếu thẳng vào lá</li>
+            <li><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i>Lá chiếm gần hết khung, chạm vào vết bệnh để lấy nét</li>
+            <li><i class="bi bi-arrow-down-up" aria-hidden="true"></i>Nghi nhện lông nhung thì lật lá, chụp mặt dưới</li>
+          </ul>
         </section>
 
-        <!-- Cột phải: kết quả + chat -->
-        <div class="scan3-side">
-          <!-- Trước khi quét: hướng dẫn ngắn -->
-          <section class="scan3-card scan3-intro" id="resultIntro" aria-label="Cách chụp để AI nhận đúng">
-            <h2>Chụp sao cho AI nhận đúng</h2>
-            <ul>
-              <li><i class="bi bi-brightness-high"></i><span>Đủ sáng, tránh nắng gắt chiếu thẳng</span></li>
-              <li><i class="bi bi-bullseye"></i><span>Lá chiếm phần lớn khung, chạm vào vết bệnh để lấy nét</span></li>
-              <li><i class="bi bi-arrow-down-up"></i><span>Nghi nhện lông nhung: lật chụp mặt dưới lá</span></li>
-            </ul>
-            <button class="scan3-link" type="button" id="btnTrySample"><i class="bi bi-play-circle"></i>Chưa có lá? Xem thử với ảnh minh họa</button>
-          </section>
+        <!-- Kết quả -->
+        <section class="scan3-card scan3-result" id="resultCard" hidden aria-live="polite" aria-labelledby="resultTitle">
+          <div class="scan3-status" id="resultStatus"><span class="pulse"></span><span id="resultStatusText">Đang phân tích…</span></div>
+          <h2 id="resultTitle" class="visually-hidden">Kết quả chẩn đoán</h2>
+          <div id="resultBody"></div>
+        </section>
 
-          <!-- Kết quả -->
-          <section class="scan3-card scan3-result" id="resultCard" hidden aria-live="polite" aria-labelledby="resultTitle">
-            <div class="scan3-status" id="resultStatus"><span class="pulse"></span><span id="resultStatusText">Đang phân tích…</span></div>
-            <h2 id="resultTitle" class="visually-hidden">Kết quả chẩn đoán</h2>
-            <div id="resultBody"></div>
-          </section>
-
-          <!-- Hỏi kỹ sư AI ngay dưới kết quả -->
-          <section class="scan3-card scan3-ask" id="askCard" hidden aria-labelledby="askTitle">
-            <div class="scan3-ask-head">
-              <span class="chat-avatar" aria-hidden="true"><i class="bi bi-flower1"></i><span class="chat-status"></span></span>
-              <div>
-                <h2 id="askTitle">Hỏi kỹ sư AI</h2>
-                <p id="askSub">Đã nắm kết quả quét của bạn</p>
-              </div>
+        <!-- Hỏi kỹ sư AI ngay dưới kết quả -->
+        <section class="scan3-card scan3-ask" id="askCard" hidden aria-labelledby="askTitle">
+          <div class="scan3-ask-head">
+            <span class="chat-avatar" aria-hidden="true"><i class="bi bi-flower1"></i><span class="chat-status"></span></span>
+            <div>
+              <h2 id="askTitle">Hỏi kỹ sư AI</h2>
+              <p id="askSub">Đã nắm kết quả quét của bạn</p>
             </div>
-            <div class="scan3-ask-thread" id="askThread" aria-live="polite"></div>
-            <div class="chat-chips scan3-ask-chips" id="askChips" role="group" aria-label="Câu hỏi gợi ý"></div>
-            <form class="chat-composer scan3-ask-form" id="askForm" autocomplete="off">
-              <label class="visually-hidden" for="askInput">Câu hỏi cho kỹ sư AI</label>
-              <textarea id="askInput" rows="1" placeholder="Hỏi thêm về cách xử lý…" maxlength="1000" enterkeyhint="send"></textarea>
-              <button type="submit" class="chat-send" id="askSend" aria-label="Gửi câu hỏi" disabled><i class="bi bi-arrow-up"></i></button>
-            </form>
-          </section>
-        </div>
+          </div>
+          <div class="scan3-ask-thread" id="askThread" aria-live="polite"></div>
+          <div class="chat-chips scan3-ask-chips" id="askChips" role="group" aria-label="Câu hỏi gợi ý"></div>
+          <form class="chat-composer scan3-ask-form" id="askForm" autocomplete="off">
+            <label class="visually-hidden" for="askInput">Câu hỏi cho kỹ sư AI</label>
+            <textarea id="askInput" rows="1" placeholder="Hỏi thêm về cách xử lý…" maxlength="1000" enterkeyhint="send"></textarea>
+            <button type="submit" class="chat-send" id="askSend" aria-label="Gửi câu hỏi" disabled><i class="bi bi-arrow-up"></i></button>
+          </form>
+        </section>
       </div>
     </div>
   </main>

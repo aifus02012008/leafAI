@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>LEAF_AI — Nhận diện bệnh lá vải thiều Lục Ngạn bằng AI</title>
-  <meta name="description" content="Chụp một lá vải thiều, LEAF_AI nhận diện bệnh hại, chỉ cách xử lý theo hướng IPM và có kỹ sư AI trả lời thắc mắc.">
-  <meta property="og:title" content="LEAF_AI — Nhận diện bệnh lá vải thiều Lục Ngạn bằng AI">
-  <meta property="og:description" content="Nhận diện bệnh trên lá vải, xem vùng lá AI dựa vào và nhận phác đồ IPM ngay tại vườn.">
+  <title>Đăng nhập — LEAF_AI</title>
+  <meta name="description" content="LEAF_AI nhận diện bệnh hại trên lá vải thiều Lục Ngạn từ một tấm ảnh. Đăng nhập để quét lá và lưu lịch sử vườn.">
+  <meta property="og:title" content="LEAF_AI — Nhận diện bệnh lá vải thiều Lục Ngạn">
+  <meta property="og:description" content="Chụp một lá vải, AI cho biết lá bị bệnh gì và cách xử lý.">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e7a4c">
+  <meta name="theme-color" content="#0F3B26">
   <link rel="icon" href="assets/images/icon-192.png">
   <link rel="apple-touch-icon" href="assets/images/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,62 +17,89 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body data-page="home">
+<body data-page="login" class="auth-body">
   <script src="assets/js/core.js"></script>
 
-  <main id="main">
-    <section class="hero hero-lite">
-      <div class="container hero-grid">
-        <div>
-          <span class="hero-kicker"><i class="bi bi-geo-alt"></i>Vải thiều Lục Ngạn</span>
-          <h1>Chụp một lá vải. Biết ngay bệnh gì.</h1>
-          <p class="hero-lead">AI nhận diện 5 bệnh hại trên lá vải và chỉ cách xử lý. Còn thắc mắc, kỹ sư AI trả lời ngay.</p>
-          <div class="hero-actions">
-            <a class="btn btn-primary btn-lg" href="scan.html"><i class="bi bi-camera"></i>Quét lá ngay</a>
-            <button class="btn btn-lg" type="button" id="btnHeroChat"><i class="bi bi-chat-dots"></i>Hỏi kỹ sư AI</button>
-          </div>
-          <ol class="mini-steps" aria-label="Cách dùng">
-            <li><b>1</b>Chụp lá</li>
-            <li><b>2</b>AI chẩn đoán</li>
-            <li><b>3</b>Xử lý theo hướng dẫn</li>
-          </ol>
-        </div>
-
-        <figure class="demo" aria-label="Minh họa: AI nhận diện bệnh thán thư trên lá vải và tô vùng AI chú ý" style="margin:0">
-          <div class="demo-bar">
-            <span class="demo-live"><strong>Ví dụ kết quả</strong><span class="demo-sub">ảnh minh họa</span></span>
-            <button class="btn btn-ghost btn-sm" id="btnReplay" type="button"><i class="bi bi-arrow-repeat"></i>Xem lại</button>
-          </div>
-          <div class="demo-stage" id="demoStage">
-            <img src="assets/samples/sample_anthracnose.jpg" alt="Lá vải có các vết nâu ở chóp và mép lá chét" width="800" height="600">
-            <img class="demo-cam" src="assets/samples/cam_anthracnose.jpg" alt="" width="800" height="600">
-            <span class="demo-chip"><i class="bi bi-fire"></i>Vùng AI chú ý</span>
-            <div class="demo-scanline" aria-hidden="true"></div>
-          </div>
-          <figcaption class="demo-result">
-            <div>
-              <div class="name">Thán thư</div>
-              <div class="meta">Cắt bỏ lộc, lá bệnh và tỉa tán cho thoáng trước khi tính đến thuốc.</div>
-            </div>
-            <div class="demo-score">91%</div>
-          </figcaption>
-        </figure>
+  <main id="main" class="auth">
+    <!-- Ảnh lá vải thật trong khung ngắm: giới thiệu đúng việc ứng dụng làm -->
+    <section class="auth-visual" aria-label="Ví dụ: AI nhận diện nhện lông nhung trên lá vải">
+      <img src="assets/images/lychee/la-vai-nhen-long-nhung.webp" alt="Cành vải có lá bị nhện lông nhung làm xoăn và chuyển nâu đỏ" width="1000" height="750" decoding="async" fetchpriority="high">
+      <div class="auth-frame" aria-hidden="true">
+        <span class="vf-corner tl"></span><span class="vf-corner tr"></span>
+        <span class="vf-corner bl"></span><span class="vf-corner br"></span>
+        <span class="auth-tag"><span class="auth-tag-dot"></span>Nhện lông nhung 80%</span>
       </div>
+      <p class="auth-caption">Chụp một lá vải, biết ngay lá bị bệnh gì.</p>
+      <a class="auth-credit" href="https://commons.wikimedia.org/wiki/File:Starr-090421-6246-Litchi_chinensis-leaves_with_lychee_erinose_mite-Pukalani-Maui_(41353157841).jpg" target="_blank" rel="noopener">Ảnh: Forest &amp; Kim Starr, CC BY 3.0</a>
     </section>
 
-    <div class="strip">
-      <div class="container strip-inner">
-        <span class="strip-label">5 bệnh AI nhận diện</span>
-        <a href="disease.html?id=anthracnose"><span class="dot" style="--dot:#c2410c"></span>Thán thư</a>
-        <a href="disease.html?id=downy_blight"><span class="dot" style="--dot:#dc2626"></span>Sương mai</a>
-        <a href="disease.html?id=leaf_blight"><span class="dot" style="--dot:#a16207"></span>Cháy lá</a>
-        <a href="disease.html?id=algal_spot"><span class="dot" style="--dot:#0e7490"></span>Đốm rong</a>
-        <a href="disease.html?id=erinose"><span class="dot" style="--dot:#7e22ce"></span>Nhện lông nhung</a>
+    <section class="auth-panel" aria-labelledby="authTitle">
+      <div class="auth-brand">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19.5 4.5c-7.2.1-12.6 3.4-14 9.2-.5 2 .1 3.8 1.3 5 3.6-4.6 7-7.1 10.2-8.6-2.8 2.1-5.6 5-7.8 8.6 1.1.4 2.4.4 3.7 0 5.1-1.7 7-7.3 6.6-14.2Z" fill="#fff"/></svg></span>
+        <span class="brand-name">LEAF<span>_AI</span></span>
       </div>
-    </div>
+
+      <h1 id="authTitle">Đăng nhập để quét lá</h1>
+      <p class="auth-lead">Lịch sử quét của vườn được lưu theo tài khoản của bạn.</p>
+
+      <div class="auth-switch" role="tablist" aria-label="Chọn cách vào">
+        <button type="button" role="tab" id="tabLogin" aria-selected="true" aria-controls="loginForm">Đăng nhập</button>
+        <button type="button" role="tab" id="tabSignup" aria-selected="false" aria-controls="signupForm">Tạo tài khoản</button>
+      </div>
+
+      <button type="button" class="auth-google" id="btnGoogle">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Tiếp tục với Google</span>
+      </button>
+
+      <div class="auth-or"><span>hoặc dùng email</span></div>
+
+      <p class="auth-msg" id="authMsg" role="alert" hidden></p>
+
+      <form class="auth-form" id="loginForm" role="tabpanel" aria-labelledby="tabLogin" novalidate>
+        <label class="auth-field">
+          <span>Email</span>
+          <input type="email" id="loginEmail" name="email" autocomplete="email" inputmode="email" required placeholder="ten@email.com">
+        </label>
+        <label class="auth-field">
+          <span>Mật khẩu</span>
+          <span class="field-pass">
+            <input type="password" id="loginPass" name="password" autocomplete="current-password" required minlength="6">
+            <button type="button" class="pass-toggle" data-toggle="loginPass" aria-label="Hiện mật khẩu"><i class="bi bi-eye"></i></button>
+          </span>
+        </label>
+        <button type="button" class="auth-link" id="btnForgot">Quên mật khẩu?</button>
+        <button type="submit" class="auth-submit" id="btnLogin">Đăng nhập</button>
+      </form>
+
+      <form class="auth-form" id="signupForm" role="tabpanel" aria-labelledby="tabSignup" hidden novalidate>
+        <label class="auth-field">
+          <span>Tên nhà vườn</span>
+          <input type="text" id="signupName" name="name" autocomplete="name" required maxlength="60" placeholder="Vườn vải bác Ba">
+        </label>
+        <label class="auth-field">
+          <span>Email</span>
+          <input type="email" id="signupEmail" name="email" autocomplete="email" inputmode="email" required placeholder="ten@email.com">
+        </label>
+        <label class="auth-field">
+          <span>Mật khẩu</span>
+          <span class="field-pass">
+            <input type="password" id="signupPass" name="password" autocomplete="new-password" required minlength="6" placeholder="Ít nhất 6 ký tự">
+            <button type="button" class="pass-toggle" data-toggle="signupPass" aria-label="Hiện mật khẩu"><i class="bi bi-eye"></i></button>
+          </span>
+        </label>
+        <button type="submit" class="auth-submit" id="btnSignup">Tạo tài khoản</button>
+      </form>
+
+      <p class="auth-note">Kết quả AI chỉ để tham khảo. Hỏi cán bộ bảo vệ thực vật địa phương trước khi phun thuốc.</p>
+    </section>
   </main>
 
-  <script src="assets/js/api.js"></script>
-  <script src="assets/js/pages/landing.js"></script>
+  <script src="assets/js/pages/login.js"></script>
 </body>
 </html>
