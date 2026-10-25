@@ -215,56 +215,57 @@
 
     <!-- Bong bóng chat nổi (Kỹ sư AI Vườn Vải Lục Ngạn) -->
     <div class="chat-widget" id="chatWidget">
-      <section class="chat-widget-panel" id="chatWidgetPanel" hidden aria-label="Khung trò chuyện với Kỹ sư AI">
-        <header class="chat-widget-header">
-          <div class="chat-widget-header-info">
-            <span class="chat-widget-avatar">
-              <i class="bi bi-flower1"></i>
-              <span class="status-indicator"></span>
-            </span>
-            <div>
-              <h3 class="chat-widget-title">Kỹ sư AI Vườn Vải</h3>
-              <span class="chat-widget-subtitle">Tư vấn bệnh lá vải &amp; IPM Lục Ngạn</span>
-            </div>
+      <div class="chat-backdrop" id="chatBackdrop" hidden></div>
+      <section class="chat-panel" id="chatWidgetPanel" role="dialog" aria-labelledby="chatPanelTitle" hidden>
+        <header class="chat-head">
+          <button type="button" class="chat-icon-btn chat-back" id="btnWidgetBack" aria-label="Quay lại">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span class="chat-avatar" aria-hidden="true">
+            <i class="bi bi-flower1"></i>
+            <span class="chat-status" id="chatStatusDot"></span>
+          </span>
+          <div class="chat-head-text">
+            <h3 class="chat-title" id="chatPanelTitle">Kỹ sư AI Vườn Vải</h3>
+            <span class="chat-sub" id="chatStatusText">Tư vấn bệnh lá vải &amp; IPM Lục Ngạn</span>
           </div>
-          <div class="chat-widget-header-actions">
-            <button type="button" class="btn-widget-icon" id="btnWidgetNewChat" title="Làm mới trò chuyện">
-              <i class="bi bi-arrow-clockwise"></i>
+          <div class="chat-head-actions">
+            <button type="button" class="chat-icon-btn" id="btnWidgetNewChat" title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới">
+              <i class="bi bi-pencil-square"></i>
             </button>
-            <button type="button" class="btn-widget-icon" id="btnWidgetClose" title="Thu nhỏ">
-              <i class="bi bi-dash-lg"></i>
+            <button type="button" class="chat-icon-btn chat-close" id="btnWidgetClose" title="Thu nhỏ" aria-label="Thu nhỏ khung chat">
+              <i class="bi bi-chevron-down"></i>
             </button>
           </div>
         </header>
 
-        <div class="chat-widget-quick">
-          <span class="quick-title">Hỏi nhanh:</span>
-          <div class="quick-chips">
-            <button type="button" class="quick-chip" data-q="Lá vải bị cháy chóp nâu, có chấm đen là bệnh gì?">Lá cháy chóp</button>
-            <button type="button" class="quick-chip" data-q="Mặt dưới lá vải có lớp nhung nâu đỏ xử lý thế nào?">Nhện lông nhung</button>
-            <button type="button" class="quick-chip" data-q="Trời nồm ẩm, mưa phùn phòng trừ sương mai hoa vải ra sao?">Sương mai hoa vải</button>
-            <button type="button" class="quick-chip" data-q="Thời gian cách ly (PHI) trước khi thu hoạch vải là bao lâu?">Cách ly PHI</button>
+        <div class="chat-thread" id="widgetThread" aria-live="polite" aria-busy="false"></div>
+
+        <div class="chat-quick" id="chatQuick">
+          <div class="chat-chips" role="group" aria-label="Câu hỏi gợi ý">
+            <button type="button" class="chat-chip" data-q="Lá vải bị cháy chóp nâu, có chấm đen là bệnh gì?"><i class="bi bi-fire"></i>Lá cháy chóp</button>
+            <button type="button" class="chat-chip" data-q="Mặt dưới lá vải có lớp nhung nâu đỏ xử lý thế nào?"><i class="bi bi-bug"></i>Nhện lông nhung</button>
+            <button type="button" class="chat-chip" data-q="Trời nồm ẩm, mưa phùn phòng trừ sương mai hoa vải ra sao?"><i class="bi bi-cloud-drizzle"></i>Sương mai hoa vải</button>
+            <button type="button" class="chat-chip" data-q="Thời gian cách ly (PHI) trước khi thu hoạch vải là bao lâu?"><i class="bi bi-shield-check"></i>Cách ly PHI</button>
+            <a class="chat-chip chat-chip-accent" href="scan.html"><i class="bi bi-camera"></i>Chụp ảnh lá</a>
           </div>
         </div>
 
-        <div class="chat-widget-thread" id="widgetThread" aria-live="polite"></div>
-
-        <form class="chat-widget-composer" id="widgetComposer">
-          <textarea id="widgetInput" rows="1" placeholder="Hỏi kỹ sư AI về lá vải Lục Ngạn..." maxlength="2000"></textarea>
-          <button type="submit" class="btn-widget-send" id="btnWidgetSend" aria-label="Gửi câu hỏi">
-            <i class="bi bi-send-fill"></i>
+        <form class="chat-composer" id="widgetComposer" autocomplete="off">
+          <label class="visually-hidden" for="widgetInput">Câu hỏi cho kỹ sư AI</label>
+          <textarea id="widgetInput" rows="1" placeholder="Mô tả vết bệnh trên lá vải..." maxlength="2000" enterkeyhint="send"></textarea>
+          <button type="submit" class="chat-send" id="btnWidgetSend" aria-label="Gửi câu hỏi" disabled>
+            <i class="bi bi-arrow-up"></i>
           </button>
         </form>
-        <div class="chat-widget-foot-note">
-          <span>Tư vấn kỹ thuật IPM theo thực tế Lục Ngạn, Bắc Giang</span>
-        </div>
+        <p class="chat-foot">Câu trả lời mang tính tham khảo — đọc kỹ nhãn thuốc trước khi phun.</p>
       </section>
 
-      <button type="button" class="chat-widget-fab" id="chatWidgetFab" aria-expanded="false" aria-controls="chatWidgetPanel" aria-label="Mở trợ lý kỹ sư AI">
-        <span class="fab-badge" id="chatFabBadge">1</span>
-        <span class="fab-icon-open"><i class="bi bi-chat-dots-fill"></i></span>
-        <span class="fab-icon-close"><i class="bi bi-x-lg"></i></span>
-        <span class="fab-label">Hỏi Kỹ sư AI</span>
+      <button type="button" class="chat-fab" id="chatWidgetFab" aria-expanded="false" aria-controls="chatWidgetPanel" aria-label="Mở trợ lý kỹ sư AI">
+        <span class="chat-fab-badge" id="chatFabBadge">1</span>
+        <span class="chat-fab-icon chat-fab-open"><i class="bi bi-chat-dots-fill"></i></span>
+        <span class="chat-fab-icon chat-fab-x"><i class="bi bi-x-lg"></i></span>
+        <span class="chat-fab-label">Hỏi Kỹ sư AI</span>
       </button>
     </div>`;
 
@@ -839,115 +840,288 @@
 
   // ------------------------------------------------------------------
   // Bong bóng chat nổi (Floating Chat Widget) — Kỹ sư AI Vườn Vải Lục Ngạn
+  // - Desktop: thẻ nổi góc phải; Tablet: sheet nổi trên bottom-nav;
+  //   Mobile (≤640px): toàn màn hình, bám theo visualViewport khi bàn phím mở.
+  // - Lưu hội thoại trong sessionStorage để giữ khi chuyển trang.
   // ------------------------------------------------------------------
   let openChatFn = (q) => {};
   let closeChatFn = () => {};
   let toggleChatFn = () => {};
 
   function initChatWidget() {
-    const widget = document.getElementById('chatWidget');
+    const $ = (id) => document.getElementById(id);
+    const widget = $('chatWidget');
     if (!widget) return;
 
-    const fab = document.getElementById('chatWidgetFab');
-    const panel = document.getElementById('chatWidgetPanel');
-    const badge = document.getElementById('chatFabBadge');
-    const btnClose = document.getElementById('btnWidgetClose');
-    const btnNewChat = document.getElementById('btnWidgetNewChat');
-    const thread = document.getElementById('widgetThread');
-    const composer = document.getElementById('widgetComposer');
-    const input = document.getElementById('widgetInput');
-    const btnSend = document.getElementById('btnWidgetSend');
+    const fab = $('chatWidgetFab');
+    const panel = $('chatWidgetPanel');
+    const backdrop = $('chatBackdrop');
+    const badge = $('chatFabBadge');
+    const thread = $('widgetThread');
+    const composer = $('widgetComposer');
+    const input = $('widgetInput');
+    const btnSend = $('btnWidgetSend');
+    const statusText = $('chatStatusText');
+    const statusDot = $('chatStatusDot');
+    const bottomBtn = $('btnBottomChat');
 
-    let sending = false;
+    const STORE_KEY = 'leaf_chat_v2';
+    const SEEN_KEY = 'leaf_chat_seen';
+    const MAX_STORED = 40;
+    const mqMobile = window.matchMedia('(max-width: 640px)');
+    const api = typeof LeafApiService !== 'undefined' ? new LeafApiService() : null;
+
+    const store = {
+      get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+      set(k, v) { try { sessionStorage.setItem(k, v); } catch { /* private mode */ } },
+      del(k) { try { sessionStorage.removeItem(k); } catch { /* private mode */ } }
+    };
 
     const WELCOME = `
       <p><strong>Xin chào bà con!</strong> Em là trợ lý kỹ sư AI chuyên tư vấn cây vải thiều Lục Ngạn.</p>
-      <p>Bà con có thể mô tả triệu chứng vết bệnh trên lá vải, đọt non hoặc hỏi cách phun thuốc theo đúng IPM nhé!</p>`;
+      <p>Bà con mô tả vết bệnh (màu sắc, vị trí trên lá, lộc non hay lá già) hoặc hỏi cách phun thuốc theo IPM nhé!</p>`;
 
+    /** @type {{who:'me'|'bot', html:string, text?:string, offline?:boolean, error?:boolean, welcome?:boolean, ts:number}[]} */
+    let messages = [];
+    let sending = false;
+    let controller = null;
+    let lastFocus = null;
+
+    // ---------- Render ----------
+    const inline = (s) => s
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+
+    /** Markdown tối giản (đã escape trước): tiêu đề, in đậm/nghiêng, danh sách có/không thứ tự */
     function mdToHtml(text) {
-      const lines = escapeHtml(text).split(/\n/);
+      const lines = escapeHtml(String(text || '').replace(/\r/g, '')).split('\n');
       let html = '';
-      let inList = false;
-      lines.forEach((line) => {
-        const li = line.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)/);
-        if (li) {
-          if (!inList) { html += '<ul>'; inList = true; }
-          html += `<li>${li[1]}</li>`;
-        } else {
-          if (inList) { html += '</ul>'; inList = false; }
-          if (line.trim()) html += `<p>${line}</p>`;
+      let list = null;
+      const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
+      for (const raw of lines) {
+        const line = raw.trimEnd();
+        let m;
+        if ((m = line.match(/^\s*#{1,6}\s+(.*)/))) { closeList(); html += `<p class="chat-h">${inline(m[1])}</p>`; continue; }
+        if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) {
+          if (list !== 'ol') { closeList(); html += '<ol>'; list = 'ol'; }
+          html += `<li>${inline(m[1])}</li>`; continue;
         }
-      });
-      if (inList) html += '</ul>';
-      return html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+        if ((m = line.match(/^\s*[-*•+]\s+(.*)/))) {
+          if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; }
+          html += `<li>${inline(m[1])}</li>`; continue;
+        }
+        closeList();
+        if (line.trim()) html += `<p>${inline(line)}</p>`;
+      }
+      closeList();
+      return html;
     }
 
-    function addMessage(html, who = 'bot') {
+    const toText = (html) => new DOMParser().parseFromString(html || '', 'text/html').body.textContent.trim();
+    const fmtTime = (ts) => new Date(ts).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+    function renderMessage(m) {
       const el = document.createElement('div');
-      el.className = `widget-msg ${who === 'me' ? 'me' : 'bot'}`;
-      el.innerHTML = `<div class="widget-bubble">${html}</div>`;
-      thread.appendChild(el);
-      thread.scrollTop = thread.scrollHeight;
+      el.className = `chat-msg ${m.who}${m.error ? ' is-error' : ''}`;
+      const tag = m.offline ? '<span class="chat-tag"><i class="bi bi-journal-bookmark"></i>Kho kiến thức ngoại tuyến</span>' : '';
+      const retry = m.error ? '<button type="button" class="chat-retry" data-retry><i class="bi bi-arrow-repeat"></i>Thử lại</button>' : '';
+      el.innerHTML = `<div class="chat-bubble">${m.html}${retry}</div><div class="chat-meta">${tag}<time>${fmtTime(m.ts)}</time></div>`;
       return el;
     }
 
-    async function send(text) {
-      const msg = (text ?? input.value).trim();
-      if (!msg || sending) return;
-      sending = true;
-      if (btnSend) btnSend.disabled = true;
-      input.value = '';
+    const nearBottom = () => thread.scrollHeight - thread.scrollTop - thread.clientHeight < 96;
+    const scrollToBottom = (force = false) => {
+      if (force || nearBottom()) requestAnimationFrame(() => { thread.scrollTop = thread.scrollHeight; });
+    };
+
+    function persist() {
+      store.set(STORE_KEY, JSON.stringify(messages.filter((m) => !m.error).slice(-MAX_STORED)));
+    }
+
+    function syncConvoState() {
+      widget.classList.toggle('has-convo', messages.some((m) => m.who === 'me'));
+    }
+
+    function push(m) {
+      m.ts = m.ts || Date.now();
+      messages.push(m);
+      thread.appendChild(renderMessage(m));
+      persist();
+      syncConvoState();
+      scrollToBottom(true);
+    }
+
+    function renderAll() {
+      const frag = document.createDocumentFragment();
+      messages.forEach((m) => frag.appendChild(renderMessage(m)));
+      thread.replaceChildren(frag);
+      syncConvoState();
+      scrollToBottom(true);
+    }
+
+    function setStatus(state) {
+      statusDot.dataset.state = state;
+      statusText.textContent = state === 'typing'
+        ? 'Đang soạn câu trả lời…'
+        : state === 'offline'
+          ? 'Ngoại tuyến · trả lời từ kho kiến thức'
+          : 'Tư vấn bệnh lá vải & IPM Lục Ngạn';
+    }
+
+    const buildHistory = () => messages
+      .filter((m) => !m.error && !m.welcome && m.text)
+      .slice(-10)
+      .map((m) => ({ role: m.who === 'me' ? 'user' : 'model', text: m.text }));
+
+    function showTyping() {
+      const el = document.createElement('div');
+      el.className = 'chat-msg bot is-typing';
+      el.innerHTML = '<div class="chat-bubble"><span class="typing-dots" aria-label="Đang trả lời"><i></i><i></i><i></i></span></div>';
+      thread.appendChild(el);
+      scrollToBottom(true);
+      return el;
+    }
+
+    // ---------- Gửi câu hỏi ----------
+    const syncSend = () => { btnSend.disabled = sending || !input.value.trim(); };
+
+    function autoGrow() {
       input.style.height = 'auto';
+      input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+    }
 
-      addMessage(`<p>${escapeHtml(msg)}</p>`, 'me');
-      const typing = addMessage('<span class="typing-dots" aria-label="Đang trả lời"><i></i><i></i><i></i></span>', 'bot');
+    async function send(text) {
+      const msg = String(text ?? input.value).trim();
+      if (!msg || sending) return;
 
+      sending = true;
+      thread.setAttribute('aria-busy', 'true');
+      if (text === undefined) { input.value = ''; autoGrow(); }
+      syncSend();
+
+      const history = buildHistory();
+      push({ who: 'me', html: `<p>${escapeHtml(msg)}</p>`, text: msg });
+      const typing = showTyping();
+      setStatus('typing');
+
+      const ctrl = new AbortController();
+      controller = ctrl;
       try {
-        let replyHtml = '';
-        if (typeof LeafApiService !== 'undefined') {
-          const api = new LeafApiService();
-          const res = await api.sendChatMessage(msg);
-          replyHtml = res.offline ? res.reply_html : mdToHtml(res.reply || '');
+        if (!api) throw new Error('LeafApiService chưa được nạp');
+        const res = await api.sendChatMessage(msg, history, { signal: ctrl.signal });
+        if (ctrl.signal.aborted) return;
+        typing.remove();
+        if (res.offline) {
+          push({ who: 'bot', html: res.reply_html, text: toText(res.reply_html), offline: true });
+          setStatus('offline');
+        } else {
+          const reply = res.reply || toText(res.reply_html);
+          push({ who: 'bot', html: mdToHtml(reply) || '<p>Em chưa có dữ liệu cho câu hỏi này. Bà con mô tả chi tiết hơn nhé.</p>', text: reply });
+          setStatus('idle');
         }
-        typing.querySelector('.widget-bubble').innerHTML = replyHtml || '<p>Em chưa có dữ liệu cho câu hỏi này. Bà con vui lòng mô tả chi tiết hơn nhé.</p>';
-      } catch (e) {
-        typing.querySelector('.widget-bubble').innerHTML = '<p>Không thể gửi câu hỏi lúc này. Vui lòng kiểm tra lại kết nối mạng.</p>';
+      } catch (err) {
+        typing.remove();
+        if (!ctrl.signal.aborted) {
+          console.warn('[LEAF_AI] Chat widget lỗi:', err);
+          push({ who: 'bot', html: '<p>Em chưa gửi được câu hỏi. Bà con kiểm tra kết nối mạng rồi bấm <strong>Thử lại</strong> nhé.</p>', error: true, retryText: msg });
+          setStatus('idle');
+        }
       } finally {
-        thread.scrollTop = thread.scrollHeight;
-        sending = false;
-        if (btnSend) btnSend.disabled = false;
-        input.focus();
+        // Bị huỷ bởi "Cuộc trò chuyện mới" → resetChat đã dọn trạng thái
+        if (controller === ctrl) {
+          controller = null;
+          sending = false;
+          thread.setAttribute('aria-busy', 'false');
+          syncSend();
+          if (!mqMobile.matches && !panel.hidden) input.focus({ preventScroll: true });
+        }
       }
+    }
+
+    function retryLast() {
+      const errIdx = messages.map((m) => !!m.error).lastIndexOf(true);
+      if (errIdx < 0) return;
+      const q = messages[errIdx].retryText;
+      // Bỏ tin lỗi + câu hỏi tương ứng rồi gửi lại
+      const userIdx = errIdx - 1 >= 0 && messages[errIdx - 1].who === 'me' ? errIdx - 1 : errIdx;
+      messages.splice(userIdx, errIdx - userIdx + 1);
+      renderAll();
+      persist();
+      if (q) send(q);
     }
 
     function resetChat() {
-      thread.innerHTML = '';
-      addMessage(WELCOME, 'bot');
+      if (controller) controller.abort();
+      controller = null;
+      sending = false;
+      thread.setAttribute('aria-busy', 'false');
+      messages = [];
+      store.del(STORE_KEY);
+      thread.replaceChildren();
+      push({ who: 'bot', html: WELCOME, welcome: true });
+      setStatus('idle');
+      syncSend();
     }
 
-    function openChat(question) {
-      panel.hidden = false;
-      widget.classList.add('is-open');
-      fab.setAttribute('aria-expanded', 'true');
-      if (badge) badge.hidden = true;
-      if (thread.children.length === 0) resetChat();
-      if (question) {
-        send(question);
-      } else {
-        setTimeout(() => input.focus(), 150);
+    // ---------- Viewport (bàn phím ảo trên mobile) ----------
+    let vvFrame = 0;
+    function syncViewport() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      cancelAnimationFrame(vvFrame);
+      vvFrame = requestAnimationFrame(() => {
+        widget.style.setProperty('--chat-vh', `${Math.round(vv.height)}px`);
+        widget.style.setProperty('--chat-vt', `${Math.round(vv.offsetTop)}px`);
+        if (!panel.hidden) scrollToBottom();
+      });
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', syncViewport);
+      window.visualViewport.addEventListener('scroll', syncViewport);
+    }
+
+    // ---------- Mở / đóng ----------
+    function setExpanded(open) {
+      fab.setAttribute('aria-expanded', String(open));
+      if (bottomBtn) {
+        bottomBtn.classList.toggle('is-active', open);
+        bottomBtn.setAttribute('aria-expanded', String(open));
       }
     }
 
-    function closeChat() {
-      panel.hidden = true;
-      widget.classList.remove('is-open');
-      fab.setAttribute('aria-expanded', 'false');
+    function openChat(question) {
+      if (panel.hidden) {
+        lastFocus = document.activeElement;
+        panel.hidden = false;
+        backdrop.hidden = false;
+        widget.classList.add('is-open');
+        document.documentElement.classList.add('chat-open');
+        setExpanded(true);
+        if (badge) badge.hidden = true;
+        store.set(SEEN_KEY, '1');
+        if (!messages.length) push({ who: 'bot', html: WELCOME, welcome: true });
+        else scrollToBottom(true);
+        syncViewport();
+      }
+      if (question) send(question);
+      else if (!mqMobile.matches) requestAnimationFrame(() => input.focus({ preventScroll: true }));
     }
 
-    function toggleChat() {
-      if (panel.hidden) openChat();
-      else closeChat();
+    function closeChat() {
+      if (panel.hidden) return;
+      panel.hidden = true;
+      backdrop.hidden = true;
+      widget.classList.remove('is-open');
+      document.documentElement.classList.remove('chat-open');
+      setExpanded(false);
+      input.blur();
+      if (lastFocus && typeof lastFocus.focus === 'function' && (lastFocus === fab || lastFocus === bottomBtn)) {
+        lastFocus.focus({ preventScroll: true });
+      }
     }
+
+    const toggleChat = () => (panel.hidden ? openChat() : closeChat());
 
     openChatFn = openChat;
     closeChatFn = closeChat;
@@ -958,63 +1132,56 @@
       window.Leaf.toggleChat = toggleChat;
     }
 
+    // ---------- Khôi phục phiên ----------
+    try {
+      const saved = JSON.parse(store.get(STORE_KEY) || '[]');
+      if (Array.isArray(saved)) messages = saved.filter((m) => m && (m.who === 'me' || m.who === 'bot') && typeof m.html === 'string');
+    } catch { messages = []; }
+    if (messages.length) renderAll();
+    if (badge && store.get(SEEN_KEY)) badge.hidden = true;
+
+    // ---------- Sự kiện ----------
     fab.addEventListener('click', toggleChat);
-    if (btnClose) btnClose.addEventListener('click', closeChat);
-    if (btnNewChat) btnNewChat.addEventListener('click', () => { resetChat(); input.focus(); });
-
-    if (composer) {
-      composer.addEventListener('submit', (e) => {
-        e.preventDefault();
-        send();
-      });
-    }
-
-    input.addEventListener('input', () => {
-      input.style.height = 'auto';
-      input.style.height = `${Math.min(input.scrollHeight, 100)}px`;
+    backdrop.addEventListener('click', closeChat);
+    $('btnWidgetClose')?.addEventListener('click', closeChat);
+    $('btnWidgetBack')?.addEventListener('click', closeChat);
+    $('btnWidgetNewChat')?.addEventListener('click', () => {
+      resetChat();
+      if (!mqMobile.matches) input.focus({ preventScroll: true });
     });
 
+    composer.addEventListener('submit', (e) => { e.preventDefault(); send(); });
+    input.addEventListener('input', () => { autoGrow(); syncSend(); });
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
-        e.preventDefault();
-        send();
-      }
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+    });
+    input.addEventListener('focus', () => { if (mqMobile.matches) setTimeout(() => scrollToBottom(true), 250); });
+
+    thread.addEventListener('click', (e) => {
+      if (e.target.closest('[data-retry]')) retryLast();
     });
 
-    // Gợi ý nhanh
-    document.querySelectorAll('.quick-chip').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const q = chip.dataset.q || chip.textContent.trim();
-        send(q);
-      });
+    widget.querySelectorAll('.chat-chip[data-q]').forEach((chip) => {
+      chip.addEventListener('click', () => send(chip.dataset.q || chip.textContent.trim()));
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.hidden) closeChat();
     });
 
     // Nút mở chat từ các vị trí ngoài
-    const mobileBtn = document.getElementById('mobileDrawerChat');
-    if (mobileBtn) {
-      mobileBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const drawer = document.getElementById('mobileDrawer');
-        if (drawer) drawer.classList.remove('is-open');
-        openChat();
-      });
-    }
-
-    const bottomBtn = document.getElementById('btnBottomChat');
+    $('mobileDrawerChat')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      $('mobileDrawer')?.classList.remove('is-open');
+      openChat();
+    });
     if (bottomBtn) {
-      bottomBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleChat();
-      });
+      bottomBtn.setAttribute('role', 'button');
+      bottomBtn.setAttribute('aria-controls', 'chatWidgetPanel');
+      bottomBtn.setAttribute('aria-expanded', 'false');
+      bottomBtn.addEventListener('click', (e) => { e.preventDefault(); toggleChat(); });
     }
-
-    const footerBtn = document.getElementById('footerOpenChat');
-    if (footerBtn) {
-      footerBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        openChat();
-      });
-    }
+    $('footerOpenChat')?.addEventListener('click', (e) => { e.preventDefault(); openChat(); });
 
     // Tự động mở chat nếu URL có ?chat=open hoặc ?q=...
     const urlParams = new URLSearchParams(window.location.search);

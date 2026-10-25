@@ -22,15 +22,39 @@ class LeafApiService {
   async _fetch(path, options = {}, timeoutMs = 8000) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    // Gộp signal bên ngoài (người dùng huỷ) với signal timeout
+    const { signal: outer, ...rest } = options;
+    const onOuterAbort = () => ctrl.abort();
+    if (outer) {
+      if (outer.aborted) ctrl.abort();
+      else outer.addEventListener('abort', onOuterAbort, { once: true });
+    }
     try {
       return await fetch(`${this.baseUrl}${path}`, {
         credentials: 'include',
-        ...options,
+        ...rest,
         signal: ctrl.signal
       });
     } finally {
       clearTimeout(timer);
+      if (outer) outer.removeEventListener('abort', onOuterAbort);
     }
+  }
+
+  /** Nạp lười kho tri thức disease_data.js cho các trang không include sẵn (index, about) */
+  _ensureLeafData() {
+    if (typeof LEAF_DATA !== 'undefined') return Promise.resolve(true);
+    if (!LeafApiService._leafDataPromise) {
+      LeafApiService._leafDataPromise = new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = 'assets/js/disease_data.js';
+        s.async = true;
+        s.onload = () => resolve(typeof LEAF_DATA !== 'undefined');
+        s.onerror = () => { LeafApiService._leafDataPromise = null; resolve(false); };
+        document.head.appendChild(s);
+      });
+    }
+    return LeafApiService._leafDataPromise;
   }
 
   /** Backend có sẵn sàng không (ghi nhớ kết quả) */
@@ -367,21 +391,44 @@ class LeafApiService {
     return json?.status || { configured: false, connected: false };
   }
 
-  async sendChatMessage(message) {
-    if (await this.isOnline()) {
+  /**
+   * Gửi câu hỏi tới chatbot. Thử lần lượt:
+   *  - /api/chat   : Vercel Serverless Function (frontend/api/chat.js → Gemini)
+   *  - /api/chat/  : FastAPI / Django backend (chạy local hoặc Render)
+   * Không phụ thuộc /health/ vì bản deploy tĩnh không có route đó.
+   * Lỗi mạng / 404 / 5xx → trả lời ngoại tuyến từ kho tri thức cục bộ.
+   * @param {string} message
+   * @param {{role:'user'|'model', text:string}[]} history
+   * @param {{signal?: AbortSignal}} opts
+   */
+  async sendChatMessage(message, history = [], { signal } = {}) {
+    const body = JSON.stringify({ message, history: Array.isArray(history) ? history.slice(-10) : [] });
+    const paths = this.baseUrl ? ['/api/chat/', '/api/chat'] : ['/api/chat', '/api/chat/'];
+
+    for (const path of paths) {
       try {
-        const res = await this._fetch('/api/chat/', {
+        const res = await this._fetch(path, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
+          body,
+          signal
         }, 45000);
-        if (res.ok) return await res.json();
-        if (res.status === 429) return { reply: 'Bạn gửi hơi nhanh. Đợi khoảng một phút rồi hỏi tiếp nhé.' };
+
+        if (res.status === 429) {
+          return { reply: 'Bà con gửi hơi nhanh. Đợi khoảng một phút rồi hỏi tiếp nhé.', rateLimited: true };
+        }
+        if (res.ok) {
+          const json = await res.json().catch(() => null);
+          if (json && (json.reply || json.reply_html)) return json;
+        }
+        // 404/405 (route không tồn tại), 503 (chưa có API key), 5xx → thử path kế tiếp
       } catch (err) {
-        console.warn('[LEAF_AI] Chatbot API lỗi, dùng trả lời ngoại tuyến:', err);
+        if (signal?.aborted) throw err; // người dùng chủ động huỷ
+        console.warn(`[LEAF_AI] Chatbot ${path} lỗi:`, err?.name || err);
       }
     }
-    return { reply_html: this.offlineAnswer(message), offline: true };
+
+    return { reply_html: await this.offlineAnswer(message), offline: true };
   }
 
   // ==========================================================================
@@ -456,7 +503,8 @@ class LeafApiService {
   // ==========================================================================
 
   /** Trả lời từ kho tri thức cục bộ khi không có backend */
-  offlineAnswer(message) {
+  async offlineAnswer(message) {
+    await this._ensureLeafData();
     const q = String(message || '').toLowerCase();
     const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
     const keywords = {
@@ -467,8 +515,10 @@ class LeafApiService {
       leaf_blight: ['cháy lá', 'cháy chóp', 'cháy mép', 'pestalotiopsis', 'khô chóp']
     };
     const hit = Object.entries(keywords).find(([, words]) => words.some((w) => q.includes(w)));
-    if (hit) {
-      const d = Object.values(LEAF_DATA.diseases).find((x) => x.id === hit[0]);
+    const d = hit && typeof LEAF_DATA !== 'undefined'
+      ? Object.values(LEAF_DATA.diseases).find((x) => x.id === hit[0])
+      : null;
+    if (d) {
       return `<p><strong>${esc(d.name_vi)}</strong> (<em>${esc(d.pathogen)}</em>)</p>
         <p>Dấu hiệu sớm: ${esc(d.symptoms.stage_1)}</p>
         <ul>
