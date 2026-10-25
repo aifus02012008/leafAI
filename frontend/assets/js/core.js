@@ -681,7 +681,7 @@
       });
     }
 
-    // Chạy kiểm tra sau khi đã qua cổng mật khẩu website (site_gate.js)
+    // Kiểm tra phiên đăng nhập tài khoản (nếu còn bản cũ có cổng mật khẩu thì chờ cổng mở)
     const siteReady = window.LeafSiteGate ? window.LeafSiteGate.ready : Promise.resolve(true);
     siteReady.then(() => setTimeout(checkAuth, 50));
   }
