@@ -11,8 +11,8 @@
   'use strict';
 
   const NAV = [
-    { id: 'library', href: 'library.html', label: 'Thư viện', icon: 'bi-journal-text' },
-    { id: 'treatment', href: 'treatment.html', label: 'Phác đồ', icon: 'bi-clipboard2-pulse' },
+    { id: 'library', href: 'library.html', label: 'Thư viện bệnh', icon: 'bi-journal-text' },
+    { id: 'history', href: 'history.html', label: 'Lịch sử', icon: 'bi-clock-history' },
     { id: 'handbook', href: 'handbook.html', label: 'Cẩm nang', icon: 'bi-shield-check' }
   ];
 
@@ -72,7 +72,7 @@
       <a href="index.html"${isActive('home')}><i class="bi bi-house"></i><span>Trang chủ</span></a>
       <a href="library.html"${isActive('library') || isActive('disease')}><i class="bi bi-journal-text"></i><span>Thư viện</span></a>
       <a href="scan.html" class="fab"${isActive('scan')}><i class="bi bi-camera"></i><span>Quét lá</span></a>
-      <a href="treatment.html"${isActive('treatment')}><i class="bi bi-clipboard2-pulse"></i><span>Phác đồ</span></a>
+      <a href="history.html"${isActive('history')}><i class="bi bi-clock-history"></i><span>Lịch sử</span></a>
       <a href="javascript:void(0)" id="btnBottomChat"><i class="bi bi-chat-dots"></i><span>Kỹ sư AI</span></a>
     </nav>`;
   document.body.insertAdjacentHTML('afterbegin', headerHtml);
@@ -81,44 +81,23 @@
   // Footer + tương tác header (sau khi DOM sẵn sàng)
   // ------------------------------------------------------------------
   const footerHtml = `
-    <footer class="site-footer">
-      <div class="container footer-grid">
-        <div>
-          <a class="brand" href="index.html">
-            <span class="brand-mark">${LEAF_MARK}</span>
-            <span class="brand-name">LEAF<span>_AI</span></span>
-          </a>
-          <p class="footer-note">Phát hiện sớm bệnh trên lá vải thiều Lục Ngạn bằng AI, xử lý theo hướng IPM để giảm thuốc hóa học và giữ vườn vải khỏe.</p>
-        </div>
-        <div>
-          <h4>Công cụ</h4>
-          <ul>
-            <li><a href="scan.html">Chẩn đoán lá</a></li>
-            <li><a href="treatment.html">Phác đồ điều trị</a></li>
-            <li><a href="history.html">Lịch sử quét</a></li>
-            <li><a href="javascript:void(0)" id="footerOpenChat">Trợ lý kỹ sư AI (Chat)</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Kiến thức</h4>
-          <ul>
-            <li><a href="library.html">Thư viện bệnh lá vải</a></li>
-            <li><a href="handbook.html">Cẩm nang IPM (FAO)</a></li>
-            <li><a href="handbook.html#an-toan">An toàn thuốc BVTV</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Dự án</h4>
-          <ul>
-            <li><a href="about.html">Giới thiệu</a></li>
-            <li><a href="about.html#mo-hinh">Mô hình ResNet-18</a></li>
-            <li><a href="about.html#nguon">Nguồn tham khảo</a></li>
-          </ul>
-        </div>
+    <footer class="site-footer site-footer-lite">
+      <div class="container footer-lite">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">${LEAF_MARK}</span>
+          <span class="brand-name">LEAF<span>_AI</span></span>
+        </a>
+        <nav class="footer-links" aria-label="Liên kết cuối trang">
+          <a href="scan.html">Quét lá</a>
+          <a href="library.html">Thư viện bệnh</a>
+          <a href="treatment.html">Phác đồ</a>
+          <a href="handbook.html">Cẩm nang IPM</a>
+          <a href="about.html">Giới thiệu</a>
+        </nav>
       </div>
       <div class="container footer-bottom">
-        <span>© ${new Date().getFullYear()} LEAF_AI. Đồng hành cùng nhà nông Việt Nam.</span>
-        <span>Kết quả AI mang tính tham khảo, hãy hỏi cán bộ BVTV địa phương trước khi phun thuốc.</span>
+        <span>© ${new Date().getFullYear()} LEAF_AI · Vải thiều Lục Ngạn</span>
+        <span>Kết quả AI mang tính tham khảo — hỏi cán bộ BVTV trước khi phun thuốc.</span>
       </div>
     </footer>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -746,6 +725,37 @@
   const sevClass = (sev) => (sev === 'Nghiêm trọng' ? 'sev-high' : sev === 'Trung bình' ? 'sev-mid' : 'sev-low');
   const sevBadge = (sev) => `<span class="sev ${sevClass(sev)}">${escapeHtml(sev || 'Chưa rõ')}</span>`;
 
+  const inline = (s) => s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+
+  /** Markdown tối giản (đã escape trước): tiêu đề, in đậm/nghiêng, danh sách có/không thứ tự */
+  function mdToHtml(text) {
+    const lines = escapeHtml(String(text || '').replace(/\r/g, '')).split('\n');
+    let html = '';
+    let list = null;
+    const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
+    for (const raw of lines) {
+      const line = raw.trimEnd();
+      let m;
+      if ((m = line.match(/^\s*#{1,6}\s+(.*)/))) { closeList(); html += `<p class="chat-h">${inline(m[1])}</p>`; continue; }
+      if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) {
+        if (list !== 'ol') { closeList(); html += '<ol>'; list = 'ol'; }
+        html += `<li>${inline(m[1])}</li>`; continue;
+      }
+      if ((m = line.match(/^\s*[-*•+]\s+(.*)/))) {
+        if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; }
+        html += `<li>${inline(m[1])}</li>`; continue;
+      }
+      closeList();
+      if (line.trim()) html += `<p>${inline(line)}</p>`;
+    }
+    closeList();
+    return html;
+  }
+
+
   const diseases = {
     list: () => (typeof LEAF_DATA !== 'undefined' ? Object.values(LEAF_DATA.diseases) : []),
     /** Nhận id ('anthracnose'), tên lớp mô hình ('Anthracnose', 'Leaf_mites'…) hoặc tên tiếng Việt */
@@ -888,36 +898,6 @@
     let lastFocus = null;
 
     // ---------- Render ----------
-    const inline = (s) => s
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
-
-    /** Markdown tối giản (đã escape trước): tiêu đề, in đậm/nghiêng, danh sách có/không thứ tự */
-    function mdToHtml(text) {
-      const lines = escapeHtml(String(text || '').replace(/\r/g, '')).split('\n');
-      let html = '';
-      let list = null;
-      const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
-      for (const raw of lines) {
-        const line = raw.trimEnd();
-        let m;
-        if ((m = line.match(/^\s*#{1,6}\s+(.*)/))) { closeList(); html += `<p class="chat-h">${inline(m[1])}</p>`; continue; }
-        if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) {
-          if (list !== 'ol') { closeList(); html += '<ol>'; list = 'ol'; }
-          html += `<li>${inline(m[1])}</li>`; continue;
-        }
-        if ((m = line.match(/^\s*[-*•+]\s+(.*)/))) {
-          if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; }
-          html += `<li>${inline(m[1])}</li>`; continue;
-        }
-        closeList();
-        if (line.trim()) html += `<p>${inline(line)}</p>`;
-      }
-      closeList();
-      return html;
-    }
-
     const toText = (html) => new DOMParser().parseFromString(html || '', 'text/html').body.textContent.trim();
     const fmtTime = (ts) => new Date(ts).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
@@ -1141,7 +1121,11 @@
     if (badge && store.get(SEEN_KEY)) badge.hidden = true;
 
     // ---------- Sự kiện ----------
-    fab.addEventListener('click', toggleChat);
+    // Trang có khung chat riêng (vd trang quét) đăng ký window.Leaf.onChatButton; trả true nếu đã xử lý
+    const pageHandlesChat = () => {
+      try { return panel.hidden && typeof window.Leaf?.onChatButton === 'function' && window.Leaf.onChatButton() === true; } catch { return false; }
+    };
+    fab.addEventListener('click', () => { if (!pageHandlesChat()) toggleChat(); });
     backdrop.addEventListener('click', closeChat);
     $('btnWidgetClose')?.addEventListener('click', closeChat);
     $('btnWidgetBack')?.addEventListener('click', closeChat);
@@ -1173,13 +1157,13 @@
     $('mobileDrawerChat')?.addEventListener('click', (e) => {
       e.preventDefault();
       $('mobileDrawer')?.classList.remove('is-open');
-      openChat();
+      if (!pageHandlesChat()) openChat();
     });
     if (bottomBtn) {
       bottomBtn.setAttribute('role', 'button');
       bottomBtn.setAttribute('aria-controls', 'chatWidgetPanel');
       bottomBtn.setAttribute('aria-expanded', 'false');
-      bottomBtn.addEventListener('click', (e) => { e.preventDefault(); toggleChat(); });
+      bottomBtn.addEventListener('click', (e) => { e.preventDefault(); if (!pageHandlesChat()) toggleChat(); });
     }
     $('footerOpenChat')?.addEventListener('click', (e) => { e.preventDefault(); openChat(); });
 
@@ -1204,6 +1188,7 @@
     toast,
     confirm: confirmDialog,
     makeThumb,
+    mdToHtml,
     openChat: (q) => openChatFn(q),
     closeChat: () => closeChatFn(),
     toggleChat: () => toggleChatFn()

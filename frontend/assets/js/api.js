@@ -540,10 +540,14 @@ class LeafApiService {
    * Lỗi mạng / 404 / 5xx → trả lời ngoại tuyến từ kho tri thức cục bộ.
    * @param {string} message
    * @param {{role:'user'|'model', text:string}[]} history
-   * @param {{signal?: AbortSignal}} opts
+   * @param {{signal?: AbortSignal, context?: string}} opts  context: tóm tắt kết quả quét để chatbot trả lời đúng ca
    */
-  async sendChatMessage(message, history = [], { signal } = {}) {
-    const body = JSON.stringify({ message, history: Array.isArray(history) ? history.slice(-10) : [] });
+  async sendChatMessage(message, history = [], { signal, context } = {}) {
+    const body = JSON.stringify({
+      message,
+      history: Array.isArray(history) ? history.slice(-10) : [],
+      ...(context ? { context: String(context).slice(0, 1500) } : {})
+    });
     const paths = this.baseUrl ? ['/api/chat/', '/api/chat'] : ['/api/chat', '/api/chat/'];
 
     for (const path of paths) {
@@ -569,7 +573,7 @@ class LeafApiService {
       }
     }
 
-    return { reply_html: await this.offlineAnswer(message), offline: true };
+    return { reply_html: await this.offlineAnswer(message, context), offline: true };
   }
 
   // ==========================================================================
@@ -644,7 +648,7 @@ class LeafApiService {
   // ==========================================================================
 
   /** Trả lời từ kho tri thức cục bộ khi không có backend */
-  async offlineAnswer(message) {
+  async offlineAnswer(message, context = '') {
     await this._ensureLeafData();
     const q = String(message || '').toLowerCase();
     const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -655,7 +659,13 @@ class LeafApiService {
       algal_spot: ['đốm rong', 'rong', 'tảo', 'đỏ gạch', 'cephaleuros', 'rỉ sắt'],
       leaf_blight: ['cháy lá', 'cháy chóp', 'cháy mép', 'pestalotiopsis', 'khô chóp']
     };
-    const hit = Object.entries(keywords).find(([, words]) => words.some((w) => q.includes(w)));
+    // So khớp theo TỪ (không theo chuỗi con): "trong ngày" không được hiểu là "rong"
+    const hasWord = (text, w) => new RegExp(`(?<![\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(text);
+    let hit = Object.entries(keywords).find(([, words]) => words.some((w) => hasWord(q, w)));
+    // Câu hỏi không nêu bệnh nhưng vừa quét ra bệnh → trả lời theo bệnh đó (vd "Phun lúc nào?")
+    const CLASS_TO_ID = { Anthracnose: 'anthracnose', Downy_blight: 'downy_blight', Leaf_blight: 'leaf_blight', Algal_spot: 'algal_spot', Erinose: 'erinose' };
+    const ctxClass = (String(context).match(/\((Anthracnose|Downy_blight|Leaf_blight|Algal_spot|Erinose)\)/) || [])[1];
+    if (!hit && ctxClass && !/(phi|cách ly|trichoderma|ủ phân|vi sinh|ipm)/.test(q)) hit = [CLASS_TO_ID[ctxClass]];
     const d = hit && typeof LEAF_DATA !== 'undefined'
       ? Object.values(LEAF_DATA.diseases).find((x) => x.id === hit[0])
       : null;

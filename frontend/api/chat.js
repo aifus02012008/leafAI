@@ -6,7 +6,8 @@
  *   GEMINI_API_KEY  (bắt buộc)
  *   GEMINI_MODEL    (tuỳ chọn, mặc định gemini-2.5-flash)
  *
- * Request : { message: string, history?: [{ role: 'user' | 'model', text: string }] }
+ * Request : { message: string, history?: [{ role: 'user' | 'model', text: string }], context?: string }
+ *           context: tóm tắt kết quả quét lá vừa xong (bệnh, độ tin cậy, triệu chứng) để trả lời đúng ca bệnh
  * Response: { success: true, reply: string, model: string }
  */
 
@@ -83,6 +84,11 @@ module.exports = async function handler(req, res) {
   if (!message) return res.status(400).json({ success: false, error: 'Tin nhắn không được để trống' });
 
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const context = String(body.context || '').replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, 1500);
+  const systemText = context
+    ? `${SYSTEM_PROMPT}\n\nBỐI CẢNH CA ĐANG TƯ VẤN (kết quả AI quét ảnh lá của bà con, chỉ mang tính tham khảo):\n${context}\n` +
+      'Trả lời bám sát ca này. Nếu kết quả ghi "chưa chắc chắn" hoặc hai nguồn chưa thống nhất, nhắc bà con kiểm tra thêm triệu chứng trước khi dùng thuốc.'
+    : SYSTEM_PROMPT;
   const contents = [...sanitizeHistory(body.history), { role: 'user', parts: [{ text: message }] }];
   // Gemini yêu cầu lượt đầu tiên là 'user'
   while (contents.length && contents[0].role !== 'user') contents.shift();
@@ -98,7 +104,7 @@ module.exports = async function handler(req, res) {
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         signal: ctrl.signal,
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          systemInstruction: { parts: [{ text: systemText }] },
           contents,
           generationConfig: {
             temperature: 0.4,

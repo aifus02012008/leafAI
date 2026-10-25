@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Chẩn đoán lá — LEAF_AI</title>
-  <meta name="description" content="Chụp hoặc tải ảnh lá vải thiều để AI nhận diện bệnh, xem bản đồ nhiệt Grad-CAM và phác đồ xử lý theo IPM.">
+  <title>Quét lá vải — LEAF_AI</title>
+  <meta name="description" content="Chụp một lá vải thiều, AI cho biết lá bị bệnh gì, cách xử lý, và kỹ sư AI trả lời thắc mắc ngay bên dưới.">
   <script src="assets/js/site_gate.js"></script>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e7a4c">
@@ -19,154 +19,86 @@
 <body data-page="scan">
   <script src="assets/js/core.js"></script>
 
-  <main id="main" class="page">
-    <div class="container">
-      <div class="page-head">
-        <div>
-          <h1>Chẩn đoán lá vải thiều Lục Ngạn</h1>
-          <p>Chụp hoặc tải ảnh lá vải thiều Lục Ngạn nghi bệnh. Mô hình LEAF_AI nhận diện bệnh hại, ca khó được Gemini Vision kiểm tra thêm, kèm bản đồ nhiệt Grad-CAM và phác đồ IPM.</p>
-        </div>
+  <main id="main" class="page scan3">
+    <div class="container scan3-wrap">
+      <header class="scan3-head">
+        <h1>Lá vải của bạn bị bệnh gì?</h1>
+        <p>Chụp rõ một lá — AI trả lời trong vài giây, kỹ sư AI hỗ trợ ngay bên dưới.</p>
+      </header>
 
-      </div>
+      <div class="scan3-grid">
+        <!-- Cột trái: ảnh lá -->
+        <section class="scan3-card scan3-capture" aria-labelledby="captureTitle">
+          <h2 id="captureTitle" class="visually-hidden">Ảnh lá cần chẩn đoán</h2>
 
-      <ol class="stepper stepper-3" id="stepper" aria-label="Tiến trình chẩn đoán">
-        <li class="is-active"><b>1</b><span>Tải ảnh lá</span></li>
-        <li><b>2</b><span>AI chẩn đoán</span></li>
-        <li><b>3</b><span>Phác đồ IPM</span></li>
-      </ol>
-
-      <div class="workspace">
-        <!-- Ảnh & thao tác -->
-        <section class="panel panel-pad" aria-labelledby="stageTitle">
-          <h2 id="stageTitle" class="visually-hidden">Ảnh lá cần chẩn đoán</h2>
-          <div class="stage" id="dropZone" tabindex="0" role="button" aria-label="Chọn ảnh lá hoặc kéo thả ảnh vào đây">
+          <div class="scan3-stage" id="dropZone" tabindex="0" role="button" aria-label="Chọn ảnh lá hoặc kéo thả ảnh vào đây">
             <canvas id="scanCanvas" width="640" height="420"></canvas>
-            <span class="stage-hint"><i class="bi bi-cloud-arrow-up"></i>Bấm hoặc kéo thả ảnh để đổi</span>
+            <div class="scan3-empty" id="stageEmpty">
+              <span class="scan3-empty-icon"><i class="bi bi-camera"></i></span>
+              <strong>Chụp hoặc chọn ảnh lá vải</strong>
+              <span>Kéo thả ảnh vào đây trên máy tính</span>
+            </div>
+            <div class="scan3-view" id="viewToggle" hidden role="group" aria-label="Chế độ xem">
+              <button type="button" id="btnModeBox" aria-pressed="true">Ảnh gốc</button>
+              <button type="button" id="btnModeHeatmap" aria-pressed="false">Vùng AI chú ý</button>
+            </div>
             <input type="file" id="fileInput" accept="image/*" hidden>
           </div>
 
-          <div class="view-mode-bar" id="viewModeBar" hidden>
-            <div class="view-mode-title">
-              <i class="bi bi-layers-half"></i> <span>Chế độ quan sát AI:</span>
-            </div>
-            <div class="segmented segmented-sm" role="group" aria-label="Chế độ hiển thị AI">
-              <button type="button" id="btnModeBox" aria-pressed="true"><i class="bi bi-image"></i> Ảnh gốc</button>
-              <button type="button" id="btnModeHeatmap" aria-pressed="false"><i class="bi bi-fire"></i> Bản đồ nhiệt Grad-CAM</button>
-            </div>
+          <div class="scan3-actions">
+            <button class="btn btn-primary btn-lg" id="btnOpenCamera" type="button"><i class="bi bi-camera"></i>Chụp ảnh</button>
+            <button class="btn btn-lg" id="btnPickFile" type="button"><i class="bi bi-image"></i>Chọn ảnh</button>
           </div>
 
-          <div class="surface-bar">
-            <span class="surface-label"><i class="bi bi-layers"></i>Ảnh chụp:</span>
+          <div class="scan3-surface">
+            <span>Mặt lá:</span>
             <div class="segmented segmented-sm" role="group" aria-label="Mặt lá trong ảnh" id="surfaceGroup">
               <button type="button" data-surface="" aria-pressed="true">Tự nhận</button>
               <button type="button" data-surface="top" aria-pressed="false">Mặt trên</button>
               <button type="button" data-surface="bottom" aria-pressed="false">Mặt dưới</button>
             </div>
           </div>
-
-          <div class="toolbar">
-            <button class="btn btn-primary grow" id="btnOpenCamera" type="button"><i class="bi bi-camera"></i>Chụp bằng camera</button>
-            <button class="btn grow" id="btnPickFile" type="button"><i class="bi bi-image"></i>Chọn ảnh từ máy</button>
-            <button class="btn btn-ghost" id="btnRescan" type="button"><i class="bi bi-arrow-repeat"></i>Quét lại</button>
-          </div>
-
-          <div class="samples">
-            <div class="samples-head">
-              <strong>Chưa có ảnh? Thử với ảnh minh họa</strong>
-              <span class="muted small">Ảnh ≤ 10 MB</span>
-            </div>
-            <div class="sample-list" id="sampleList">
-              <button type="button" class="sample" data-sample="assets/samples/sample_anthracnose.jpg"><img src="assets/samples/sample_anthracnose.jpg" alt="" loading="lazy"><span>Thán thư</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_downy_blight.jpg"><img src="assets/samples/sample_downy_blight.jpg" alt="" loading="lazy"><span>Sương mai</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_leaf_blight.jpg"><img src="assets/samples/sample_leaf_blight.jpg" alt="" loading="lazy"><span>Cháy lá</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_algal_spot.jpg"><img src="assets/samples/sample_algal_spot.jpg" alt="" loading="lazy"><span>Đốm rong</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_erinose.jpg"><img src="assets/samples/sample_erinose.jpg" alt="" loading="lazy"><span>Nhện lông nhung</span></button>
-              <button type="button" class="sample" data-sample="assets/samples/sample_healthy.jpg"><img src="assets/samples/sample_healthy.jpg" alt="" loading="lazy"><span>Lá khỏe</span></button>
-            </div>
-          </div>
         </section>
 
-        <!-- Kết quả -->
-        <section class="panel panel-pad" aria-labelledby="resultTitle" aria-live="polite">
-          <div class="panel-title">
-            <h2 id="resultTitle">Kết quả</h2>
-            <span class="tag" id="modelTag">LEAF_AI</span>
-          </div>
-          <div class="result-status" id="resultStatus"><span class="pulse"></span><span id="resultStatusText">Chờ ảnh lá</span></div>
-
-          <div id="resultEmpty" class="empty" style="padding:28px 8px">
-            <i class="bi bi-flower1"></i>
-            <h3>Chưa có ảnh để phân tích</h3>
-            <p class="small">Chụp cả lá kép hoặc một lá chét dưới ánh sáng tự nhiên, để lá chiếm phần lớn khung hình. Với nhện lông nhung, chụp thêm mặt dưới lá.</p>
-            <ul class="capture-tips">
-              <li><i class="bi bi-brightness-high"></i>Đủ sáng, tránh nắng gắt chiếu thẳng</li>
-              <li><i class="bi bi-bullseye"></i>Chạm vào vết bệnh để lấy nét</li>
-              <li><i class="bi bi-aspect-ratio"></i>Lá chiếm 60–80% khung hình</li>
+        <!-- Cột phải: kết quả + chat -->
+        <div class="scan3-side">
+          <!-- Trước khi quét: hướng dẫn ngắn -->
+          <section class="scan3-card scan3-intro" id="resultIntro" aria-label="Cách chụp để AI nhận đúng">
+            <h2>Chụp sao cho AI nhận đúng</h2>
+            <ul>
+              <li><i class="bi bi-brightness-high"></i><span>Đủ sáng, tránh nắng gắt chiếu thẳng</span></li>
+              <li><i class="bi bi-bullseye"></i><span>Lá chiếm phần lớn khung, chạm vào vết bệnh để lấy nét</span></li>
+              <li><i class="bi bi-arrow-down-up"></i><span>Nghi nhện lông nhung: lật chụp mặt dưới lá</span></li>
             </ul>
-          </div>
+            <button class="scan3-link" type="button" id="btnTrySample"><i class="bi bi-play-circle"></i>Chưa có lá? Xem thử với ảnh minh họa</button>
+          </section>
 
-          <div id="resultBody" hidden>
-            <div class="alert alert-warn" id="coinfectionAlert" hidden>
-              <i class="bi bi-exclamation-triangle"></i>
-              <div><strong>Nghi lá nhiễm nhiều bệnh cùng lúc.</strong> Bệnh thứ hai cũng có xác suất đáng kể. Xử lý bệnh chính trước và kiểm tra lại lá trong 3 ngày tới.</div>
-            </div>
-            <div class="alert alert-info" id="noteAlert" hidden><i class="bi bi-info-circle"></i><div id="noteText"></div></div>
-            <div class="alert alert-warn" id="qualityAlert" hidden><i class="bi bi-camera"></i><div><strong>Gợi ý chụp lại để kết quả chính xác hơn:</strong><ul id="qualityList"></ul></div></div>
+          <!-- Kết quả -->
+          <section class="scan3-card scan3-result" id="resultCard" hidden aria-live="polite" aria-labelledby="resultTitle">
+            <div class="scan3-status" id="resultStatus"><span class="pulse"></span><span id="resultStatusText">Đang phân tích…</span></div>
+            <h2 id="resultTitle" class="visually-hidden">Kết quả chẩn đoán</h2>
+            <div id="resultBody"></div>
+          </section>
 
-            <div class="diagnosis">
-              <div class="diagnosis-top">
-                <div>
-                  <div class="diagnosis-name" id="primaryName">—</div>
-                  <div class="diagnosis-latin" id="primaryLatin"></div>
-                  <div id="primarySeverity"></div>
-                </div>
-                <div class="score"><b id="primaryScore">0%</b><span>độ tin cậy</span></div>
+          <!-- Hỏi kỹ sư AI ngay dưới kết quả -->
+          <section class="scan3-card scan3-ask" id="askCard" hidden aria-labelledby="askTitle">
+            <div class="scan3-ask-head">
+              <span class="chat-avatar" aria-hidden="true"><i class="bi bi-flower1"></i><span class="chat-status"></span></span>
+              <div>
+                <h2 id="askTitle">Hỏi kỹ sư AI</h2>
+                <p id="askSub">Đã nắm kết quả quét của bạn</p>
               </div>
-              <div class="meter" aria-hidden="true"><i id="primaryMeter"></i></div>
-              <p class="diagnosis-note" id="primaryNote"></p>
             </div>
-
-            <div id="evidenceWrap" hidden>
-              <h3 class="sub-head">AI quan sát thấy</h3>
-              <ul class="evidence-list" id="evidenceList"></ul>
-              <p class="evidence-reason" id="reasoningText"></p>
-            </div>
-
-            <div id="secondaryWrap">
-              <h3 class="sub-head">Khả năng khác</h3>
-              <ul class="secondary-list" id="secondaryList"></ul>
-            </div>
-
-            <div class="result-actions">
-              <a class="btn btn-primary btn-block" id="btnTreat" href="treatment.html" hidden><i class="bi bi-clipboard2-pulse"></i>Lập phác đồ điều trị</a>
-              <a class="btn btn-block" id="btnProtocol" href="library.html"><i class="bi bi-journal-medical"></i>Xem phác đồ xử lý</a>
-              <button class="btn btn-block" type="button" id="btnAsk"><i class="bi bi-chat-dots"></i>Hỏi kỹ sư AI về kết quả này</button>
-            </div>
-          </div>
-        </section>
+            <div class="scan3-ask-thread" id="askThread" aria-live="polite"></div>
+            <div class="chat-chips scan3-ask-chips" id="askChips" role="group" aria-label="Câu hỏi gợi ý"></div>
+            <form class="chat-composer scan3-ask-form" id="askForm" autocomplete="off">
+              <label class="visually-hidden" for="askInput">Câu hỏi cho kỹ sư AI</label>
+              <textarea id="askInput" rows="1" placeholder="Hỏi thêm về cách xử lý…" maxlength="1000" enterkeyhint="send"></textarea>
+              <button type="submit" class="chat-send" id="askSend" aria-label="Gửi câu hỏi" disabled><i class="bi bi-arrow-up"></i></button>
+            </form>
+          </section>
+        </div>
       </div>
-
-      <!-- Báo cáo AI chi tiết (HTML sanitize từ backend — Gemini) -->
-      <section id="aiReportSection" hidden style="margin-top:28px" aria-labelledby="aiReportTitle">
-        <div class="panel-title">
-          <h2 id="aiReportTitle" style="font-size:var(--fs-md)">Báo cáo chẩn đoán chi tiết</h2>
-          <span class="tag"><i class="bi bi-stars"></i> AI phân tích ảnh</span>
-        </div>
-        <div class="panel panel-pad ai-report" id="aiReport" aria-live="polite"></div>
-      </section>
-
-      <section style="margin-top:28px" aria-labelledby="modelTitle">
-        <div class="panel-title">
-          <h2 id="modelTitle" style="font-size:var(--fs-md)">Thông số mô hình đang dùng</h2>
-          <a class="small" href="about.html#mo-hinh">Xem chi tiết mô hình</a>
-        </div>
-        <dl class="model-facts">
-          <div><dt>Mô hình chính</dt><dd>CNN huấn luyện trên ảnh lá vải</dd></div>
-          <div><dt>Ca khó</dt><dd>Gemini Vision kiểm tra thêm</dd></div>
-          <div><dt>Số lớp</dt><dd>5 bệnh + lá khỏe + vấn đề khác</dd></div>
-          <div><dt>Giải thích</dt><dd>Grad-CAM + khoanh vùng vết bệnh</dd></div>
-        </dl>
-      </section>
     </div>
   </main>
 
@@ -178,7 +110,7 @@
     </div>
     <div class="sheet-body">
       <video id="cameraVideo" class="camera-view" autoplay playsinline muted></video>
-      <p class="small muted" style="margin-top:10px">Giữ máy cách lá khoảng 20–30 cm, lấy nét vào vùng có vết bệnh; lật mặt dưới lá nếu nghi nhện lông nhung.</p>
+      <p class="small muted" style="margin-top:10px">Giữ máy cách lá 20–30 cm, lấy nét vào vết bệnh.</p>
     </div>
     <div class="sheet-foot">
       <button class="btn btn-ghost" type="button" id="btnFlipCamera"><i class="bi bi-arrow-repeat"></i>Đổi camera</button>
@@ -191,7 +123,6 @@
   <script src="assets/js/disease_data.js"></script>
   <script src="assets/js/canvas_render.js"></script>
   <script src="assets/js/camera.js"></script>
-  <script src="assets/js/treatment_planner.js"></script>
   <script src="assets/js/leaf_image.js"></script>
   <script src="assets/js/api.js"></script>
   <script src="assets/js/pages/scan.js"></script>

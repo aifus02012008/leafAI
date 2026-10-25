@@ -1,8 +1,10 @@
 /**
  * LEAF_AI — Landing page
- * Phát lại hiệu ứng quét demo ở hero khi người dùng bấm "Xem lại".
+ * Phát lại hiệu ứng quét demo ở hero khi người dùng bấm "Xem lại"; nút "Hỏi kỹ sư AI" mở khung chat.
  */
 (function () {
+  document.getElementById('btnHeroChat')?.addEventListener('click', () => window.Leaf?.openChat());
+
   const btn = document.getElementById('btnReplay');
   const stage = document.getElementById('demoStage');
   if (!btn || !stage) return;
