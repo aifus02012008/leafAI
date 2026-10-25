@@ -1,0 +1,43 @@
+{
+  "_comment": "Ánh xạ tên thư mục lớp của từng bộ dữ liệu về 7 lớp LEAF_AI. Khớp theo từ khoá (không phân biệt hoa thường, bỏ dấu). Thứ tự rules quan trọng: rule đầu tiên khớp sẽ được dùng. 'IGNORE' = bỏ qua lớp mơ hồ để tránh làm nhiễu nhãn.",
+  "classes": ["Healthy", "Anthracnose", "Downy_blight", "Leaf_blight", "Algal_spot", "Erinose", "Other"],
+  "skip_dirs_containing": ["augment", "aug_", "_aug", "__macosx", "mask", "label", "annotation"],
+  "rules": [
+    { "keywords": ["healthy", "khoe", "la khoe"], "class": "Healthy" },
+    { "keywords": ["downy", "suong mai", "peronophythora"], "class": "Downy_blight" },
+    { "keywords": ["anthracnose", "anthrax", "than thu", "colletotrichum"], "class": "Anthracnose" },
+    { "keywords": ["leaf blight", "chay la", "pestalotiopsis"], "class": "Leaf_blight" },
+    { "keywords": ["algal", "red rust", "dom rong", "cephaleuros"], "class": "Algal_spot" },
+    { "keywords": ["mite", "erinose", "felt", "nhen long nhung", "aceria"], "class": "Erinose" },
+    { "keywords": ["black spot", "white spot", "fungal stripe", "fungal leaf spot", "entomosporium", "curl"], "class": "IGNORE" },
+    { "keywords": ["dry", "dried", "insect", "hole", "chewing", "burn", "mosaic", "virus", "deficiency", "bituminous", "sooty", "gall", "mayetiola", "pest", "other", "khac"], "class": "Other" }
+  ],
+  "sources": [
+    {
+      "name": "luc_ngan",
+      "note": "Ảnh TỰ CHỤP ở vườn Lục Ngạn. Đặt theo đúng tên lớp: data/raw/luc_ngan/<Healthy|Anthracnose|Downy_blight|Leaf_blight|Algal_spot|Erinose|Other>/*.jpg. Nguồn này được ưu tiên đưa vào tập test.",
+      "path": "data/raw/luc_ngan",
+      "priority_test": true
+    },
+    {
+      "name": "mendeley_52sstfpf5p",
+      "note": "High-Resolution Images of Lychee Plant Diseases (Dinajpur, BD) — CC BY 4.0 — https://data.mendeley.com/datasets/52sstfpf5p",
+      "path": "data/raw/mendeley_52sstfpf5p"
+    },
+    {
+      "name": "mendeley_bdlitchi",
+      "note": "BDLitchi field dataset (Pabna/Savar, BD) — CC BY 4.0 — https://data.mendeley.com/datasets/jhb24mszdk",
+      "path": "data/raw/mendeley_bdlitchi"
+    },
+    {
+      "name": "mendeley_litchileaf4001",
+      "note": "LitchiLeaf4001 (Dhaka/Manikganj/Gaibandha, BD) — CC BY 4.0 — https://data.mendeley.com/datasets/c3n2tc6jf4",
+      "path": "data/raw/mendeley_litchileaf4001"
+    },
+    {
+      "name": "mendeley_jb7w4452pg",
+      "note": "Lychee Leaf Disease Dataset 10 lớp (Jamalpur/Munshiganj, BD) — CC BY 4.0 — https://data.mendeley.com/datasets/jb7w4452pg",
+      "path": "data/raw/mendeley_jb7w4452pg"
+    }
+  ]
+}

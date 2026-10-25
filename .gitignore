@@ -54,3 +54,8 @@ record_demo.py
 .vercel
 capture_all_screens.py
 screenshots_giao_dien/
+
+# Dữ liệu huấn luyện lá vải (lớn, tải từ Mendeley / ảnh tự chụp) — không đẩy lên GitHub
+/data/
+ml/hf-space/*.best_tmp.pt
+ml/hf-space/*.download

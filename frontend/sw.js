@@ -4,7 +4,7 @@
  * - Điều hướng: network-first, rớt mạng thì lấy bản đã cache.
  * - Gọi API (/api/, /health/) không cache.
  */
-const CACHE_NAME = 'leaf-ai-vai-v4';
+const CACHE_NAME = 'leaf-ai-vai-v5';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -30,6 +30,7 @@ const STATIC_ASSETS = [
   './assets/images/lychee/cay-vai-sai-qua.webp',
   './assets/js/disease_data.js',
   './assets/js/api.js',
+  './assets/js/leaf_image.js',
   './assets/js/treatment_planner.js',
   './assets/data/treatment_protocols.json',
   './assets/js/canvas_render.js',

@@ -1841,3 +1841,24 @@ img[data-lightbox] { cursor: zoom-in; }
 @media (prefers-reduced-motion: reduce) {
   .season-card, .season-card figure img, .photo-mosaic img, .photo-strip img { transition: none; }
 }
+
+/* ==========================================================================
+   Trang quét v2: chọn mặt lá, mẹo chụp, bằng chứng AI, gợi ý chụp lại
+   ========================================================================== */
+.surface-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 14px; }
+.surface-label { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--ink-2); }
+.capture-tips { list-style: none; margin: 14px auto 0; padding: 0; display: grid; gap: 6px; max-width: 320px; text-align: left; font-size: var(--fs-xs); color: var(--ink-2); }
+.capture-tips li { display: flex; align-items: center; gap: 8px; }
+.capture-tips i { color: var(--leaf); font-size: 15px; }
+#qualityList { margin: 6px 0 0; padding-left: 18px; }
+#qualityList li { margin-bottom: 2px; }
+.evidence-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.evidence-list li { display: flex; gap: 8px; align-items: flex-start; font-size: var(--fs-sm); color: var(--ink); line-height: 1.5; }
+.evidence-list i { color: var(--leaf); margin-top: 2px; flex: none; }
+.evidence-reason { margin: 0 0 18px; padding: 10px 12px; border-left: 3px solid var(--leaf-soft); background: var(--surface-2); border-radius: 0 var(--r-sm) var(--r-sm) 0; font-size: var(--fs-xs); color: var(--ink-2); }
+.evidence-reason:empty { display: none; }
+.area-chip { display: flex; width: fit-content; max-width: 100%; align-items: center; gap: 6px; margin: 0 0 10px; padding: 4px 10px; border-radius: var(--r-pill); background: var(--sun-soft); color: #7a5a12; font-size: var(--fs-xs); font-weight: 600; }
+@media (max-width: 560px) {
+  .surface-bar .segmented { width: 100%; }
+  .surface-bar .segmented button { flex: 1; justify-content: center; }
+}

@@ -14,5 +14,10 @@ services:
     envVars:
       - key: PORT
         value: 7860
+      - key: TORCH_THREADS
+        value: 2
+      # URL checkpoint mô hình LÁ VẢI (lychee_model.pt) sau khi train bằng ml/training/train_lychee.py
+      # và upload lên Hugging Face, vd: https://huggingface.co/<user>/leaf-ai-lychee-model/resolve/main/lychee_model.pt
+      # Đặt giá trị trong Render Dashboard → Environment (sync: false). Mô hình cà chua cũ sẽ bị máy chủ từ chối.
       - key: MODEL_DOWNLOAD_URL
-        value: https://huggingface.co/Hphuccoder28/leaf-ai-tomato-model/resolve/main/tomato_model.pt
+        sync: false

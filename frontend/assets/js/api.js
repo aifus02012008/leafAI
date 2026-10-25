@@ -156,58 +156,131 @@ class LeafApiService {
     }
   }
 
-  async diagnose(image, modelVersion = 'v3', confidence = 0.25) {
-    // Ảnh mẫu trong thư mục assets/samples là hình minh họa vẽ tay: không gửi lên máy chủ
+  /**
+   * Chẩn đoán lá vải — chiến lược lai "mô hình trước, Gemini cho ca khó":
+   *  1) Mô hình LEAF_AI (CNN huấn luyện trên ảnh lá vải, chạy trên máy chủ Render) — nhanh, có Grad-CAM.
+   *  2) Ca khó → hỏi Gemini Vision (/api/diagnose): mô hình chưa chắc chắn (dưới ngưỡng hiệu chỉnh lúc train),
+   *     hai lớp sát nhau, nghiêng về "Other", hoặc máy chủ mô hình chưa sẵn sàng/đang khởi động.
+   *  3) Kết hợp hai nguồn: đồng thuận → tin cậy cao; bất đồng → báo rõ để người dùng kiểm tra thêm.
+   *  Không bao giờ trả kết quả bịa cho ảnh thật: cả hai nguồn lỗi → analysis_unavailable.
+   * @param {string} image data URL / đường dẫn ảnh
+   * @param {string} modelVersion 'v4' (top-3) | 'v3'
+   * @param {{surface?: 'top'|'bottom'|'both', signal?: AbortSignal, onStage?: (stage:string)=>void}} opts
+   */
+  async diagnose(image, modelVersion = 'v4', opts = {}) {
+    // Ảnh mẫu trong assets/samples là hình minh họa vẽ tay: chỉ mô phỏng, không gửi lên AI
     if (typeof image === 'string' && /assets\/samples\/sample_/.test(image)) {
       await new Promise((r) => setTimeout(r, 350));
       return await this.simulateDetection(modelVersion, image);
     }
-    const payload = await this._toDataUrl(image);
 
-    // Ưu tiên 1: Kết nối trực tiếp máy chủ AI Render (ResNet-18 Deep Learning + Grad-CAM)
-    const aiEngineUrl = this.engineUrl();
+    const stage = (s) => { try { opts.onStage?.(s); } catch { /* UI callback */ } };
+    stage('prepare');
+    const prepared = await this._prepareImage(image);
 
-    if (aiEngineUrl) {
+    stage('model');
+    const engineP = this._callEngine(prepared.dataUrl, modelVersion, opts.signal);
+    // Máy chủ Render gói miễn phí có thể đang ngủ (~1 phút để dậy): sau 7s chưa có kết quả thì hỏi Gemini song song
+    const early = await Promise.race([engineP, new Promise((r) => setTimeout(() => r(null), 7000))]);
+
+    let engine;
+    let gemini = null;
+    if (early === null) {
+      stage('second_opinion');
+      const geminiP = this._callGemini(prepared.dataUrl, opts);
+      gemini = await geminiP;
+      engine = await Promise.race([engineP, new Promise((r) => setTimeout(() => r({ ok: false, reason: 'slow' }), 1500))]);
+    } else {
+      engine = early;
+      if (this._needsSecondOpinion(engine)) {
+        stage('second_opinion');
+        gemini = await this._callGemini(prepared.dataUrl, opts);
+      }
+    }
+
+    if (gemini && gemini.rateLimited && !(engine.ok && !this._needsSecondOpinion(engine))) {
+      throw Object.assign(new Error(gemini.error || 'Bạn quét quá nhanh, vui lòng chờ một phút rồi thử lại.'), { code: 429 });
+    }
+    stage('done');
+    return this._combine(engine, gemini, prepared, modelVersion);
+  }
+
+  /** Đánh thức máy chủ mô hình (Render ngủ khi không có truy cập) — gọi khi mở trang quét */
+  warmUpEngine() {
+    try {
+      fetch(`${this.engineUrl()}/health`, { mode: 'cors', cache: 'no-store' }).catch(() => {});
+    } catch { /* bỏ qua */ }
+  }
+
+  async _prepareImage(image) {
+    const src = await this._toDataUrl(image);
+    if (typeof window.LeafImage !== 'undefined' && typeof src === 'string') {
       try {
-        const res = await fetch(`${aiEngineUrl}/predict_with_gradcam`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            data: payload,
-            model_version: modelVersion,
-            confidence: confidence
-          })
-        });
-        if (res.ok) {
-          const aiData = await res.json();
-          return this._formatAiEngineResult(aiData, modelVersion);
-        }
+        return await window.LeafImage.prepare(src);
       } catch (err) {
-        console.warn('[LEAF_AI] Không thể kết nối AI Engine trực tiếp trên Render, thử qua backend proxy:', err);
+        console.warn('[LEAF_AI] Tiền xử lý ảnh lỗi, gửi ảnh gốc:', err);
       }
     }
+    return { dataUrl: src, quality: null };
+  }
 
-    // Ưu tiên 2: Kết nối qua Backend Django / FastAPI
-    if (await this.isOnline()) {
-      try {
-        const formData = new FormData();
-        formData.append('image', payload);
-        formData.append('model_version', modelVersion);
-        formData.append('confidence', confidence);
-        const res = await this._fetch('/api/diagnose/', { method: 'POST', body: formData }, 60000);
-        if (res.ok) return this._checkLycheeLabels(await res.json());
-        if (res.status === 429) {
-          const j = await res.json().catch(() => ({}));
-          throw Object.assign(new Error(j.error || 'Bạn quét quá nhanh, vui lòng chờ một phút rồi thử lại.'), { code: 429 });
-        }
-      } catch (e) {
-        if (e.code === 429) throw e;
-        console.warn('[LEAF_AI] Backend lỗi, chuyển sang mô phỏng:', e);
+  _needsSecondOpinion(engine) {
+    if (!engine || !engine.ok) return true;
+    const d = engine.data;
+    return Boolean(d.uncertain) || d.top === 'Other';
+  }
+
+  /** Gọi máy chủ mô hình lá vải. Không bao giờ throw: trả {ok, data} hoặc {ok:false, reason} */
+  async _callEngine(dataUrl, modelVersion, signal) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+    const onAbort = () => ctrl.abort();
+    signal?.addEventListener('abort', onAbort, { once: true });
+    try {
+      const res = await fetch(`${this.engineUrl()}/predict_with_gradcam`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: dataUrl, model_version: modelVersion }),
+        signal: ctrl.signal
+      });
+      if (res.status === 503) return { ok: false, reason: 'not_ready' };
+      if (!res.ok) return { ok: false, reason: `http_${res.status}` };
+      const data = await res.json();
+      // Chỉ chấp nhận máy chủ chạy mô hình LÁ VẢI mới (bản cũ đổi tên lớp từ mô hình cà chua → bỏ qua)
+      if (!data || !data.model || data.model.crop !== 'lychee' || !Array.isArray(data.results)) {
+        return { ok: false, reason: 'legacy_model' };
       }
+      return { ok: true, data };
+    } catch (err) {
+      return { ok: false, reason: err.name === 'AbortError' ? 'timeout' : 'network' };
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
     }
-    // Giữ nhịp như suy luận thật để hiệu ứng quét không bị giật
-    await new Promise((r) => setTimeout(r, 350));
-    return await this.simulateDetection(modelVersion, image);
+  }
+
+  /** Gọi Gemini Vision qua Vercel Function /api/diagnose. Không throw. */
+  async _callGemini(dataUrl, opts = {}) {
+    if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) return null;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 60000);
+    try {
+      const res = await fetch('/api/diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: [dataUrl], context: { surface: opts.surface || undefined } }),
+        signal: ctrl.signal
+      });
+      const json = await res.json().catch(() => null);
+      if (res.status === 429) return { rateLimited: true, error: json?.error };
+      if (!res.ok || !json?.success) return null;
+      return json;
+    } catch (err) {
+      console.warn('[LEAF_AI] Gemini Vision lỗi:', err?.name || err);
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   /** Địa chỉ máy chủ AI trên Render (đổi được qua localStorage 'leaf_ai_engine_url') */
@@ -262,100 +335,168 @@ class LeafApiService {
     return String(cls || '').toLowerCase() === 'healthy';
   }
 
-  /** Kết quả không chứa nhãn lá vải (máy chủ còn chạy mô hình cũ) thì không hiển thị như một chẩn đoán */
-  _unsupportedResult(labels, modelVersion) {
+  /** Kết quả "chưa phân tích được" — tuyệt đối không giả làm chẩn đoán */
+  _unavailableResult(modelVersion, note, extra = {}) {
     return {
       success: true,
       id: Date.now(),
       model_version: modelVersion,
       analysis_unavailable: true,
-      unsupported: true,
       healthy: false,
       primary_disease: null,
       secondary_diseases: [],
       detections: [],
       lesion_count: 0,
-      note: `Máy chủ AI trả về nhãn chưa thuộc danh mục bệnh lá vải (${labels.join(', ')}). Cần cập nhật mô hình lá vải lên máy chủ trước khi dùng kết quả này.`
+      note,
+      ...extra
     };
   }
 
-  _checkLycheeLabels(result) {
-    const p = result && result.primary_disease;
-    if (!p || this._isHealthy(p.class) || this._lookup(p.class)) return result;
-    return this._unsupportedResult([p.class], result.model_version || 'v3');
+  _diseaseEntry(cls, probability, severity) {
+    const d = this._lookup(cls) || {};
+    return {
+      class: cls,
+      id: d.id,
+      name_en: d.name_en || cls,
+      name_vi: d.name_vi || cls,
+      probability: Math.round(probability * 10) / 10,
+      severity: severity || null,
+      color: d.color || '#d4452a',
+      treatment: d.treatment || {}
+    };
   }
 
-  /** Chuẩn hóa kết quả trả về từ máy chủ AI (ResNet-18 + Grad-CAM) */
-  _formatAiEngineResult(aiData, modelVersion) {
-    const all = aiData.results || [];
-    const heatmap = aiData.heatmap_base64
-      ? (aiData.heatmap_base64.startsWith('data:') ? aiData.heatmap_base64 : `data:image/jpeg;base64,${aiData.heatmap_base64}`)
-      : null;
-    const top = all[0] || null;
-    if (top && !this._isHealthy(top.class) && !this._lookup(top.class)) {
-      return this._unsupportedResult(all.map((r) => r.class), modelVersion);
+  /**
+   * Hợp nhất kết quả mô hình (E) và Gemini (G) thành định dạng trang quét dùng.
+   * - Chỉ E và E chắc chắn → nguồn "model".
+   * - E chưa chắc + G → trộn xác suất (G 0.6 / E 0.4 vì E đã tự báo chưa chắc), kiểm tra đồng thuận.
+   * - E lỗi + G → nguồn "gemini".
+   * - G phát hiện ảnh không phải lá vải / ảnh kém → ưu tiên báo người dùng chụp lại.
+   */
+  _combine(engine, gemini, prepared, modelVersion) {
+    const E = engine && engine.ok ? engine.data : null;
+    const G = gemini && gemini.success ? gemini : null;
+    const quality = prepared?.quality || null;
+    const qualityTips = (quality?.issues || []).map((i) => i.message);
+    const base = {
+      quality,
+      quality_tips: qualityTips,
+      engine_status: engine?.ok ? 'ok' : (engine?.reason || 'unavailable'),
+      model_info: E?.model || null
+    };
+
+    if (!E && !G) {
+      const why = {
+        legacy_model: 'Máy chủ mô hình đang chạy bản cũ (chưa có mô hình lá vải)',
+        not_ready: 'Máy chủ mô hình chưa nạp mô hình lá vải',
+        timeout: 'Máy chủ mô hình đang khởi động',
+        slow: 'Máy chủ mô hình đang khởi động',
+        network: 'Không kết nối được máy chủ mô hình'
+      }[engine?.reason] || 'Máy chủ mô hình không phản hồi';
+      return this._unavailableResult(modelVersion, `${why} và dịch vụ Gemini cũng chưa phản hồi. Vui lòng thử lại sau ít phút.`, base);
     }
-    const healthy = !top || this._isHealthy(top.class);
-    const sev = (p) => (p >= 60 ? 'Nghiêm trọng' : p >= 35 ? 'Trung bình' : 'Nhẹ');
-    const toDisease = (r) => {
-      const d = this._lookup(r.class) || {};
-      return {
-        class: r.class,
-        id: d.id,
-        name_en: d.name_en || r.class,
-        name_vi: d.name_vi || r.name_vi || r.class,
-        probability: r.probability,
-        severity: sev(r.probability),
-        color: d.color || '#d4452a',
-        treatment: d.treatment || {}
-      };
+
+    // ---- Gemini báo ảnh không phù hợp ----
+    if (G && G.verdict === 'not_lychee' && !(E && !E.uncertain && E.top !== 'Other')) {
+      return this._unavailableResult(modelVersion,
+        `Ảnh này có vẻ không phải lá vải${G.image_check?.subject ? ` (AI thấy: ${G.image_check.subject})` : ''}. Hãy chụp rõ một lá kép hoặc lá chét vải.`,
+        { ...base, not_lychee: true, source: 'gemini', source_label: 'Gemini Vision' });
+    }
+    if (G && G.verdict === 'retake' && !(E && !E.uncertain)) {
+      return this._unavailableResult(modelVersion,
+        G.retake_advice || 'Ảnh chưa đủ rõ để chẩn đoán chắc chắn. Hãy chụp lại gần hơn, đủ sáng, lá chiếm phần lớn khung hình.',
+        { ...base, retake: true, source: 'gemini', source_label: 'Gemini Vision', evidence: G.observed_symptoms || [] });
+    }
+
+    // ---- Trộn phân bố xác suất ----
+    const dist = {};
+    const add = (list, w) => (list || []).forEach((r) => { dist[r.class] = (dist[r.class] || 0) + w * Number(r.probability || 0); });
+    let source;
+    let agree = null;
+    if (E && G) {
+      add(E.results, 0.4);
+      add(G.ranked, 0.6);
+      agree = E.top === G.primary;
+      source = 'model+gemini';
+    } else if (E) {
+      add(E.results, 1);
+      source = 'model';
+    } else {
+      add(G.ranked, 1);
+      source = 'gemini';
+    }
+    const ranked = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+    const [topCls, topP] = ranked[0];
+    const secondP = ranked[1]?.[1] || 0;
+    const healthy = this._isHealthy(topCls);
+    const isOther = topCls === 'Other';
+    const uncertain = (source === 'model' ? Boolean(E.uncertain) : topP < 55 || topP - secondP < 12) || agree === false;
+    const severity = G && G.primary === topCls ? G.severity : null;
+
+    const primary = healthy || isOther ? null : this._diseaseEntry(topCls, topP, severity);
+    const secondary = ranked.slice(1)
+      .filter(([c, p]) => p >= 20 && c !== 'Other' && !this._isHealthy(c) && this._lookup(c))
+      .map(([c, p]) => this._diseaseEntry(c, p, null));
+
+    // Khoanh vùng vết bệnh từ Gemini (box chuẩn hoá [ymin, xmin, ymax, xmax] 0..1)
+    const detections = (G?.lesions || [])
+      .filter((l) => !healthy && l.label !== 'Other' && this._lookup(l.label))
+      .map((l) => {
+        const d = this._lookup(l.label) || {};
+        return { class: l.label, name_vi: d.name_vi || l.label, color: d.color || '#ea580c', box: l.box };
+      });
+
+    const SOURCE_LABEL = {
+      model: `Mô hình LEAF_AI ${E?.model?.arch || ''}`.trim(),
+      gemini: 'Gemini Vision (mô hình chưa sẵn sàng)',
+      'model+gemini': agree ? 'Mô hình LEAF_AI + Gemini (đồng thuận)' : 'Mô hình LEAF_AI + Gemini (chưa thống nhất)'
     };
 
-    const primaryDisease = healthy ? null : toDisease(top);
-    // Bệnh phụ: chỉ giữ nhãn lá vải có xác suất đáng kể (quy tắc cảnh báo nghi đồng nhiễm: ≥ 25%)
-    const secondaryDiseases = healthy ? [] : all.slice(1)
-      .filter((r) => this._lookup(r.class) && r.probability >= 25)
-      .map(toDisease);
-
-    let reportHtml = '';
-    if (healthy) {
-      reportHtml = '<div class="callout callout-info"><strong>Không phát hiện dấu hiệu bệnh hại trên lá vải.</strong><br>Khuyến nghị: tiếp tục thăm vườn 1–2 lần mỗi tuần, chú ý các đợt lộc non và những ngày mưa phùn, nồm ẩm.</div>';
-    } else {
-      const t = primaryDisease.treatment || {};
-      reportHtml = `
-        <h3>Kết quả chẩn đoán học sâu và Grad-CAM</h3>
-        <p>Bệnh chính: <strong>${primaryDisease.name_vi}</strong> (<em>${primaryDisease.name_en}</em>)<br>
-        Độ tin cậy: <span class="pct">${primaryDisease.probability}%</span> — Mức độ: <span class="badge ${primaryDisease.severity === 'Nghiêm trọng' ? 'badge-high' : 'badge-mid'}">${primaryDisease.severity}</span></p>
-        <div class="callout callout-info">
-          <strong>Giải thích bằng Grad-CAM:</strong> chọn chế độ <em>"Bản đồ nhiệt Grad-CAM"</em> để xem vùng ảnh mà mô hình ResNet-18 dựa vào khi kết luận. Vùng đỏ nên trùng với vết bệnh trên lá.
-        </div>
-        <h3>Phác đồ quản lý dịch hại tổng hợp (IPM)</h3>
-        <table class="report-table">
-          <thead><tr><th>Biện pháp</th><th>Hướng dẫn thực hiện</th></tr></thead>
-          <tbody>
-            <tr><td><strong>1. Canh tác</strong></td><td>${t.cultural || 'Cắt bỏ lá, cành bị bệnh và tiêu hủy xa vườn.'}</td></tr>
-            <tr><td><strong>2. Sinh học</strong></td><td>${t.biological || 'Dùng chế phẩm Trichoderma, Bacillus subtilis.'}</td></tr>
-            <tr><td><strong>3. Hóa học</strong></td><td>${t.chemical || 'Chỉ dùng thuốc trong danh mục được phép, tuân thủ 4 đúng và thời gian cách ly.'}</td></tr>
-          </tbody>
-        </table>`;
+    const notes = [];
+    if (source === 'gemini') {
+      notes.push(engine?.reason === 'legacy_model' || engine?.reason === 'not_ready'
+        ? 'Máy chủ chưa có mô hình lá vải mới nên kết quả do Gemini Vision phân tích.'
+        : 'Máy chủ mô hình đang khởi động nên kết quả do Gemini Vision phân tích.');
+    }
+    if (agree === false) {
+      const eName = this._lookup(E.top)?.name_vi || E.top;
+      const gName = this._lookup(G.primary)?.name_vi || G.primary;
+      notes.push(`Mô hình nghiêng về "${eName}", Gemini nghiêng về "${gName}". Hãy đối chiếu triệu chứng bên dưới, chụp thêm mặt dưới lá hoặc hỏi cán bộ BVTV.`);
+    } else if (uncertain && !healthy) {
+      notes.push('Độ chắc chắn chưa cao — nên chụp thêm 1–2 ảnh khác (gần hơn, cả mặt dưới lá) để xác nhận.');
+    }
+    if (isOther) {
+      notes.push(G?.reasoning || 'Triệu chứng không khớp 5 bệnh hại trong danh mục (có thể do cháy nắng, thiếu dinh dưỡng, sâu ăn lá…).');
     }
 
     return {
       success: true,
       id: Date.now(),
       model_version: modelVersion,
-      model_badge: 'ResNet-18',
+      model_badge: SOURCE_LABEL[source],
+      source,
+      source_label: SOURCE_LABEL[source],
+      agreement: agree,
+      uncertain,
+      other: isOther,
       healthy,
-      is_coinfection: secondaryDiseases.length > 0,
-      warning_banner: secondaryDiseases.length > 0 ? 'Nghi đồng nhiễm' : null,
-      primary_disease: primaryDisease,
-      secondary_diseases: secondaryDiseases,
-      heatmap_base64: heatmap,
-      // Mô hình phân loại cả ảnh, không khoanh từng vết: vị trí vết bệnh xem trên bản đồ nhiệt
-      detections: [],
-      lesion_count: healthy ? 0 : null,
-      report_html: reportHtml,
-      note: ''
+      is_coinfection: !healthy && !isOther && secondary.length > 0,
+      warning_banner: secondary.length > 0 ? 'Nghi đồng nhiễm' : null,
+      primary_disease: primary,
+      secondary_diseases: secondary,
+      heatmap_base64: E?.heatmap_base64
+        ? (E.heatmap_base64.startsWith('data:') ? E.heatmap_base64 : `data:image/jpeg;base64,${E.heatmap_base64}`)
+        : null,
+      detections,
+      lesion_count: detections.length,
+      affected_area_percent: G?.affected_area_percent ?? null,
+      evidence: G?.observed_symptoms || [],
+      reasoning: G && !isOther ? G.reasoning : '',
+      retake_advice: G?.retake_advice || '',
+      model_confidence: E ? E.confidence : null,
+      gemini_confidence: G ? G.confidence : null,
+      note: notes.join(' '),
+      ...base
     };
   }
 

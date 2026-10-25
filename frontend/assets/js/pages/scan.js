@@ -11,10 +11,15 @@
   const api = new LeafApiService();
   const renderer = new LeafCanvasRenderer($('scanCanvas'));
 
-  const MODEL_LABEL = 'ResNet-18';
+  const STAGE_TEXT = {
+    prepare: 'Đang kiểm tra chất lượng ảnh…',
+    model: 'Mô hình LEAF_AI đang phân tích lá…',
+    second_opinion: 'Ca khó — đang hỏi thêm Gemini Vision để kiểm tra chéo…',
+    done: 'Đang tổng hợp kết quả…'
+  };
   const SEV_COLOR = { 'Nghiêm trọng': '#d4452a', 'Trung bình': '#e8b33c', 'Nhẹ': '#1e7a4c' };
 
-  const state = { model: 'v4', src: null, runId: 0, busy: false }; // v4: máy chủ trả về 3 lớp có xác suất cao nhất
+  const state = { model: 'v4', src: null, runId: 0, busy: false, surface: '' }; // v4: máy chủ trả về 3 lớp có xác suất cao nhất
 
   // ------------------------------------------------------------------
   // Helpers
@@ -62,12 +67,19 @@
     state.src = src;
     setBusy(true);
     setStep(2);
-    setStatus('busy', `AI đang phân tích bằng mô hình ${MODEL_LABEL}…`);
+    setStatus('busy', STAGE_TEXT.prepare);
 
     try {
       await loadImage(src);
       $('dropZone').classList.add('has-image');
-      const [result] = await Promise.all([api.diagnose(src, state.model), playScan(1700)]);
+      const [result] = await Promise.all([
+        api.diagnose(src, state.model, {
+          surface: state.surface,
+          onStage: (st) => { if (runId === state.runId && STAGE_TEXT[st]) setStatus('busy', STAGE_TEXT[st]); }
+        }),
+        playScan(1700)
+      ]);
+      if (runId !== state.runId) return;
       const heatmapSrc = result.heatmap_base64 || result.heatmap_url || null;
 
       // Nếu lá khỏe mạnh: tuyệt đối không vẽ box bệnh giả
@@ -97,13 +109,21 @@
 
       renderResult(result);
       setStep(3);
-      setStatus('done', result.analysis_unavailable
-        ? 'Chưa phân tích được — hãy thử lại sau'
-        : result.healthy
-          ? 'Không phát hiện dấu hiệu bệnh hại — Lá vải khỏe mạnh'
-          : (result.detections || []).length
-            ? `Đã nhận diện bệnh và khoanh vùng chú ý (Grad-CAM)`
-            : 'Đã phân loại xong — xem vùng bệnh trên Bản đồ nhiệt Grad-CAM');
+      setStatus('done', result.not_lychee
+        ? 'Ảnh có vẻ không phải lá vải'
+        : result.retake
+          ? 'Ảnh chưa đủ rõ — hãy chụp lại'
+          : result.analysis_unavailable
+            ? 'Chưa phân tích được — hãy thử lại sau'
+            : result.other
+              ? 'Không khớp 5 bệnh trong danh mục'
+              : result.healthy
+                ? 'Không phát hiện dấu hiệu bệnh hại — Lá vải khỏe mạnh'
+                : result.uncertain
+                  ? 'Đã phân tích — độ chắc chắn chưa cao, nên chụp thêm ảnh'
+                  : (result.detections || []).length
+                    ? 'Đã nhận diện bệnh và khoanh vùng vết bệnh'
+                    : 'Đã nhận diện bệnh — xem vùng chú ý trên Bản đồ nhiệt Grad-CAM');
 
       if (save) await saveRecord(result, src);
     } catch (err) {
@@ -126,6 +146,18 @@
     const healthy = result.healthy || !primary;
 
     $('coinfectionAlert').hidden = !result.is_coinfection;
+    $('modelTag').textContent = result.simulated ? 'Mô phỏng' : (result.source_label || 'LEAF_AI');
+
+    // Gợi ý chụp lại (đo trên máy + Gemini đánh giá)
+    const tips = [...new Set([...(result.quality_tips || []), ...(result.retake && result.retake_advice ? [result.retake_advice] : [])])];
+    $('qualityAlert').hidden = tips.length === 0 || result.simulated;
+    $('qualityList').innerHTML = tips.map((t) => `<li>${escapeHtml(t)}</li>`).join('');
+
+    // Bằng chứng AI quan sát được (Gemini)
+    const evidence = result.evidence || [];
+    $('evidenceWrap').hidden = evidence.length === 0 && !result.reasoning;
+    $('evidenceList').innerHTML = evidence.map((e) => `<li><i class="bi bi-check2-circle"></i>${escapeHtml(e)}</li>`).join('');
+    $('reasoningText').textContent = result.reasoning || '';
 
     const notes = [];
     if (result.simulated) {
@@ -150,10 +182,12 @@
 
     if (result.analysis_unavailable) {
       // AI không phân tích được — không được láo "Lá khỏe mạnh"
-      $('primaryName').textContent = 'Chưa phân tích được ảnh';
-      $('primaryLatin').textContent = result.unsupported
-        ? 'Nhãn máy chủ trả về không thuộc danh mục bệnh lá vải.'
-        : 'Dịch vụ AI đang gián đoạn hoặc chưa được cấu hình.';
+      $('primaryName').textContent = result.not_lychee
+        ? 'Không nhận ra lá vải'
+        : result.retake ? 'Cần chụp lại ảnh' : 'Chưa phân tích được ảnh';
+      $('primaryLatin').textContent = result.not_lychee || result.retake
+        ? 'Kết quả không được đưa ra để tránh chẩn đoán sai.'
+        : 'Máy chủ mô hình và dịch vụ Gemini đều chưa phản hồi.';
       $('primarySeverity').innerHTML = '';
       $('primaryScore').textContent = '—';
       $('primaryScore').style.color = 'var(--ink-3)';
@@ -167,7 +201,24 @@
       return;
     }
 
-    if (healthy) {
+    if (result.other) {
+      $('primaryName').textContent = 'Không thuộc 5 bệnh trong danh mục';
+      $('primaryLatin').textContent = 'Có thể do cháy nắng, thiếu dinh dưỡng, sâu ăn lá, rệp/muội đen… hoặc bệnh khác';
+      $('primarySeverity').innerHTML = '<span class="sev sev-mid">Cần kiểm tra</span>';
+      $('primaryScore').textContent = '—';
+      $('primaryScore').style.color = 'var(--ink-3)';
+      $('primaryMeter').style.width = '0%';
+      $('primaryNote').textContent = 'Chụp thêm ảnh gần vết hại và cả mặt dưới lá, hoặc hỏi kỹ sư AI / cán bộ BVTV địa phương.';
+      $('secondaryWrap').hidden = (result.secondary_diseases || []).length === 0;
+      $('secondaryList').innerHTML = '';
+      $('btnTreat').hidden = true;
+      $('btnProtocol').href = 'library.html';
+      $('btnProtocol').innerHTML = '<i class="bi bi-journal-medical"></i>Xem thư viện bệnh';
+      $('btnAsk').onclick = () => window.Leaf?.openChat(`Lá vải của tôi có triệu chứng: ${(result.evidence || []).join('; ') || 'chưa rõ'}. Có thể là vấn đề gì và xử lý thế nào?`);
+      if (!(result.secondary_diseases || []).length) return;
+    }
+
+    if (healthy && !result.other) {
       $('primaryName').textContent = 'Lá vải khỏe mạnh';
       $('primaryLatin').textContent = 'Không thấy dấu hiệu của các bệnh mô hình nhận diện được';
       $('primarySeverity').innerHTML = '<span class="sev sev-low">Khỏe</span>';
@@ -183,6 +234,11 @@
       return;
     }
 
+    if (result.other) {
+      renderSecondary(result.secondary_diseases || []);
+      return;
+    }
+
     const info = diseases.find(primary.class) || {};
     const pct = Math.round(primary.probability);
     const color = SEV_COLOR[primary.severity] || '#d4452a';
@@ -194,10 +250,18 @@
     $('primaryScore').style.color = color;
     $('primaryMeter').style.setProperty('--bar', color);
     requestAnimationFrame(() => ($('primaryMeter').style.width = `${pct}%`));
-    $('primaryNote').innerHTML = info.treatment
-      ? `<strong>Việc nên làm ngay:</strong> ${escapeHtml(info.treatment.cultural)}`
+    const area = Number.isFinite(result.affected_area_percent) && result.affected_area_percent !== null
+      ? `<span class="area-chip"><i class="bi bi-bounding-box"></i>Ước tính ~${Math.round(result.affected_area_percent)}% diện tích lá bị tổn thương</span>`
       : '';
+    $('primaryNote').innerHTML = area + (info.treatment
+      ? `<strong>Việc nên làm ngay:</strong> ${escapeHtml(info.treatment.cultural)}`
+      : '');
 
+    renderSecondary(secondary);
+    renderPrimaryActions(result, primary, secondary, info, pct);
+  }
+
+  function renderSecondary(secondary) {
     $('secondaryWrap').hidden = secondary.length === 0;
     $('secondaryList').innerHTML = secondary.map((s) => {
       const d = diseases.find(s.class) || {};
@@ -205,10 +269,12 @@
         <span class="dot" style="--dot:${escapeHtml(s.color || d.color || '#999')}"></span>
         <a href="${diseases.url(s.class)}">${escapeHtml(s.name_vi || d.name_vi || s.class)}</a>
         <span class="pct">${Math.round(s.probability)}%</span>
-        ${sevBadge(s.severity)}
+        ${s.severity ? sevBadge(s.severity) : ''}
       </li>`;
     }).join('');
+  }
 
+  function renderPrimaryActions(result, primary, secondary, info, pct) {
     // Biết bệnh rồi: lập lịch điều trị từng bước (trang treatment.html)
     $('btnTreat').hidden = false;
     $('btnTreat').href = `treatment.html?id=${encodeURIComponent(primary.class)}&p=${pct}`;
@@ -225,11 +291,11 @@
     history.add({
       id: result.id || Date.now(),
       timestamp: new Date().toISOString(),
-      model: 'ResNet-18',
-      class: failed ? 'Unavailable' : (p ? p.class : 'Healthy'),
-      primary_disease: failed ? 'Chưa phân tích được' : (p ? (p.name_vi || p.class) : 'Lá vải khỏe mạnh'),
+      model: result.source_label || 'LEAF_AI',
+      class: failed ? 'Unavailable' : result.other ? 'Other' : (p ? p.class : 'Healthy'),
+      primary_disease: failed ? 'Chưa phân tích được' : result.other ? 'Vấn đề khác' : (p ? (p.name_vi || p.class) : 'Lá vải khỏe mạnh'),
       probability: p ? Math.round(p.probability) : 0,
-      severity: failed ? '' : (p ? p.severity : 'Khỏe'),
+      severity: failed || result.other ? '' : (p ? (p.severity || '') : 'Khỏe'),
       is_coinfection: Boolean(result.is_coinfection),
       secondary: (result.secondary_diseases || []).map((s) => s.name_vi || s.class),
       lesions: (result.detections || []).length,
@@ -291,6 +357,15 @@
   $('btnProtocol').addEventListener('click', () => setStep(3));
   $('btnTreat').addEventListener('click', () => setStep(3));
 
+  // Mặt lá trong ảnh: giúp phân biệt nhện lông nhung (mặt dưới) với đốm rong (mặt trên)
+  const surfaceButtons = [...document.querySelectorAll('#surfaceGroup [data-surface]')];
+  surfaceButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.surface = btn.dataset.surface;
+      surfaceButtons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    });
+  });
+
   const btnModeBox = $('btnModeBox');
   const btnModeHeatmap = $('btnModeHeatmap');
   if (btnModeBox) btnModeBox.addEventListener('click', () => setViewMode('box'));
@@ -307,6 +382,7 @@
   // Khởi tạo: chạy thử ảnh mẫu đầu tiên (không lưu lịch sử)
   // ------------------------------------------------------------------
   setStep(1);
+  api.warmUpEngine(); // đánh thức máy chủ mô hình trên Render ngay khi mở trang
   renderer.render();
   markSample(sampleButtons[0]);
   runDiagnosis(sampleButtons[0].dataset.sample, { save: false });

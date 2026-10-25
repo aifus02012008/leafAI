@@ -24,7 +24,7 @@
       <div class="page-head">
         <div>
           <h1>Chẩn đoán lá vải thiều Lục Ngạn</h1>
-          <p>Chụp hoặc tải ảnh lá vải thiều Lục Ngạn nghi bệnh. AI nhận diện bệnh hại, hiển thị bản đồ nhiệt Grad-CAM và gợi ý phác đồ điều trị chuẩn IPM.</p>
+          <p>Chụp hoặc tải ảnh lá vải thiều Lục Ngạn nghi bệnh. Mô hình LEAF_AI nhận diện bệnh hại, ca khó được Gemini Vision kiểm tra thêm, kèm bản đồ nhiệt Grad-CAM và phác đồ IPM.</p>
         </div>
 
       </div>
@@ -55,6 +55,15 @@
             </div>
           </div>
 
+          <div class="surface-bar">
+            <span class="surface-label"><i class="bi bi-layers"></i>Ảnh chụp:</span>
+            <div class="segmented segmented-sm" role="group" aria-label="Mặt lá trong ảnh" id="surfaceGroup">
+              <button type="button" data-surface="" aria-pressed="true">Tự nhận</button>
+              <button type="button" data-surface="top" aria-pressed="false">Mặt trên</button>
+              <button type="button" data-surface="bottom" aria-pressed="false">Mặt dưới</button>
+            </div>
+          </div>
+
           <div class="toolbar">
             <button class="btn btn-primary grow" id="btnOpenCamera" type="button"><i class="bi bi-camera"></i>Chụp bằng camera</button>
             <button class="btn grow" id="btnPickFile" type="button"><i class="bi bi-image"></i>Chọn ảnh từ máy</button>
@@ -81,7 +90,7 @@
         <section class="panel panel-pad" aria-labelledby="resultTitle" aria-live="polite">
           <div class="panel-title">
             <h2 id="resultTitle">Kết quả</h2>
-            <span class="tag" id="modelTag">ResNet-18</span>
+            <span class="tag" id="modelTag">LEAF_AI</span>
           </div>
           <div class="result-status" id="resultStatus"><span class="pulse"></span><span id="resultStatusText">Chờ ảnh lá</span></div>
 
@@ -89,6 +98,11 @@
             <i class="bi bi-flower1"></i>
             <h3>Chưa có ảnh để phân tích</h3>
             <p class="small">Chụp cả lá kép hoặc một lá chét dưới ánh sáng tự nhiên, để lá chiếm phần lớn khung hình. Với nhện lông nhung, chụp thêm mặt dưới lá.</p>
+            <ul class="capture-tips">
+              <li><i class="bi bi-brightness-high"></i>Đủ sáng, tránh nắng gắt chiếu thẳng</li>
+              <li><i class="bi bi-bullseye"></i>Chạm vào vết bệnh để lấy nét</li>
+              <li><i class="bi bi-aspect-ratio"></i>Lá chiếm 60–80% khung hình</li>
+            </ul>
           </div>
 
           <div id="resultBody" hidden>
@@ -97,6 +111,7 @@
               <div><strong>Nghi lá nhiễm nhiều bệnh cùng lúc.</strong> Bệnh thứ hai cũng có xác suất đáng kể. Xử lý bệnh chính trước và kiểm tra lại lá trong 3 ngày tới.</div>
             </div>
             <div class="alert alert-info" id="noteAlert" hidden><i class="bi bi-info-circle"></i><div id="noteText"></div></div>
+            <div class="alert alert-warn" id="qualityAlert" hidden><i class="bi bi-camera"></i><div><strong>Gợi ý chụp lại để kết quả chính xác hơn:</strong><ul id="qualityList"></ul></div></div>
 
             <div class="diagnosis">
               <div class="diagnosis-top">
@@ -109,6 +124,12 @@
               </div>
               <div class="meter" aria-hidden="true"><i id="primaryMeter"></i></div>
               <p class="diagnosis-note" id="primaryNote"></p>
+            </div>
+
+            <div id="evidenceWrap" hidden>
+              <h3 class="sub-head">AI quan sát thấy</h3>
+              <ul class="evidence-list" id="evidenceList"></ul>
+              <p class="evidence-reason" id="reasoningText"></p>
             </div>
 
             <div id="secondaryWrap">
@@ -140,10 +161,10 @@
           <a class="small" href="about.html#mo-hinh">Xem chi tiết mô hình</a>
         </div>
         <dl class="model-facts">
-          <div><dt>Kiến trúc</dt><dd>ResNet-18</dd></div>
-          <div><dt>Số lớp</dt><dd>5 bệnh, dịch hại + lá khỏe</dd></div>
-          <div><dt>Ảnh đầu vào</dt><dd>224 × 224</dd></div>
-          <div><dt>Giải thích</dt><dd>Grad-CAM</dd></div>
+          <div><dt>Mô hình chính</dt><dd>CNN huấn luyện trên ảnh lá vải</dd></div>
+          <div><dt>Ca khó</dt><dd>Gemini Vision kiểm tra thêm</dd></div>
+          <div><dt>Số lớp</dt><dd>5 bệnh + lá khỏe + vấn đề khác</dd></div>
+          <div><dt>Giải thích</dt><dd>Grad-CAM + khoanh vùng vết bệnh</dd></div>
         </dl>
       </section>
     </div>
@@ -171,6 +192,7 @@
   <script src="assets/js/canvas_render.js"></script>
   <script src="assets/js/camera.js"></script>
   <script src="assets/js/treatment_planner.js"></script>
+  <script src="assets/js/leaf_image.js"></script>
   <script src="assets/js/api.js"></script>
   <script src="assets/js/pages/scan.js"></script>
 </body>
