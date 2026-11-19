@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pydantic_settings import BaseSettings
 from pathlib import Path
 import os

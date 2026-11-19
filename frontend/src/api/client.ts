@@ -27,8 +27,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('leafai_token');
       localStorage.removeItem('leafai_user');
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-        window.location.href = '/login';
+      const basePath = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+      const loginPath = `${basePath}/login`;
+      const registerPath = `${basePath}/register`;
+      if (window.location.pathname !== loginPath && window.location.pathname !== registerPath) {
+        window.location.href = loginPath;
       }
     }
     return Promise.reject(error);

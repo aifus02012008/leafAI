@@ -1,3 +1,4 @@
+from __future__ import annotations
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from fastapi import HTTPException, status
