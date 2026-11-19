@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Frontend Application
         env:
-          VITE_BASE_PATH: '/leaf_ai/'
+          VITE_BASE_PATH: '/leaf_ai2/'
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://leaf-ai-jdpd.onrender.com' }}
         run: |
           cd frontend
