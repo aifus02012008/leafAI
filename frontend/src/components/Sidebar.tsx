@@ -7,7 +7,11 @@ import {
   History,
   LogOut,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  SprayCan,
+  Calculator,
+  Mic,
+  Radar
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from './Toast';
@@ -17,6 +21,10 @@ const NAV_ITEMS = [
   { path: '/diagnose', label: 'Chẩn Đoán AI', icon: ScanEye, badge: 'YOLO' },
   { path: '/diseases', label: 'Thư Viện Bệnh', icon: BookOpen, badge: null },
   { path: '/history', label: 'Lịch Sử Quét', icon: History, badge: null },
+  { path: '/radar', label: 'Radar Dịch Bệnh', icon: Radar, badge: 'MỚI' },
+  { path: '/treatments', label: 'Nhật Ký Điều Trị', icon: SprayCan, badge: null },
+  { path: '/tools', label: 'Tính Liều & Cách Ly', icon: Calculator, badge: null },
+  { path: '/assistant', label: 'Hỏi Đáp Giọng Nói', icon: Mic, badge: null },
 ];
 
 interface SidebarProps {
@@ -54,7 +62,7 @@ export function Sidebar({ onItemClick }: SidebarProps) {
               LEAF_AI
             </div>
             <p className="text-[11px] font-semibold tracking-wider uppercase text-emerald-800 -mt-0.5 truncate">
-              Bệnh Học Cây Chè AI
+              Bệnh Học Cây Trồng AI
             </p>
           </div>
         </div>
@@ -113,7 +121,7 @@ export function Sidebar({ onItemClick }: SidebarProps) {
             </span>
           </div>
           <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-            6 nhóm bệnh lá chè được hiệu chuẩn để nhận diện thực địa
+            Chẩn đoán bệnh lá chè · thư viện bệnh sầu riêng, măng cụt, chôm chôm
           </p>
         </div>
 

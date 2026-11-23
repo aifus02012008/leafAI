@@ -1,5 +1,6 @@
 import { ArrowRight, AlertTriangle, ListChecks, Leaf } from 'lucide-react';
 import type { Disease } from '../types';
+import { useCrops } from '../hooks/useCrops';
 
 interface DiseaseCardProps {
   disease: Disease;
@@ -8,6 +9,8 @@ interface DiseaseCardProps {
 
 export function DiseaseCard({ disease, onSelect }: DiseaseCardProps) {
   const cleanClass = disease.class_name.replace('Tomato___', '').replace(/_/g, ' ');
+  const { crops } = useCrops();
+  const crop = crops.find((c) => c.code === disease.crop_code);
 
   return (
     <div className="clean-card clean-card-hover p-6 sm:p-7 rounded-3xl flex flex-col justify-between group bg-white border border-[#E2EFE7] shadow-xs">
@@ -18,7 +21,7 @@ export function DiseaseCard({ disease, onSelect }: DiseaseCardProps) {
             <Leaf size={20} />
           </div>
           <span className="text-[11px] font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
-            Camellia sinensis
+            {crop ? `${crop.name_vi} · ${crop.scientific_name}` : 'Camellia sinensis'}
           </span>
         </div>
 

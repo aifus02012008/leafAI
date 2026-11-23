@@ -1,10 +1,11 @@
 import { apiClient } from './client';
-import type { Disease } from '../types';
+import type { CropCode, Disease } from '../types';
 
-export async function apiGetDiseases(search?: string): Promise<Disease[]> {
+export async function apiGetDiseases(search?: string, crop?: CropCode | null): Promise<Disease[]> {
   const params: Record<string, string> = {};
   if (search && search.trim()) params.search = search.trim();
-  
+  if (crop) params.crop = crop;
+
   const res = await apiClient.get<Disease[]>('/api/diseases', { params });
   return res.data;
 }

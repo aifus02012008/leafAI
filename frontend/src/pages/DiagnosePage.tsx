@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback, type ChangeEvent, type DragEvent } from 'react';
+import { useState, useRef, useCallback, useEffect, type ChangeEvent, type DragEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Upload,
   Camera,
@@ -10,14 +11,42 @@ import {
   Layers,
   ShieldCheck,
   Droplets,
-  Leaf
+  Leaf,
+  SprayCan
 } from 'lucide-react';
 import { apiPredict } from '../api/diagnosis';
 import { BoundingBoxViewer } from '../components/BoundingBoxViewer';
+import { CropSelector } from '../components/CropSelector';
+import { DiagnosisFeedback } from '../components/DiagnosisFeedback';
+import { FollowupVerdictCard } from '../components/FollowupVerdictCard';
+import { RecordTreatmentModal } from '../components/RecordTreatmentModal';
+import { resolveMediaUrl } from '../api/client';
+import { useFollowupTreatment } from '../hooks/useFollowupTreatment';
+import { getCurrentPosition, readRadarConsent, storeRadarConsent } from '../hooks/useGeolocation';
+import { formatDate, formatNumber } from '../utils/format';
 import { showToast } from '../components/Toast';
-import type { DiagnosisResult } from '../types';
+import { useCrops } from '../hooks/useCrops';
+import type { CropCode, DiagnosisResult } from '../types';
 
 const MAX_UPLOAD_MB = 10;
+const CROP_STORAGE_KEY = 'leafai_last_crop';
+const DEFAULT_CROP: CropCode = 'tea';
+
+function readStoredCrop(): CropCode {
+  try {
+    return localStorage.getItem(CROP_STORAGE_KEY) || DEFAULT_CROP;
+  } catch {
+    return DEFAULT_CROP;
+  }
+}
+
+function storeCrop(code: CropCode): void {
+  try {
+    localStorage.setItem(CROP_STORAGE_KEY, code);
+  } catch {
+    /* storage unavailable (private mode) — selection just won't persist */
+  }
+}
 
 export function DiagnosePage() {
   const [file, setFile] = useState<File | null>(null);
@@ -25,8 +54,34 @@ export function DiagnosePage() {
   const [analyzing, setAnalyzing] = useState<boolean>(false);
   const [result, setResult] = useState<DiagnosisResult | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  const [crop, setCrop] = useState<CropCode>(readStoredCrop);
+  const { crops, loading: cropsLoading, cropName } = useCrops();
+  const [searchParams] = useSearchParams();
+  const followupParam = Number(searchParams.get('followup'));
+  const followup = useFollowupTreatment(Number.isInteger(followupParam) && followupParam > 0 ? followupParam : null);
+  const [recordOpen, setRecordOpen] = useState(false);
+  const [shareToRadar, setShareToRadar] = useState<boolean>(readRadarConsent);
+
+  // Re-photo mode: lock the crop to the treated crop.
+  useEffect(() => {
+    if (followup.treatment) setCrop(followup.treatment.crop_code);
+  }, [followup.treatment]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const leafLabel = `lá ${cropName(crop).toLowerCase()}`;
+
+  // If the remembered crop is no longer available (or unknown), fall back to tea.
+  useEffect(() => {
+    if (cropsLoading) return;
+    const current = crops.find((c) => c.code === crop);
+    if (!current || !current.is_available) setCrop(DEFAULT_CROP);
+  }, [crops, cropsLoading, crop]);
+
+  const handleSelectCrop = (code: CropCode) => {
+    setCrop(code);
+    storeCrop(code);
+    setResult(null);
+  };
 
   const handleProcessFile = (selectedFile: File) => {
     if (!selectedFile.type.startsWith('image/')) {
@@ -72,6 +127,7 @@ export function DiagnosePage() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setResult(null);
+    followup.reset();
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -94,8 +150,10 @@ export function DiagnosePage() {
 
     setAnalyzing(true);
     try {
-      const res = await apiPredict(file);
+      const location = shareToRadar ? await getCurrentPosition() : null;
+      const res = await apiPredict(file, crop, location);
       setResult(res);
+      if (followup.treatment) await followup.submit(res.id);
       showToast(
         'success',
         res.detections.length > 0
@@ -116,19 +174,47 @@ export function DiagnosePage() {
       <div className="space-y-1.5">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0FDF4] border border-emerald-200/80 text-xs font-bold text-[#15803D]">
           <Leaf size={13} className="text-[#15803D]" />
-          <span>Trung Tâm Chẩn Đoán Bệnh Lá Chè (Camellia sinensis)</span>
+          <span>Trung Tâm Chẩn Đoán Bệnh Lá Cây Trồng</span>
         </div>
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Chẩn Đoán Bệnh Lá Chè & <span className="text-gradient">Thị Giác AI</span>
+          Chẩn Đoán Bệnh Lá & <span className="text-gradient">Thị Giác AI</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
-          Tải lên hoặc chụp ảnh lá chè (Camellia sinensis) độ nét cao để nhận diện đốm tảo, đốm xám, đốm nâu, bọ xít muỗi... với hộp định vị YOLO.
+          Chọn loại cây, rồi tải lên hoặc chụp ảnh lá độ nét cao để AI khoanh vùng tổn thương và nhận diện bệnh hại.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Upload & Inspection Workspace (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
+          {followup.treatment && (
+            <div className="clean-card p-4 rounded-3xl flex items-center gap-4 border-2 border-amber-300 bg-amber-50/60">
+              {followup.treatment.original_image_url && (
+                <img
+                  src={resolveMediaUrl(followup.treatment.original_image_url)}
+                  alt="Ảnh lá trước khi điều trị"
+                  className="w-20 h-20 rounded-2xl object-cover border border-amber-200 shrink-0"
+                />
+              )}
+              <div className="text-xs text-slate-700 space-y-1">
+                <p className="font-bold text-amber-900 text-sm">Chụp lại lá để đánh giá hiệu quả thuốc</p>
+                <p>
+                  Đã phun <b>{followup.treatment.active_name}</b> ngày {formatDate(followup.treatment.applied_on)}. Hãy chụp
+                  <b> cùng chiếc lá</b> (hoặc cùng vị trí), cùng khoảng cách và đủ sáng như ảnh bên cạnh.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!result && !followup.treatment && (
+            <CropSelector
+              crops={crops}
+              value={crop}
+              onChange={handleSelectCrop}
+              disabled={analyzing}
+            />
+          )}
+
           {!previewUrl ? (
             /* Upload Dropzone Card */
             <div
@@ -155,10 +241,10 @@ export function DiagnosePage() {
               </div>
 
               <h3 className="text-lg sm:text-xl font-bold text-slate-900 font-['Space_Grotesk']">
-                Kéo & thả ảnh lá chè vào đây
+                Kéo & thả ảnh {leafLabel} vào đây
               </h3>
               <p className="text-xs text-slate-500 max-w-md mt-1.5 mb-6 leading-relaxed">
-                Cung cấp hình ảnh bề mặt lá chè rõ nét, đủ ánh sáng ở định dạng JPEG, PNG hoặc WEBP. Dung lượng tối đa {MAX_UPLOAD_MB}MB.
+                Cung cấp hình ảnh bề mặt {leafLabel} rõ nét, đủ ánh sáng ở định dạng JPEG, PNG hoặc WEBP. Dung lượng tối đa {MAX_UPLOAD_MB}MB.
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-3">
@@ -233,6 +319,22 @@ export function DiagnosePage() {
                 </button>
               </div>
 
+              <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#F0FDF4] border border-emerald-200 text-xs text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={shareToRadar}
+                  onChange={(e) => {
+                    setShareToRadar(e.target.checked);
+                    storeRadarConsent(e.target.checked);
+                  }}
+                  className="mt-0.5 accent-[#15803D]"
+                />
+                <span>
+                  <b>Chia sẻ vị trí ẩn danh cho Radar dịch bệnh</b> — giúp cảnh báo sớm cho các vườn xung quanh. Vị trí được làm tròn
+                  ~110 m, không hiển thị tên hay tài khoản của bạn. Có thể tắt bất cứ lúc nào.
+                </span>
+              </label>
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
                 <div className="text-xs text-slate-500 font-medium font-mono">
                   Tệp: <span className="font-bold text-slate-800">{file?.name}</span>{' '}
@@ -261,7 +363,7 @@ export function DiagnosePage() {
                     ) : (
                       <>
                         <Scan size={15} />
-                        <span>Chẩn Đoán Bệnh Lá Chè</span>
+                        <span>Chẩn Đoán Bệnh Lá {cropName(crop)}</span>
                       </>
                     )}
                   </button>
@@ -312,6 +414,13 @@ export function DiagnosePage() {
                     </div>
                   )}
 
+                  {result.severity_pct != null && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Diện Tích Vết Bệnh / Lá</span>
+                      <span className="font-bold text-slate-900 font-mono text-sm">{formatNumber(result.severity_pct)}%</span>
+                    </div>
+                  )}
+
                   {result.inference_time !== null && (
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Thời Gian Suy Luận</span>
@@ -328,10 +437,25 @@ export function DiagnosePage() {
                     {result.summary}
                   </p>
                 </div>
+
+                <DiagnosisFeedback
+                  key={result.id}
+                  diagnosisId={result.id}
+                  initial={result.user_feedback}
+                />
+
+                {followup.result && <FollowupVerdictCard result={followup.result} />}
+
+                {!followup.treatment && result.status === 'detected' && (
+                  <button type="button" onClick={() => setRecordOpen(true)} className="btn-primary text-xs py-2.5 px-4 w-full">
+                    <SprayCan size={15} />
+                    <span>Ghi nhận đã phun thuốc &amp; nhắc chụp lại sau 3–5 ngày</span>
+                  </button>
+                )}
               </div>
             ) : (
               <p className="text-xs text-slate-400 leading-relaxed py-6 text-center">
-                Chọn hoặc chụp ảnh lá chè và bấm "Chẩn Đoán Bệnh Lá Chè" để chạy mô hình YOLO.
+                Chọn loại cây, tải ảnh {leafLabel} và bấm "Chẩn Đoán Bệnh Lá {cropName(crop)}" để chạy mô hình AI.
               </p>
             )}
           </div>
@@ -351,28 +475,45 @@ export function DiagnosePage() {
                     Biện Pháp Bảo Vệ Mục Tiêu
                   </span>
                   <p className="text-slate-600 leading-relaxed text-xs">
-                    Áp dụng thuốc trừ nấm nội hấp hoặc thuốc gốc đồng chuyên dụng cho cây chè (Camellia sinensis) để ngăn chặn tổn thương lan rộng.
+                    Cách ly, cắt bỏ phần lá bệnh và áp dụng phác đồ đặc trị cho cây {cropName(result.crop_code).toLowerCase()} để ngăn tổn thương lan rộng.{' '}
+                    <Link to="/diseases" className="font-bold text-[#15803D] underline underline-offset-2">
+                      Xem phác đồ chi tiết trong Thư viện bệnh
+                    </Link>
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-1.5">
                   <span className="font-bold text-amber-900 flex items-center gap-1.5">
                     <Droplets size={15} className="text-amber-600" />
-                    Quản Lý Độ Ẩm & Độ Thông Thoáng Tán Chè
+                    Quản Lý Độ Ẩm & Độ Thông Thoáng Tán Cây
                   </span>
                   <p className="text-slate-600 leading-relaxed text-xs">
-                    Tỉa bớt cành che bóng để đón ánh nắng trực tiếp, khơi thông rãnh thoát nước giữa các luống chè để hạ độ ẩm tán chè dưới 80%.
+                    Tỉa bớt cành che bóng để đón ánh nắng, khơi thông rãnh thoát nước để giảm độ ẩm trong tán — phần lớn bệnh lá do nấm bùng phát khi ẩm độ cao.
                   </p>
                 </div>
               </div>
             ) : (
               <p className="text-xs text-slate-400 leading-relaxed py-6 text-center">
-                Các biện pháp chăm sóc nông học, vệ sinh tán chè IPM và khuyến nghị cụ thể sẽ xuất hiện tại đây sau khi triệu chứng được phân tích.
+                Các biện pháp chăm sóc nông học, vệ sinh vườn IPM và khuyến nghị cụ thể sẽ xuất hiện tại đây sau khi triệu chứng được phân tích.
               </p>
             )}
           </div>
         </div>
       </div>
+
+      {result && (
+        <RecordTreatmentModal
+          open={recordOpen}
+          diagnosisId={result.id}
+          cropCode={result.crop_code}
+          diseaseName={
+            result.detections.length > 0
+              ? result.detections.reduce((a, b) => (b.confidence > a.confidence ? b : a)).class_name
+              : null
+          }
+          onClose={() => setRecordOpen(false)}
+        />
+      )}
     </div>
   );
 }

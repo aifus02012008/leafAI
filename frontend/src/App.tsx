@@ -8,6 +8,10 @@ import { DashboardPage } from './pages/DashboardPage';
 import { DiagnosePage } from './pages/DiagnosePage';
 import { DiseasesPage } from './pages/DiseasesPage';
 import { HistoryPage } from './pages/HistoryPage';
+import { TreatmentsPage } from './pages/TreatmentsPage';
+import { ToolsPage } from './pages/ToolsPage';
+import { AssistantPage } from './pages/AssistantPage';
+import { RadarPage } from './pages/RadarPage';
 
 export default function App() {
   return (
@@ -23,6 +27,10 @@ export default function App() {
             <Route path="/diagnose" element={<DiagnosePage />} />
             <Route path="/diseases" element={<DiseasesPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/treatments" element={<TreatmentsPage />} />
+            <Route path="/tools" element={<ToolsPage />} />
+            <Route path="/assistant" element={<AssistantPage />} />
+            <Route path="/radar" element={<RadarPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

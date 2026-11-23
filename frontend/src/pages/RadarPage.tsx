@@ -1,0 +1,183 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertTriangle, CloudRain, Droplets, Loader2, LocateFixed, Radar, ShieldCheck, Thermometer } from 'lucide-react';
+import { apiGetRadar } from '../api/radar';
+import { RadarMap } from '../components/RadarMap';
+import { showToast } from '../components/Toast';
+import { useCrops } from '../hooks/useCrops';
+import { getCurrentPosition } from '../hooks/useGeolocation';
+import { formatDate } from '../utils/format';
+import type { CropCode, GeoPoint, RadarResponse, RiskLevel } from '../types';
+
+/** Sample growing areas so the radar can be explored without sharing a location. */
+const PRESET_AREAS: { label: string; point: GeoPoint }[] = [
+  { label: 'Cái Mơn, Bến Tre (sầu riêng)', point: { lat: 10.2401, lng: 106.3756 } },
+  { label: 'Lục Ngạn, Bắc Giang (vải thiều)', point: { lat: 21.3833, lng: 106.65 } },
+  { label: 'Tân Cương, Thái Nguyên (chè)', point: { lat: 21.5594, lng: 105.7708 } },
+  { label: 'Krông Pắc, Đắk Lắk (sầu riêng)', point: { lat: 12.6944, lng: 108.3253 } },
+];
+
+const LEVEL_META: Record<RiskLevel, { label: string; className: string }> = {
+  high: { label: 'Nguy cơ cao', className: 'bg-red-50 border-red-300 text-red-800' },
+  medium: { label: 'Nguy cơ trung bình', className: 'bg-amber-50 border-amber-300 text-amber-900' },
+  low: { label: 'Nguy cơ thấp', className: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
+};
+
+const WEEKDAY = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+export function RadarPage() {
+  const { crops, cropName } = useCrops();
+  const [point, setPoint] = useState<GeoPoint>(PRESET_AREAS[0].point);
+  const [areaLabel, setAreaLabel] = useState(PRESET_AREAS[0].label);
+  const [crop, setCrop] = useState<CropCode | ''>('');
+  const [radius, setRadius] = useState(5);
+  const [data, setData] = useState<RadarResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
+
+  const requestSeq = useRef(0);
+
+  const load = useCallback(async (p: GeoPoint, r: number, c: CropCode | '') => {
+    const seq = ++requestSeq.current; // ignore responses from superseded filter changes
+    setLoading(true);
+    try {
+      const res = await apiGetRadar(p, r, c || null);
+      if (seq === requestSeq.current) setData(res);
+    } catch {
+      if (seq === requestSeq.current) showToast('error', 'Không tải được dữ liệu radar dịch bệnh.');
+    } finally {
+      if (seq === requestSeq.current) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load(point, radius, crop);
+  }, [load, point, radius, crop]);
+
+  const useMyLocation = async () => {
+    setLocating(true);
+    const pos = await getCurrentPosition();
+    setLocating(false);
+    if (!pos) {
+      showToast('error', 'Không lấy được vị trí. Hãy cho phép quyền vị trí hoặc chọn vùng có sẵn.');
+      return;
+    }
+    setPoint(pos);
+    setAreaLabel('Vị trí hiện tại của bạn');
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-1.5">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
+          Radar <span className="text-gradient">Dịch Bệnh</span>
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-3xl">
+          Cảnh báo sớm từ các ca bệnh nông dân quanh bạn đã chia sẻ (ẩn danh) kết hợp dự báo độ ẩm, nhiệt độ và mưa 3 ngày tới.
+        </p>
+      </div>
+
+      <div className="clean-card p-4 sm:p-5 rounded-3xl flex flex-col lg:flex-row gap-3 lg:items-end">
+        <div className="flex-1 min-w-0">
+          <label htmlFor="radar-area" className="block text-[11px] font-bold text-slate-600 mb-1">Khu vực</label>
+          <select
+            id="radar-area"
+            value={PRESET_AREAS.findIndex((a) => a.label === areaLabel)}
+            onChange={(e) => {
+              const area = PRESET_AREAS[Number(e.target.value)];
+              if (area) {
+                setPoint(area.point);
+                setAreaLabel(area.label);
+              }
+            }}
+            className="input-clean py-2 text-sm"
+          >
+            {areaLabel === 'Vị trí hiện tại của bạn' && <option value={-1}>Vị trí hiện tại của bạn</option>}
+            {PRESET_AREAS.map((a, i) => <option key={a.label} value={i}>{a.label}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-3 lg:w-80">
+          <div>
+            <label htmlFor="radar-crop" className="block text-[11px] font-bold text-slate-600 mb-1">Cây trồng</label>
+            <select id="radar-crop" value={crop} onChange={(e) => setCrop(e.target.value)} className="input-clean py-2 text-sm">
+              <option value="">Tất cả</option>
+              {crops.map((c) => <option key={c.code} value={c.code}>{c.name_vi}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="radar-radius" className="block text-[11px] font-bold text-slate-600 mb-1">Bán kính</label>
+            <select id="radar-radius" value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="input-clean py-2 text-sm">
+              {[2, 5, 10, 20].map((r) => <option key={r} value={r}>{r} km</option>)}
+            </select>
+          </div>
+        </div>
+        <button type="button" onClick={useMyLocation} disabled={locating} className="btn-secondary text-xs py-2.5 px-4">
+          {locating ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
+          <span>Dùng vị trí của tôi</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-7 space-y-4">
+          <div className="clean-card p-3 rounded-3xl relative">
+            <RadarMap center={point} radiusKm={radius} cells={data?.grid ?? []} />
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-3xl z-10">
+                <Loader2 size={24} className="animate-spin text-[#15803D]" />
+              </div>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-500 flex items-start gap-1.5">
+            <ShieldCheck size={13} className="text-[#15803D] shrink-0 mt-0.5" />
+            Vị trí chỉ được lưu khi người dùng đồng ý, làm tròn khoảng 110 m; bản đồ chỉ hiện ô ~2 km có từ 2 hộ báo cáo trở lên.
+          </p>
+        </div>
+
+        <div className="lg:col-span-5 space-y-4">
+          <section aria-labelledby="radar-weather" className="clean-card p-4 rounded-3xl space-y-3">
+            <h2 id="radar-weather" className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
+              <CloudRain size={15} /> Thời tiết 3 ngày tới
+            </h2>
+            {data?.weather ? (
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {data.weather.map((d) => (
+                  <div key={d.day} className={`p-2.5 rounded-xl border text-center ${d.humid_hours >= 6 ? 'bg-sky-50 border-sky-200' : 'bg-white border-[#E2EFE7]'}`}>
+                    <div className="font-bold text-slate-800">{WEEKDAY[new Date(d.day + 'T00:00:00').getDay()]} {formatDate(d.day).slice(0, 5)}</div>
+                    <div className="flex items-center justify-center gap-1 text-sky-700 mt-1"><Droplets size={12} />{d.humid_hours} giờ ≥90%</div>
+                    <div className="flex items-center justify-center gap-1 text-slate-600"><Thermometer size={12} />{Math.round(d.t_min)}–{Math.round(d.t_max)}°C</div>
+                    <div className="text-slate-600">Mưa {d.precip_mm} mm</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500">Chưa lấy được dự báo thời tiết cho khu vực này.</p>
+            )}
+          </section>
+
+          <section aria-labelledby="radar-alerts" className="clean-card p-4 rounded-3xl space-y-3">
+            <h2 id="radar-alerts" className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
+              <Radar size={15} /> Cảnh báo quanh {areaLabel}
+            </h2>
+            {data && data.alerts.length === 0 && (
+              <p className="text-xs text-slate-600">
+                Chưa ghi nhận ca bệnh nào được chia sẻ trong bán kính {radius} km, {data.lookback_days} ngày qua.
+              </p>
+            )}
+            <ul className="space-y-2.5">
+              {data?.alerts.map((a) => (
+                <li key={`${a.crop_code}-${a.disease}`} className={`p-3.5 rounded-2xl border text-xs space-y-1.5 ${LEVEL_META[a.level].className}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <AlertTriangle size={13} /> {LEVEL_META[a.level].label}
+                    </span>
+                    <span className="font-semibold">{cropName(a.crop_code)} · {a.cases} ca</span>
+                  </div>
+                  <p className="leading-relaxed text-slate-800">{a.message}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}

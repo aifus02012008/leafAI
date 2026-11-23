@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { Disease } from '../types';
 import { apiGetDiseaseDetail } from '../api/diseases';
+import { useCrops } from '../hooks/useCrops';
 
 interface DiseaseDetailModalProps {
   disease: Disease | null;
@@ -46,6 +47,11 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
   // Default to the single unified Complete Treatment Timeline view
   const [activeTab, setActiveTab] = useState<'timeline' | 'symptoms' | 'prevention' | 'all'>('timeline');
   const [currentDisease, setCurrentDisease] = useState<Disease | null>(disease);
+  const { crops } = useCrops();
+  const crop = crops.find((c) => c.code === (currentDisease?.crop_code ?? 'tea'));
+  const cropNameVi = crop?.name_vi ?? 'Chè';
+  const cropScientific = crop?.scientific_name ?? 'Camellia sinensis';
+  const cropLower = cropNameVi.toLowerCase();
 
   // Sync disease prop and fetch full details if fields are missing
   useEffect(() => {
@@ -197,7 +203,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-[#F0FDF4] text-[#15803D] font-bold flex items-center gap-1 border border-emerald-200">
                   <Leaf size={11} className="text-[#15803D]" />
-                  Camellia sinensis • Cây Chè
+                  {cropScientific} • Cây {cropNameVi}
                 </span>
                 <span className="text-[10px] font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
                   Lộ Trình Điều Trị Toàn Diện
@@ -292,7 +298,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                         Lộ Trình Điều Trị Toàn Diện
                       </h3>
                       <p className="text-xs text-slate-600">
-                        Quy trình can thiệp liên tục từ ngày đầu tiên nhiễm bệnh đến khi cây chè hồi phục hoàn toàn.
+                        Quy trình can thiệp liên tục từ ngày đầu tiên nhiễm bệnh đến khi cây {cropLower} hồi phục hoàn toàn.
                       </p>
                     </div>
                   </div>
@@ -428,7 +434,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                                 </div>
                               </div>
                               <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-white text-[#15803D] border border-emerald-200 hidden sm:inline-block">
-                                Chu kỳ chuẩn Camellia sinensis
+                                Chu kỳ chuẩn {cropScientific}
                               </span>
                             </div>
                           )}
@@ -438,7 +444,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                             <div className="bg-white p-4 rounded-xl border border-emerald-200/90 shadow-2xs space-y-2">
                               <span className="font-extrabold text-[#14532D] flex items-center gap-1.5 uppercase tracking-wider text-xs font-['Space_Grotesk']">
                                 <CheckCircle2 size={16} className="text-[#15803D]" />
-                                Tiêu chuẩn xác định cây chè đã khỏi bệnh:
+                                Tiêu chuẩn xác định cây {cropLower} đã khỏi bệnh:
                               </span>
                               <ul className="space-y-2 pl-1 pt-1">
                                 {stage.content.criteria.map((item, cIdx) => (
@@ -458,7 +464,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                             <div className="bg-amber-50/70 p-4 rounded-xl border border-amber-200 space-y-1.5 text-amber-950">
                               <span className="font-bold flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                                 <Info size={15} className="text-amber-600 shrink-0" />
-                                Lưu ý sinh lý phục hồi mô lá chè:
+                                Lưu ý sinh lý phục hồi mô lá {cropLower}:
                               </span>
                               <p className="text-slate-700 leading-relaxed text-xs pl-5">
                                 {stage.content.tissueNote}
@@ -540,7 +546,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
         <div className="sticky bottom-0 z-20 p-4 sm:p-5 bg-white/95 backdrop-blur-md border-t border-[#E2EFE7] flex items-center justify-between">
           <div className="text-[11px] text-slate-500 hidden sm:flex items-center gap-1.5">
             <Leaf size={13} className="text-[#15803D]" />
-            <span>Phác đồ bệnh học chè Camellia sinensis • LEAF_AI</span>
+            <span>Phác đồ bệnh học {cropLower} {cropScientific} • LEAF_AI</span>
           </div>
           <button
             type="button"

@@ -5,20 +5,33 @@ import { DiseaseCard } from '../components/DiseaseCard';
 import { DiseaseDetailModal } from '../components/DiseaseDetailModal';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import type { Disease } from '../types';
+import { CropFilterPills } from '../components/CropFilterPills';
+import { useCrops } from '../hooks/useCrops';
+import type { CropCode, Disease } from '../types';
 
 export function DiseasesPage() {
   const [diseases, setDiseases] = useState<Disease[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
+  const [cropFilter, setCropFilter] = useState<CropCode | null>(null);
   const [selectedDisease, setSelectedDisease] = useState<Disease | null>(null);
+  const { crops } = useCrops();
 
   useEffect(() => {
-    apiGetDiseases(search)
-      .then(setDiseases)
+    let active = true; // ignore responses from superseded filter changes
+    setLoading(true);
+    apiGetDiseases(search, cropFilter)
+      .then((data) => {
+        if (active) setDiseases(data);
+      })
       .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [search]);
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [search, cropFilter]);
 
   const handleSelectDisease = async (item: Disease) => {
     setSelectedDisease(item);
@@ -36,15 +49,17 @@ export function DiseasesPage() {
       <div className="space-y-1.5">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0FDF4] border border-emerald-200/80 text-xs font-bold text-[#15803D]">
           <Leaf size={13} className="text-[#15803D]" />
-          <span>Cơ Sở Dữ Liệu Bệnh Học Lá Chè (Camellia sinensis)</span>
+          <span>Cơ Sở Dữ Liệu Bệnh Học Lá Cây Trồng</span>
         </div>
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Bệnh Học Cây Chè & <span className="text-gradient">Thư Viện Bệnh Hại</span>
+          Bệnh Học Cây Trồng & <span className="text-gradient">Thư Viện Bệnh Hại</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
-          Thư viện chuyên sâu về bệnh học cây chè (Camellia sinensis): phân loại tác nhân, triệu chứng chẩn đoán và lộ trình điều trị toàn diện.
+          Thư viện bệnh lá chè, sầu riêng, măng cụt và chôm chôm: tác nhân gây bệnh, triệu chứng chẩn đoán và lộ trình điều trị.
         </p>
       </div>
+
+      <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
 
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
@@ -54,7 +69,7 @@ export function DiseasesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm bệnh hại chè (vd: Rầy xanh, Thối đen, Cháy nâu, Gỉ sắt, Nhện đỏ, Bọ xít muỗi)..."
+            placeholder="Tìm kiếm bệnh hại (vd: Thán thư, Phytophthora, Đốm rong, Rầy xanh, Phấn trắng)..."
             className="input-clean pl-10 py-2.5 text-xs sm:text-sm shadow-2xs"
           />
         </div>
@@ -82,12 +97,15 @@ export function DiseasesPage() {
       ) : (
         <EmptyState
           icon={<BookOpen size={24} className="text-[#15803D]" />}
-          title="Không tìm thấy bệnh hại chè phù hợp"
-          description="Không tìm thấy bệnh hại nào khớp với từ khóa tìm kiếm. Vui lòng thử từ khóa khác."
+          title="Không tìm thấy bệnh hại phù hợp"
+          description="Không tìm thấy bệnh hại nào khớp với từ khóa và loại cây đã chọn. Vui lòng thử bộ lọc khác."
           action={
             <button
               type="button"
-              onClick={() => setSearch('')}
+              onClick={() => {
+                setSearch('');
+                setCropFilter(null);
+              }}
               className="btn-primary text-xs"
             >
               Xóa Bộ Lọc

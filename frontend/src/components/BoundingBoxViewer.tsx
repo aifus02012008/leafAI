@@ -100,7 +100,7 @@ export function BoundingBoxViewer({
           >
             <img
               src={resolveMediaUrl(currentImageUrl)}
-              alt="Phân tích bệnh học lá chè"
+              alt="Phân tích bệnh học lá cây"
               className="max-h-[500px] w-auto max-w-full object-contain rounded-xl shadow-2xl"
             />
           </div>

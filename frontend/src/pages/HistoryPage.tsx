@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   History,
   Search,
@@ -15,30 +15,41 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { showToast } from '../components/Toast';
-import type { DiagnosisListItem, DiagnosisResult } from '../types';
+import { CropFilterPills } from '../components/CropFilterPills';
+import { useCrops } from '../hooks/useCrops';
+import type { CropCode, DiagnosisListItem, DiagnosisResult } from '../types';
 
 export function HistoryPage() {
   const [items, setItems] = useState<DiagnosisListItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [cropFilter, setCropFilter] = useState<CropCode | null>(null);
+  const { crops, cropName } = useCrops();
 
   // Modals state
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<DiagnosisResult | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<boolean>(false);
 
+  const requestSeq = useRef(0);
+
   const fetchHistory = () => {
+    const seq = ++requestSeq.current; // only the latest request may update state
     setLoading(true);
-    apiGetHistory(statusFilter, search)
-      .then(setItems)
+    apiGetHistory(statusFilter, search, cropFilter)
+      .then((data) => {
+        if (seq === requestSeq.current) setItems(data);
+      })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (seq === requestSeq.current) setLoading(false);
+      });
   };
 
   useEffect(() => {
     fetchHistory();
-  }, [statusFilter]);
+  }, [statusFilter, cropFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,12 +93,14 @@ export function HistoryPage() {
           <span>Hồ Sơ Chẩn Đoán Đã Thực Hiện</span>
         </div>
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Lịch Sử Chẩn Đoán <span className="text-gradient">Lá Chè</span>
+          Lịch Sử Chẩn Đoán <span className="text-gradient">Bệnh Lá</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
-          Xem lại, tra cứu và quản lý các kết quả nhận diện bệnh hại lá chè, hộp định vị tổn thương và điểm số tin cậy.
+          Xem lại, tra cứu và quản lý các kết quả nhận diện bệnh hại trên lá cây trồng, hộp định vị tổn thương và điểm số tin cậy.
         </p>
       </div>
+
+      <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
 
       {/* Filter and Search Bar Card */}
       <div className="clean-card p-5 sm:p-6 rounded-3xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-xs">
@@ -150,7 +163,7 @@ export function HistoryPage() {
                   {/* Thumbnail */}
                   <img
                     src={resolveMediaUrl(item.original_image_url)}
-                    alt="Lá Chè"
+                    alt={`Lá ${cropName(item.crop_code).toLowerCase()}`}
                     className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover bg-slate-100 border border-[#E2EFE7] shrink-0"
                   />
 
@@ -161,6 +174,9 @@ export function HistoryPage() {
                     </h4>
 
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 font-mono">
+                      <span className="font-sans font-bold text-[#14532D] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
+                        {cropName(item.crop_code)}
+                      </span>
                       <span className="flex items-center gap-1 font-medium text-slate-600">
                         <Clock size={13} className="text-[#15803D]" />
                         {dateStr} | {timeStr}
@@ -220,7 +236,7 @@ export function HistoryPage() {
         <EmptyState
           icon={<History size={26} className="text-[#15803D]" />}
           title="Chưa có bản ghi chẩn đoán nào"
-          description="Bạn chưa thực hiện lượt nhận diện bệnh lá chè nào hoặc không có bản ghi nào khớp với bộ lọc."
+          description="Bạn chưa thực hiện lượt chẩn đoán nào hoặc không có bản ghi nào khớp với bộ lọc."
         />
       )}
 
