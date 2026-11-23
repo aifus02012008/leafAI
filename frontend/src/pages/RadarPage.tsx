@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, CloudRain, Droplets, Loader2, LocateFixed, Radar, ShieldCheck, Thermometer } from 'lucide-react';
+import { AlertTriangle, BellPlus, CloudRain, Droplets, Loader2, LocateFixed, Radar, ShieldCheck, Thermometer } from 'lucide-react';
 import { apiGetRadar } from '../api/radar';
+import { apiCreateFarm } from '../api/farms';
 import { RadarMap } from '../components/RadarMap';
 import { showToast } from '../components/Toast';
 import { useCrops } from '../hooks/useCrops';
@@ -52,6 +53,27 @@ export function RadarPage() {
   useEffect(() => {
     void load(point, radius, crop);
   }, [load, point, radius, crop]);
+
+  const [watching, setWatching] = useState(false);
+
+  const watchArea = async () => {
+    setWatching(true);
+    try {
+      await apiCreateFarm({
+        name: areaLabel.slice(0, 100),
+        latitude: point.lat,
+        longitude: point.lng,
+        radius_km: radius,
+        crop_code: crop || null,
+      });
+      showToast('success', 'Đã theo dõi vùng này. Cảnh báo sẽ hiện ở biểu tượng chuông và mục "Vườn & Thông Báo".');
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      showToast('error', typeof detail === 'string' ? detail : 'Không theo dõi được vùng này.');
+    } finally {
+      setWatching(false);
+    }
+  };
 
   const useMyLocation = async () => {
     setLocating(true);
@@ -113,6 +135,10 @@ export function RadarPage() {
         <button type="button" onClick={useMyLocation} disabled={locating} className="btn-secondary text-xs py-2.5 px-4">
           {locating ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
           <span>Dùng vị trí của tôi</span>
+        </button>
+        <button type="button" onClick={watchArea} disabled={watching} className="btn-primary text-xs py-2.5 px-4">
+          {watching ? <Loader2 size={14} className="animate-spin" /> : <BellPlus size={14} />}
+          <span>Theo dõi vùng này</span>
         </button>
       </div>
 

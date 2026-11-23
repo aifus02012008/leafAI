@@ -3,7 +3,7 @@ import uuid
 import shutil
 import logging
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from sqlalchemy.orm import Session
 from app.models.diagnosis import DiagnosisHistory
 from app.models.detection import DetectionResult
@@ -12,6 +12,7 @@ from app.core.crops import CropConfig
 from app.services.detection_rules import DetectionOutcome, evaluate_detections
 from app.services.model_registry import model_registry
 from app.services.severity import measure_severity
+from app.services.storage import StorageError, get_storage
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,23 @@ def _store_original(image_path: str) -> tuple[str, Path]:
     ext = Path(image_path).suffix.lower() or ".jpg"
     dest = settings.originals_dir / f"{uid}_orig{ext}"
     shutil.copy2(image_path, str(dest))
+    _strip_metadata(dest)
     return uid, dest
+
+
+def _strip_metadata(path: Path) -> None:
+    """Remove EXIF (GPS position, device info) from a stored photo; keep its visual orientation."""
+    try:
+        with Image.open(path) as img:
+            fmt = img.format or "JPEG"
+            clean = ImageOps.exif_transpose(img)
+            clean.info.pop("exif", None)
+            options = {"quality": 95} if fmt in ("JPEG", "WEBP") else {}
+            if fmt == "JPEG" and clean.mode not in ("RGB", "L"):
+                clean = clean.convert("RGB")
+            clean.save(path, format=fmt, **options)
+    except (OSError, ValueError) as exc:
+        logger.warning("Could not strip metadata from %s: %s", path.name, exc)
 
 
 def _render_annotated(uid: str, orig_dest: Path, detections: tuple[dict, ...]) -> str | None:
@@ -207,7 +224,21 @@ def run_prediction(
         if result_rel_path:
             _remove_quietly(settings.storage_dir / result_rel_path)
         raise
+    _upload(f"originals/{orig_dest.name}", orig_dest)
+    if result_rel_path:
+        _upload(result_rel_path, settings.storage_dir / result_rel_path)
     return diagnosis, outcome
+
+
+def _upload(key: str, path: Path) -> None:
+    """Best-effort copy to the remote store (no-op for local storage).
+
+    A remote outage must not fail the diagnosis: the local copy is still served.
+    """
+    try:
+        get_storage().save(key, path)
+    except StorageError as exc:
+        logger.warning("Remote image upload failed for %s (%s)", key, type(exc).__name__)
 
 
 def _remove_quietly(path: Path) -> None:

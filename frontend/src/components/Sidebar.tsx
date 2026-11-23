@@ -11,7 +11,8 @@ import {
   SprayCan,
   Calculator,
   Mic,
-  Radar
+  Radar,
+  BellRing
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from './Toast';
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { path: '/diseases', label: 'Thư Viện Bệnh', icon: BookOpen, badge: null },
   { path: '/history', label: 'Lịch Sử Quét', icon: History, badge: null },
   { path: '/radar', label: 'Radar Dịch Bệnh', icon: Radar, badge: 'MỚI' },
+  { path: '/farms', label: 'Vườn & Thông Báo', icon: BellRing, badge: null },
   { path: '/treatments', label: 'Nhật Ký Điều Trị', icon: SprayCan, badge: null },
   { path: '/tools', label: 'Tính Liều & Cách Ly', icon: Calculator, badge: null },
   { path: '/assistant', label: 'Hỏi Đáp Giọng Nói', icon: Mic, badge: null },

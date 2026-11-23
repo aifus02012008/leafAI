@@ -44,7 +44,7 @@ export async function apiDeleteHistory(id: number): Promise<{ message: string; i
   return res.data;
 }
 
-export interface FeedbackResult {
+interface FeedbackResult {
   id: number;
   user_feedback: FeedbackValue;
   feedback_at: string;

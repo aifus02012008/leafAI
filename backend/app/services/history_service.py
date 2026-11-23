@@ -4,10 +4,11 @@ from sqlalchemy import desc
 from fastapi import HTTPException, status
 from app.models.diagnosis import DiagnosisHistory
 from app.models.detection import DetectionResult
-from app.core.config import settings
-from pathlib import Path
+import logging
 from datetime import datetime, timezone
-import os
+from app.services.storage import LocalStorage, StorageError, get_storage
+
+logger = logging.getLogger(__name__)
 
 def get_user_history(
     user_id: int,
@@ -57,6 +58,18 @@ def get_diagnosis_detail(history_id: int, user_id: int, db: Session) -> Diagnosi
         )
     return rec
 
+def _delete_images(keys: list[str | None]) -> None:
+    local = LocalStorage()
+    remote = get_storage()
+    for key in filter(None, keys):
+        local.delete(key)
+        if not isinstance(remote, LocalStorage):
+            try:
+                remote.delete(key)
+            except StorageError as exc:
+                logger.warning("Remote image delete failed for %s: %s", key, exc)
+
+
 def delete_diagnosis(history_id: int, user_id: int, db: Session) -> dict:
     """Delete diagnosis record with strict ownership check and clean up image files."""
     rec = db.query(DiagnosisHistory).filter(
@@ -70,24 +83,9 @@ def delete_diagnosis(history_id: int, user_id: int, db: Session) -> dict:
             detail="Diagnosis record not found or access denied"
         )
         
-    # Delete image files on disk safely
-    storage_root = settings.storage_dir
-    if rec.original_image_path:
-        p = (storage_root / rec.original_image_path).resolve()
-        if p.exists() and storage_root in p.parents:
-            try:
-                os.remove(str(p))
-            except Exception:
-                pass
-                
-    if rec.result_image_path:
-        p = (storage_root / rec.result_image_path).resolve()
-        if p.exists() and storage_root in p.parents:
-            try:
-                os.remove(str(p))
-            except Exception:
-                pass
-                
+    # Delete image files locally and in the remote store (if configured).
+    _delete_images([rec.original_image_path, rec.result_image_path])
+
     db.delete(rec)
     db.commit()
     return {"message": "Diagnosis record deleted successfully", "id": history_id}

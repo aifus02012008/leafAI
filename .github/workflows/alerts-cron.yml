@@ -1,0 +1,27 @@
+name: Disease radar alerts
+
+# Calls the backend every 6 hours to send radar alerts and follow-up reminders.
+# Required repository secrets: LEAFAI_API_URL (e.g. https://your-backend.example.com) and CRON_SECRET.
+on:
+  schedule:
+    - cron: "15 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run alert job
+        env:
+          API_URL: ${{ secrets.LEAFAI_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "LEAFAI_API_URL / CRON_SECRET not configured; skipping."; exit 0
+          fi
+          # Wake a sleeping free-tier backend first, then run the job.
+          curl -fsS --retry 5 --retry-delay 20 --max-time 60 "$API_URL/api/health" > /dev/null
+          curl -fsS --max-time 300 -X POST -H "X-Cron-Secret: $CRON_SECRET" "$API_URL/api/internal/jobs/alerts"

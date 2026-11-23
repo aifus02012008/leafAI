@@ -27,7 +27,7 @@ function loadCrops(): Promise<Crop[]> {
   return cachedRequest;
 }
 
-export interface UseCropsResult {
+interface UseCropsResult {
   crops: readonly Crop[];
   loading: boolean;
   error: boolean;

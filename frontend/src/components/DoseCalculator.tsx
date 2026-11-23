@@ -15,7 +15,7 @@ interface DoseCalculatorProps {
 const TANK_SIZES = [8, 16, 20, 25];
 
 /** Parse Vietnamese-formatted numbers: "150.000" -> 150000, "1.500,5" -> 1500.5, "0,5" -> 0.5. */
-export function toNumber(value: string): number | null {
+function toNumber(value: string): number | null {
   let s = value.trim().replace(/\s/g, '');
   if (!s) return null;
   if (s.includes(',')) {

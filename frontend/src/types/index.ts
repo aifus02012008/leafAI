@@ -242,3 +242,44 @@ export interface GeoPoint {
   lat: number;
   lng: number;
 }
+
+// ---------- Farms, notifications, push ----------
+
+export interface WatchedFarm {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radius_km: number;
+  crop_code: CropCode | null;
+  alerts_enabled: boolean;
+  created_at: string;
+}
+
+export interface FarmCreate {
+  name: string;
+  latitude: number;
+  longitude: number;
+  radius_km?: number;
+  crop_code?: CropCode | null;
+}
+
+export interface AppNotification {
+  id: number;
+  kind: 'radar' | 'followup' | string;
+  title: string;
+  body: string;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationList {
+  unread_count: number;
+  items: AppNotification[];
+}
+
+export interface PushConfig {
+  enabled: boolean;
+  public_key: string | null;
+}

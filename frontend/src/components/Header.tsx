@@ -7,12 +7,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from './Toast';
+import { NotificationBell } from './NotificationBell';
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/dashboard': { title: 'Bảng Điều Khiển Nông Học', subtitle: 'Tổng quan sức khỏe lá cây trồng & dữ liệu giám sát' },
   '/diagnose': { title: 'Chẩn Đoán Bệnh Bằng AI', subtitle: 'Phát hiện bệnh lá cây trồng bằng học sâu theo thời gian thực' },
   '/diseases': { title: 'Thư Viện Bệnh Học Cây Trồng', subtitle: 'Tra cứu bệnh hại chè, sầu riêng, măng cụt, chôm chôm' },
   '/history': { title: 'Lịch Sử Chẩn Đoán', subtitle: 'Hồ sơ quét, định vị tổn thương & báo cáo canh tác' },
+  '/farms': { title: 'Vườn & Thông Báo', subtitle: 'Vườn theo dõi, cảnh báo dịch bệnh & quyền riêng tư' },
   '/radar': { title: 'Radar Dịch Bệnh', subtitle: 'Cảnh báo sớm từ ca bệnh quanh vườn & dự báo thời tiết' },
   '/treatments': { title: 'Nhật Ký Điều Trị', subtitle: 'Theo dõi hiệu quả thuốc & thời gian cách ly' },
   '/tools': { title: 'Công Cụ Phun Thuốc', subtitle: 'Tính liều pha, chi phí & ngày được thu hoạch' },
@@ -86,6 +88,8 @@ export function Header({ onToggleMobileSidebar }: HeaderProps) {
             <span>Quét Lá Cây</span>
           </button>
         )}
+
+        <NotificationBell />
 
         {/* User avatar circle */}
         <div

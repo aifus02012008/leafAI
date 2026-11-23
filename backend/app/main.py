@@ -1,14 +1,18 @@
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from app.core.config import settings
+from app.services import storage
 from app.db.init_db import init_database
+from app.core.config import validate_production_settings
 from app.core.crops import DEFAULT_CROP_CODE, get_crop, list_crops
+from app.core.middleware import SecurityHeadersMiddleware
+from app.core.rate_limit import client_ip, limited, too_many_requests
 from app.services.model_registry import model_registry
-from app.api.routes import auth, predict, history, diseases, dashboard, crops, tools, treatments, assistant, radar
+from app.api.routes import auth, predict, history, diseases, dashboard, crops, tools, treatments, assistant, radar, farms, internal
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,6 +23,7 @@ logger = logging.getLogger("leaf_ai")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing LEAF_AI backend...")
+    validate_production_settings(settings)
     
     # 1. Initialize SQLite database & tables & initial disease data
     try:
@@ -54,6 +59,8 @@ origins = [
     "https://hieu0345984559.github.io",
 ]
 
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -82,8 +89,17 @@ def health_check():
     }
 
 # Secure image serving endpoint
+def _remote_image_url(key: str) -> str | None:
+    """Signed URL from the remote image store when the local copy is missing (e.g. after a redeploy)."""
+    try:
+        return storage.get_storage().signed_url(key)
+    except storage.StorageError as exc:
+        logger.warning("Remote image lookup failed for %s (%s)", key, type(exc).__name__)
+        return None
+
+
 @app.get("/api/images/{folder}/{filename}", tags=["Media"])
-def get_image(folder: str, filename: str):
+def get_image(folder: str, filename: str, request: Request):
     """Safely stream stored images with path traversal defenses."""
     if folder not in ("originals", "results"):
         raise HTTPException(
@@ -101,6 +117,11 @@ def get_image(folder: str, filename: str):
         
     target_path = (settings.storage_dir / folder / safe_name).resolve()
     if not target_path.exists() or not target_path.is_file():
+        if limited(f"img:{client_ip(request)}", settings.IMAGE_REDIRECT_PER_MINUTE):
+            raise too_many_requests()
+        remote = _remote_image_url(f"{folder}/{safe_name}")
+        if remote:
+            return RedirectResponse(remote, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Requested image could not be located."
@@ -129,6 +150,8 @@ app.include_router(tools.router)
 app.include_router(treatments.router)
 app.include_router(assistant.router)
 app.include_router(radar.router)
+app.include_router(farms.router)
+app.include_router(internal.router)
 
 # Mount frontend dist static files for seamless standalone execution
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"

@@ -10,6 +10,7 @@ from app.api.dependencies import resolve_crop
 from app.api.presenters import to_detection_responses
 from app.core.crops import DEFAULT_CROP_CODE
 from app.core.dependencies import get_current_user
+from app.core.rate_limit import limit_predict
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.diagnosis import PredictResponse
@@ -30,7 +31,7 @@ async def predict(
     latitude: float | None = Form(None, ge=-90, le=90),
     longitude: float | None = Form(None, ge=-180, le=180),
     share_to_radar: bool = Form(False),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(limit_predict),
     db: Session = Depends(get_db)
 ):
     crop_cfg = resolve_crop(crop)
