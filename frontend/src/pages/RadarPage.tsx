@@ -65,7 +65,7 @@ export function RadarPage() {
         radius_km: radius,
         crop_code: crop || null,
       });
-      showToast('success', 'Đã theo dõi vùng này. Cảnh báo sẽ hiện ở biểu tượng chuông và mục "Vườn & Thông Báo".');
+      showToast('success', 'Đã theo dõi vùng này. Cảnh báo sẽ hiện ở chuông và mục "Vườn".');
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
       showToast('error', typeof detail === 'string' ? detail : 'Không theo dõi được vùng này.');

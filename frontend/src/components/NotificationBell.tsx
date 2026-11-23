@@ -109,7 +109,7 @@ export function NotificationBell() {
           </div>
           {items.length === 0 ? (
             <p className="px-4 py-8 text-center text-xs text-slate-500">
-              Chưa có thông báo. Thêm vườn ở mục "Vườn & Thông Báo" để nhận cảnh báo dịch bệnh.
+              Chưa có thông báo. Thêm vườn ở mục "Vườn" để nhận cảnh báo.
             </p>
           ) : (
             <ul>

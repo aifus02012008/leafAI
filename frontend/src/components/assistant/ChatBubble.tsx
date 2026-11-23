@@ -40,8 +40,13 @@ export function ChatBubble() {
   }, []);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
-    else tts.cancel();
+    if (open) {
+      inputRef.current?.focus();
+    } else {
+      tts.cancel();
+      // A diagnosis context belongs to one "Hỏi bác sĩ AI" session; reopening the bubble is a general chat.
+      setContext(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
