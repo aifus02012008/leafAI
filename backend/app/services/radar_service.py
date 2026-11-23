@@ -80,10 +80,14 @@ def nearby_cases(db: Session, lat: float, lng: float, radius_km: float, crop_cod
 
 
 def risk_alerts(
-    cases: list[NearbyCases], outlook: list[DayWeather] | None, radius_km: float, today: date
+    cases: list[NearbyCases],
+    outlook: list[DayWeather] | None,
+    radius_km: float,
+    today: date,
+    recent_rain_mm: float | None = None,
 ) -> list[RiskAlert]:
     order = {"high": 0, "medium": 1, "low": 2}
-    alerts = [assess_risk(c, outlook, radius_km, today) for c in cases]
+    alerts = [assess_risk(c, outlook, radius_km, today, recent_rain_mm) for c in cases]
     return sorted(alerts, key=lambda a: (order[a.level], -a.cases))
 
 

@@ -51,9 +51,10 @@ def _check_farm(db: Session, farm: WatchedFarm, today: date) -> int:
     cases = nearby_cases(db, farm.latitude, farm.longitude, farm.radius_km, farm.crop_code)
     if not cases:
         return 0
-    outlook = weather_service.get_outlook(farm.latitude, farm.longitude)
+    forecast = weather_service.get_forecast(farm.latitude, farm.longitude)
+    outlook = forecast.risk_days if forecast else None
     created = 0
-    for alert in risk_alerts(cases, outlook, farm.radius_km, today):
+    for alert in risk_alerts(cases, outlook, farm.radius_km, today, forecast.recent_rain_mm if forecast else None):
         if alert.level not in ALERT_LEVELS:
             continue
         note = create_notification(

@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
-from app.services.disease_weather_rules import DRY_HOT, WeatherProfile, favourable_share, profile_for
+from app.services.disease_weather_rules import DRY_HOT, PHYTOPHTHORA, WeatherProfile, favourable_share, profile_for
 
 Level = Literal["low", "medium", "high"]
 Category = Literal["humid", "pest"]
@@ -32,6 +32,8 @@ class DayWeather:
     t_min: float
     t_max: float
     precip_mm: float
+    rain_prob_max: int | None = None   # % (max hourly probability that day)
+    wind_max: float | None = None      # km/h
 
 
 @dataclass(frozen=True)
@@ -98,11 +100,21 @@ def _weather_sentence(days: list[DayWeather] | None, profile: WeatherProfile) ->
     return f"{weather}; thời tiết chưa thuận lợi cho bệnh này."
 
 
+SOAKED_SOIL_MM = 30.0   # rain over the last 3 days that saturates soil (Phytophthora, root/collar rots)
+
+
+def _recent_rain_bonus(profile: WeatherProfile, recent_rain_mm: float | None) -> float:
+    if recent_rain_mm is None or recent_rain_mm < SOAKED_SOIL_MM or profile.kind != "wet":
+        return 0.0
+    return 0.2 if profile is PHYTOPHTHORA else 0.1
+
+
 def assess_risk(
     cases: NearbyCases,
     days: list[DayWeather] | None,
     radius_km: float,
     today: date,
+    recent_rain_mm: float | None = None,
 ) -> RiskAlert:
     profile = profile_for(cases.disease)
     sprayable = profile is not DRY_HOT  # preventive fungicide timing; pests are scouted, not pre-sprayed
@@ -110,7 +122,8 @@ def assess_risk(
     if days is None:
         score = case_score * 0.8
     else:
-        score = 0.55 * case_score + 0.45 * _weather_score(days, profile)
+        weather = min(1.0, _weather_score(days, profile) + _recent_rain_bonus(profile, recent_rain_mm))
+        score = 0.55 * case_score + 0.45 * weather
     level = _level(score)
     spray_before = _first_favourable_day(days, today, profile) if days and sprayable else None
     wet_today = bool(days) and sprayable and any(d.day == today and profile.favourable(d) for d in days)
@@ -119,6 +132,7 @@ def assess_risk(
         f"Trong bán kính {radius_km:g} km có {cases.cases} ca {cases.disease} trong 7 ngày qua."
         if cases.cases else f"Chưa ghi nhận ca {cases.disease} nào trong bán kính {radius_km:g} km.",
         _weather_sentence(days, profile),
+        *([f"3 ngày qua đã mưa {recent_rain_mm:.0f} mm, đất còn ẩm."] if _recent_rain_bonus(profile, recent_rain_mm) else []),
         f"Nguy cơ lây lan {LEVEL_LABEL[level]}.",
     ]
     if level != "low" and spray_before:

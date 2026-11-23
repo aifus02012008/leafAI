@@ -46,7 +46,7 @@ def client():
 def humid_weather(monkeypatch):
     today = date.today()
     days = [DayWeather(today + timedelta(days=i + 1), 14, 97, 23, 30, 12.0) for i in range(3)]
-    monkeypatch.setattr(weather_service, "get_outlook", lambda lat, lng: days)
+    monkeypatch.setattr(weather_service, "get_forecast", lambda lat, lng: weather_service.Forecast(days=days))
     return days
 
 
@@ -117,7 +117,7 @@ def test_grid_hides_cells_with_a_single_reporter(client, humid_weather):
 
 
 def test_radar_without_weather_still_answers(client, monkeypatch):
-    monkeypatch.setattr(weather_service, "get_outlook", lambda lat, lng: None)
+    monkeypatch.setattr(weather_service, "get_forecast", lambda lat, lng: None)
     viewer = _auth(client, "radar_noweather@leafai.dev")
     body = client.get("/api/radar", headers=viewer, params={"lat": 0.0, "lng": 0.0}).json()
     assert body["weather"] is None

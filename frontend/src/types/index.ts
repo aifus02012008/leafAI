@@ -214,6 +214,13 @@ export interface DayWeather {
   t_min: number;
   t_max: number;
   precip_mm: number;
+  rain_prob_max?: number | null;
+  wind_max?: number | null;
+}
+
+export interface SprayWindow {
+  start: string;
+  end: string;
 }
 
 export interface RadarAlert {
@@ -238,6 +245,8 @@ export interface RadarResponse {
   lookback_days: number;
   total_cases: number;
   weather: DayWeather[] | null;
+  recent_rain_mm?: number | null;
+  spray_windows?: SprayWindow[];
   alerts: RadarAlert[];
   grid: RadarGridCell[];
 }

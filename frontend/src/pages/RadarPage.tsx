@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BellPlus, CloudRain, Droplets, Loader2, LocateFixed, Radar, Thermometer } from 'lucide-react';
+import { AlertTriangle, BellPlus, CloudRain, Loader2, LocateFixed, Radar } from 'lucide-react';
 import { apiGetRadar } from '../api/radar';
 import { apiCreateFarm } from '../api/farms';
 import { RadarMap } from '../components/RadarMap';
+import { WeatherForecast } from '../components/radar/WeatherForecast';
 import { showToast } from '../components/Toast';
 import { useCrops } from '../hooks/useCrops';
 import { getCurrentPosition } from '../hooks/useGeolocation';
-import { formatDate } from '../utils/format';
 import type { CropCode, GeoPoint, RadarResponse, RiskLevel } from '../types';
 
 /** Sample growing areas so the radar can be explored without sharing a location. */
@@ -23,7 +23,6 @@ const LEVEL_META: Record<RiskLevel, { label: string; className: string }> = {
   low: { label: 'Nguy cơ thấp', className: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
 };
 
-const WEEKDAY = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
 export function RadarPage() {
   const { crops, cropName } = useCrops();
@@ -149,22 +148,9 @@ export function RadarPage() {
         <div className="lg:col-span-5 space-y-4">
           <section aria-labelledby="radar-weather" className="clean-card p-4 space-y-3">
             <h2 id="radar-weather" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
-              <CloudRain size={15} /> 3 ngày tới
+              <CloudRain size={15} /> 7 ngày tới
             </h2>
-            {data?.weather ? (
-              <ul className="space-y-1.5 text-xs">
-                {data.weather.map((d) => (
-                  <li key={d.day} className={`grid grid-cols-[4.5rem_1fr_1fr_1fr] items-center gap-2 px-3 py-2 rounded-xl border ${d.humid_hours >= 6 ? 'bg-sky-50 border-sky-200' : 'bg-white border-[#DCE5DC]'}`}>
-                    <span className="font-bold text-slate-800">{WEEKDAY[new Date(d.day + 'T00:00:00').getDay()]} {formatDate(d.day).slice(0, 5)}</span>
-                    <span className="flex items-center gap-1 text-sky-700"><Droplets size={12} />{d.humid_hours}h ẩm</span>
-                    <span className="flex items-center gap-1 text-slate-600"><Thermometer size={12} />{Math.round(d.t_min)}–{Math.round(d.t_max)}°</span>
-                    <span className="flex items-center gap-1 text-slate-600"><CloudRain size={12} />{d.precip_mm} mm</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs text-slate-500">Chưa có dự báo</p>
-            )}
+            <WeatherForecast days={data?.weather} recentRainMm={data?.recent_rain_mm} sprayWindows={data?.spray_windows} />
           </section>
 
           <section aria-labelledby="radar-alerts" className="clean-card p-4 space-y-3">
