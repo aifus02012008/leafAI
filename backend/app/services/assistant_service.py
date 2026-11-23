@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 RATE_LIMIT_PER_MINUTE = 10
 MAX_CONTEXTS = 3
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta"
 DISCLAIMER = "Lưu ý: dùng đúng liều trên nhãn thuốc và tham vấn cán bộ BVTV địa phương trước khi áp dụng."
 STOPWORDS = frozenset(
     "la bi co cua va thi phai lam sao gi nao nhu the nay khi toi em anh chi cay benh duoc cho voi "
@@ -151,38 +152,79 @@ def _library_answer(hits: list[ContextHit]) -> str:
     )
 
 
-def _llm_answer(question: str, contexts: list[ContextHit]) -> str | None:
-    """Ask Claude; returns None when not configured or on any failure (caller falls back)."""
-    if not settings.ANTHROPIC_API_KEY:
+def active_provider() -> str | None:
+    """Which LLM backs the assistant: "gemini", "anthropic" or None (library answers only)."""
+    choice = (settings.ASSISTANT_PROVIDER or "auto").lower()
+    if choice == "none":
         return None
+    if choice in ("auto", "gemini") and settings.GEMINI_API_KEY:
+        return "gemini"
+    if choice in ("auto", "anthropic") and settings.ANTHROPIC_API_KEY:
+        return "anthropic"
+    return None
+
+
+def _prompt(question: str, contexts: list[ContextHit]) -> str:
     docs = "\n\n".join(
         f"[{i + 1}] {c.class_name}\nTriệu chứng: {c.symptoms}\nXử lý: {c.treatment}" for i, c in enumerate(contexts)
     ) or "(không có tài liệu phù hợp)"
+    return f"TÀI LIỆU:\n{docs}\n\nCÂU HỎI: {question}"
+
+
+def _gemini(prompt: str) -> str | None:
+    res = httpx.post(
+        f"{GEMINI_URL}/models/{settings.GEMINI_MODEL}:generateContent",
+        headers={"x-goog-api-key": settings.GEMINI_API_KEY, "content-type": "application/json"},
+        json={
+            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.3, "thinkingConfig": {"thinkingLevel": "low"}},
+        },
+        timeout=45.0,
+    )
+    res.raise_for_status()
+    payload = res.json()
+    candidates = payload.get("candidates", []) if isinstance(payload, dict) else []
+    parts = (candidates[0].get("content", {}).get("parts", []) if candidates and isinstance(candidates[0], dict) else [])
+    text = "".join(p.get("text", "") for p in parts if isinstance(p, dict) and not p.get("thought")).strip()
+    return text or None
+
+
+def _anthropic(prompt: str) -> str | None:
+    res = httpx.post(
+        ANTHROPIC_URL,
+        headers={
+            "x-api-key": settings.ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        },
+        json={
+            "model": settings.ASSISTANT_MODEL,
+            "max_tokens": 500,
+            "system": SYSTEM_PROMPT,
+            "messages": [{"role": "user", "content": prompt}],
+        },
+        timeout=30.0,
+    )
+    res.raise_for_status()
+    payload = res.json()
+    blocks = payload.get("content", []) if isinstance(payload, dict) else []
+    text = "".join(b.get("text", "") for b in blocks if isinstance(b, dict) and b.get("type") == "text").strip()
+    return text or None
+
+
+def _llm_answer(question: str, contexts: list[ContextHit]) -> str | None:
+    """Ask the configured LLM; returns None when not configured or on any failure (caller falls back)."""
+    provider = active_provider()
+    if provider is None:
+        return None
     try:
-        res = httpx.post(
-            ANTHROPIC_URL,
-            headers={
-                "x-api-key": settings.ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": settings.ASSISTANT_MODEL,
-                "max_tokens": 500,
-                "system": SYSTEM_PROMPT,
-                "messages": [{"role": "user", "content": f"TÀI LIỆU:\n{docs}\n\nCÂU HỎI: {question}"}],
-            },
-            timeout=30.0,
-        )
-        res.raise_for_status()
-        payload = res.json()
-        blocks = payload.get("content", []) if isinstance(payload, dict) else []
-        text = "".join(
-            b.get("text", "") for b in blocks if isinstance(b, dict) and b.get("type") == "text"
-        ).strip()
-        return text or None
-    except (httpx.HTTPError, ValueError) as exc:
-        logger.warning("Assistant LLM call failed, falling back to library answer: %s", exc)
+        call = _gemini if provider == "gemini" else _anthropic
+        return call(_prompt(question, contexts))
+    except (httpx.HTTPError, ValueError, AttributeError, IndexError) as exc:
+        # Log only the error type/status: the request object can contain the API key header.
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        logger.warning("Assistant %s call failed (%s %s); using library answer", provider, type(exc).__name__, status)
         return None
 
 

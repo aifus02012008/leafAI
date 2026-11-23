@@ -1,0 +1,36 @@
+name: Backend keep-alive
+
+# Pings the backend health endpoint every 5 minutes so the free Render instance
+# does not spin down (it sleeps after ~15 minutes without traffic). The job fails
+# (and GitHub emails the repo owner) when the health check does not return HTTP 200.
+# Required repository secret: LEAFAI_API_URL (e.g. https://leaf-ai-backend.onrender.com)
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Health check
+        env:
+          API_URL: ${{ secrets.LEAFAI_API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then echo "LEAFAI_API_URL not configured; skipping."; exit 0; fi
+          for attempt in 1 2 3; do
+            code=$(curl -s -o /tmp/health.json -w "%{http_code}" --max-time 90 "$API_URL/api/health" || echo 000)
+            echo "attempt $attempt: HTTP $code"
+            if [ "$code" = "200" ]; then cat /tmp/health.json; exit 0; fi
+            sleep 20
+          done
+          echo "::error::Backend health check failed (last HTTP $code)"
+          exit 1

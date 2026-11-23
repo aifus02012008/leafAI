@@ -123,6 +123,7 @@ def test_llm_answer_calls_messages_api(monkeypatch):
         return _FakeResponse({"content": [{"type": "text", "text": "Trả lời ngắn."}]})
 
     monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setattr(settings, "ASSISTANT_PROVIDER", "anthropic")
     monkeypatch.setattr(assistant_service.httpx, "post", fake_post)
     out = assistant_service._llm_answer("hỏi gì đó", [])
     assert out == "Trả lời ngắn."
@@ -144,4 +145,49 @@ def test_llm_disabled_without_key(monkeypatch):
     from app.core.config import settings
 
     monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", None)
+    assert assistant_service._llm_answer("q", []) is None
+
+
+# ---------- Gemini (default provider) ----------
+
+def test_provider_auto_prefers_gemini(monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ASSISTANT_PROVIDER", "auto")
+    monkeypatch.setattr(settings, "GEMINI_API_KEY", "g-key")
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "a-key")
+    assert assistant_service.active_provider() == "gemini"
+    monkeypatch.setattr(settings, "GEMINI_API_KEY", None)
+    assert assistant_service.active_provider() == "anthropic"
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", None)
+    assert assistant_service.active_provider() is None
+
+
+def test_gemini_call_uses_header_key_and_system_prompt(monkeypatch):
+    from app.core.config import settings
+
+    calls = {}
+
+    def fake_post(url, headers, json, timeout):
+        calls.update(url=url, headers=headers, body=json)
+        return _FakeResponse({"candidates": [{"content": {"parts": [{"text": "Trả lời "}, {"text": "từ Gemini."}]}}]})
+
+    monkeypatch.setattr(settings, "ASSISTANT_PROVIDER", "auto")
+    monkeypatch.setattr(settings, "GEMINI_API_KEY", "g-key")
+    monkeypatch.setattr(settings, "GEMINI_MODEL", "gemini-test")
+    monkeypatch.setattr(assistant_service.httpx, "post", fake_post)
+    assert assistant_service._llm_answer("hỏi", []) == "Trả lời từ Gemini."
+    assert calls["url"].endswith("/models/gemini-test:generateContent")
+    assert "key=" not in calls["url"]  # key travels in a header, never in the URL (keeps it out of logs)
+    assert calls["headers"]["x-goog-api-key"] == "g-key"
+    assert "liều" in calls["body"]["systemInstruction"]["parts"][0]["text"]
+
+
+def test_gemini_blocked_or_empty_response_falls_back(monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "GEMINI_API_KEY", "g-key")
+    monkeypatch.setattr(assistant_service.httpx, "post", lambda *a, **k: _FakeResponse({"promptFeedback": {"blockReason": "SAFETY"}}))
+    assert assistant_service._llm_answer("q", []) is None
+    monkeypatch.setattr(assistant_service.httpx, "post", lambda *a, **k: _FakeResponse({}, status=429))
     assert assistant_service._llm_answer("q", []) is None
