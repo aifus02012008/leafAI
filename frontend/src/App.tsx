@@ -10,7 +10,7 @@ import { DiseasesPage } from './pages/DiseasesPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { TreatmentsPage } from './pages/TreatmentsPage';
 import { ToolsPage } from './pages/ToolsPage';
-import { AssistantPage } from './pages/AssistantPage';
+import { AssistantRedirect } from './components/assistant/AssistantRedirect';
 import { RadarPage } from './pages/RadarPage';
 import { FarmsPage } from './pages/FarmsPage';
 
@@ -30,7 +30,7 @@ export default function App() {
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/treatments" element={<TreatmentsPage />} />
             <Route path="/tools" element={<ToolsPage />} />
-            <Route path="/assistant" element={<AssistantPage />} />
+            <Route path="/assistant" element={<AssistantRedirect />} />
             <Route path="/radar" element={<RadarPage />} />
             <Route path="/farms" element={<FarmsPage />} />
           </Route>

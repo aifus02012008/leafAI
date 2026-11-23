@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import { LoadingState } from '../components/LoadingState';
+import { ChatBubble } from '../components/assistant/ChatBubble';
 import { X } from 'lucide-react';
 
 export function AppLayout() {
@@ -68,6 +69,8 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+
+      <ChatBubble />
     </div>
   );
 }

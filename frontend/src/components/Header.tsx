@@ -11,7 +11,6 @@ const ROUTE_TITLES: Record<string, string> = {
   '/radar': 'Radar',
   '/treatments': 'Nhật ký',
   '/tools': 'Tính liều',
-  '/assistant': 'Hỏi đáp',
 };
 
 interface HeaderProps {

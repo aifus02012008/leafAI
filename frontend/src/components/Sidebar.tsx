@@ -7,7 +7,6 @@ import {
   LogOut,
   SprayCan,
   Calculator,
-  Mic,
   Radar,
   BellRing,
   type LucideIcon,
@@ -54,10 +53,6 @@ const NAV_GROUPS: readonly NavGroup[] = [
       { path: '/radar', label: 'Radar', icon: Radar, isNew: true },
       { path: '/farms', label: 'Vườn', icon: BellRing },
     ],
-  },
-  {
-    title: 'Trợ lý',
-    items: [{ path: '/assistant', label: 'Hỏi đáp', icon: Mic }],
   },
 ];
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Camera, Radar, SprayCan, Mic, ArrowRight, type LucideIcon } from 'lucide-react';
+import { Camera, Radar, SprayCan, MessageCircle, ArrowRight, type LucideIcon } from 'lucide-react';
+import { openChat } from '../components/assistant/chatEvents';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { apiGetDashboardStats } from '../api/dashboard';
 import { resolveMediaUrl } from '../api/client';
@@ -13,7 +14,6 @@ const CHART_PALETTE = ['#1F7A4D', '#2E9A63', '#5EE6A0', '#17603C', '#F2C94C', '#
 const SHORTCUTS: readonly { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/radar', label: 'Radar', icon: Radar },
   { to: '/treatments', label: 'Điều trị', icon: SprayCan },
-  { to: '/assistant', label: 'Hỏi đáp', icon: Mic },
 ];
 
 function cleanName(raw: string): string {
@@ -72,6 +72,14 @@ export function DashboardPage() {
             {label}
           </Link>
         ))}
+        <button
+          type="button"
+          onClick={openChat}
+          className="clean-card clean-card-hover p-4 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-ink cursor-pointer"
+        >
+          <MessageCircle size={22} className="text-leaf" />
+          Hỏi đáp
+        </button>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
