@@ -26,8 +26,8 @@ crops:
     name_en: Durian
     scientific_name: Durio zibethinus
     weights: model/durian.pt
-    model_version: durian-cls-v1  # YOLO11n-cls, Mendeley DOI 10.17632/pxzvksbwnj.5 (CC BY 4.0)
-    img_size: 224
+    model_version: durian-cls-v2  # YOLO11s-cls 288px, test acc 89.7%, Mendeley DOI 10.17632/pxzvksbwnj.5 (CC BY 4.0)
+    img_size: 288
     base_confidence: 0.10
     default_threshold: 0.45
     healthy_threshold: 0.45
