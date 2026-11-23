@@ -15,7 +15,11 @@ export function DiseasesPage() {
   const [search, setSearch] = useState<string>('');
   const [cropFilter, setCropFilter] = useState<CropCode | null>(null);
   const [selectedDisease, setSelectedDisease] = useState<Disease | null>(null);
-  const { crops } = useCrops();
+  const { crops, cropName } = useCrops();
+  // One section per crop, in the registry's order, so the list reads as short groups instead of one long wall.
+  const groups = crops
+    .map((c) => ({ code: c.code, name: cropName(c.code), items: diseases.filter((d) => d.crop_code === c.code) }))
+    .filter((g) => g.items.length > 0);
 
   useEffect(() => {
     let active = true; // ignore responses from superseded filter changes
@@ -68,13 +72,19 @@ export function DiseasesPage() {
       {loading ? (
         <LoadingState message="Đang tải…" />
       ) : diseases.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {diseases.map((d) => (
-            <DiseaseCard
-              key={d.id}
-              disease={d}
-              onSelect={handleSelectDisease}
-            />
+        <div className="space-y-6">
+          {groups.map((g) => (
+            <section key={g.code} aria-labelledby={`crop-${g.code}`} className="space-y-3">
+              <h2 id={`crop-${g.code}`} className="flex items-baseline gap-2 font-display text-base font-bold text-ink">
+                {g.name}
+                <span className="text-xs font-semibold text-ink/40">{g.items.length}</span>
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {g.items.map((d) => (
+                  <DiseaseCard key={d.id} disease={d} onSelect={handleSelectDisease} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       ) : (

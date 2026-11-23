@@ -25,7 +25,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-[#10201A] flex overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-transparent text-[#10201A] flex overflow-x-clip font-sans">
       {/* Desktop Persistent Sidebar */}
       <div className="hidden md:flex h-screen sticky top-0 shrink-0 z-40">
         <Sidebar />
