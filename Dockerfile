@@ -11,7 +11,7 @@ ENV VITE_API_BASE_URL=""
 RUN npm run build
 
 # Stage 2: Python Backend with YOLOv8 & PyTorch
-FROM python:3.10-slim
+FROM python:3.11-slim
 WORKDIR /app
 
 # Install system libraries needed by OpenCV / Pillow
