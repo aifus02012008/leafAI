@@ -25,11 +25,11 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-['DM_Sans']"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-sans"
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-md p-6 bg-white rounded-3xl border border-[#E2EFE7] shadow-xl relative space-y-4"
+        className="w-full max-w-md p-6 bg-white rounded-3xl border border-[#DCE5DC] shadow-xl relative space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
@@ -38,7 +38,7 @@ export function ConfirmDialog({
               <AlertTriangle size={18} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 font-['Space_Grotesk']">{title}</h3>
+              <h3 className="text-base font-bold text-slate-900 font-display">{title}</h3>
               <p className="text-xs text-slate-500">Vui lòng xác nhận hành động của bạn</p>
             </div>
           </div>
@@ -56,7 +56,7 @@ export function ConfirmDialog({
           {message}
         </p>
 
-        <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-[#E2EFE7]">
+        <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-[#DCE5DC]">
           <button
             type="button"
             onClick={onCancel}

@@ -103,8 +103,8 @@ export function RecordTreatmentModal({ open, diagnosisId, cropCode, diseaseName,
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="record-treatment-title" className="text-lg font-extrabold text-slate-900 flex items-center gap-2 font-['Space_Grotesk']">
-              <SprayCan size={18} className="text-[#15803D]" /> Ghi nhận đã phun thuốc
+            <h2 id="record-treatment-title" className="text-lg font-extrabold text-slate-900 flex items-center gap-2 font-display">
+              <SprayCan size={18} className="text-[#1F7A4D]" /> Ghi nhận đã phun thuốc
             </h2>
             {diseaseName && <p className="text-xs text-slate-500 mt-0.5">Bệnh: {diseaseName}</p>}
           </div>
@@ -117,7 +117,7 @@ export function RecordTreatmentModal({ open, diagnosisId, cropCode, diseaseName,
           <div>
             <label htmlFor="tr-active" className="block text-[11px] font-bold text-slate-600 mb-1">Hoạt chất đã phun</label>
             <select id="tr-active" value={activeCode} onChange={(e) => setActiveCode(e.target.value)} className="input-clean py-2 text-sm">
-              <option value="">— Chọn hoạt chất (xem trên nhãn thuốc) —</option>
+              <option value="">— Hoạt chất —</option>
               {recommended.length > 0 && (
                 <optgroup label="Gợi ý cho bệnh này">
                   {recommended.map((a) => <option key={a.code} value={a.code}>{optionLabel(a)}</option>)}
@@ -131,7 +131,7 @@ export function RecordTreatmentModal({ open, diagnosisId, cropCode, diseaseName,
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label htmlFor="tr-product" className="block text-[11px] font-bold text-slate-600 mb-1">Tên thuốc thương mại (tùy chọn)</label>
+              <label htmlFor="tr-product" className="block text-[11px] font-bold text-slate-600 mb-1">Tên thuốc</label>
               <input id="tr-product" maxLength={200} value={productName} onChange={(e) => setProductName(e.target.value)} className="input-clean py-2 text-sm" />
             </div>
             <div>
@@ -139,9 +139,8 @@ export function RecordTreatmentModal({ open, diagnosisId, cropCode, diseaseName,
               <input id="tr-date" type="date" max={todayIso()} value={appliedOn} onChange={(e) => setAppliedOn(e.target.value)} className="input-clean py-2 text-sm" />
             </div>
             <div>
-              <label htmlFor="tr-phi" className="block text-[11px] font-bold text-slate-600 mb-1">Thời gian cách ly trên nhãn (ngày)</label>
+              <label htmlFor="tr-phi" className="block text-[11px] font-bold text-slate-600 mb-1">Cách ly (ngày)</label>
               <input id="tr-phi" inputMode="numeric" placeholder="vd: 7" value={phiDays} onChange={(e) => setPhiDays(e.target.value)} className="input-clean py-2 text-sm" />
-              <p className="text-[10px] text-slate-500 mt-1">Nhãn ghi "Thời gian cách ly" hoặc "PHI". Dùng để tính ngày được thu hoạch.</p>
             </div>
             <div>
               <label htmlFor="tr-followup" className="block text-[11px] font-bold text-slate-600 mb-1">Nhắc chụp lại lá sau</label>
@@ -153,8 +152,8 @@ export function RecordTreatmentModal({ open, diagnosisId, cropCode, diseaseName,
         </form>
 
         {/* Calculator has its own <form>; kept outside to avoid nested forms. */}
-        <div className="rounded-2xl border border-[#E2EFE7] p-3.5 text-sm">
-            <button type="button" onClick={() => setShowCalc((v) => !v)} className="text-xs font-bold text-[#15803D]">
+        <div className="rounded-2xl border border-[#DCE5DC] p-3.5 text-sm">
+            <button type="button" onClick={() => setShowCalc((v) => !v)} className="text-xs font-bold text-[#1F7A4D]">
               {showCalc ? '− Ẩn máy tính liều' : '+ Tính liều pha & chi phí (tùy chọn)'}
             </button>
             {showCalc && (

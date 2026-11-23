@@ -5,8 +5,7 @@ import {
   Trash2,
   Eye,
   Clock,
-  Crosshair,
-  Leaf
+  Crosshair
 } from 'lucide-react';
 import { apiGetHistory, apiGetHistoryDetail, apiDeleteHistory } from '../api/diagnosis';
 import { resolveMediaUrl } from '../api/client';
@@ -86,19 +85,6 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-8 sm:space-y-10">
-      {/* Title Header */}
-      <div className="space-y-1.5">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0FDF4] border border-emerald-200/80 text-xs font-bold text-[#15803D]">
-          <Leaf size={13} className="text-[#15803D]" />
-          <span>Hồ Sơ Chẩn Đoán Đã Thực Hiện</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Lịch Sử Chẩn Đoán <span className="text-gradient">Bệnh Lá</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
-          Xem lại, tra cứu và quản lý các kết quả nhận diện bệnh hại trên lá cây trồng, hộp định vị tổn thương và điểm số tin cậy.
-        </p>
-      </div>
 
       <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
 
@@ -111,13 +97,13 @@ export function HistoryPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm theo tên bệnh, ngày..."
+            placeholder="Tìm bệnh, ngày…"
             className="input-clean pl-10 py-2.5 text-xs sm:text-sm"
           />
         </form>
 
         {/* Status Category Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 text-xs bg-white/60 p-1.5 rounded-2xl border border-[#E2EFE7]">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs bg-white/60 p-1.5 rounded-2xl border border-[#DCE5DC]">
           {[
             { id: 'all', label: 'Tất Cả' },
             { id: 'detected', label: 'Bệnh Phát Hiện' },
@@ -129,7 +115,7 @@ export function HistoryPage() {
               onClick={() => setStatusFilter(tab.id)}
               className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-[#15803D] text-white shadow-xs'
+                  ? 'bg-[#1F7A4D] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
@@ -141,7 +127,7 @@ export function HistoryPage() {
 
       {/* History Items List */}
       {loading ? (
-        <LoadingState message="Đang tải lịch sử chẩn đoán của bạn..." />
+        <LoadingState message="Đang tải…" />
       ) : items.length > 0 ? (
         <div className="space-y-4">
           {items.map((item) => {
@@ -164,26 +150,26 @@ export function HistoryPage() {
                   <img
                     src={resolveMediaUrl(item.original_image_url)}
                     alt={`Lá ${cropName(item.crop_code).toLowerCase()}`}
-                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover bg-slate-100 border border-[#E2EFE7] shrink-0"
+                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover bg-slate-100 border border-[#DCE5DC] shrink-0"
                   />
 
                   {/* Info */}
                   <div className="min-w-0 flex-1 space-y-1.5">
-                    <h4 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#15803D] transition-colors truncate font-['Space_Grotesk']">
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1F7A4D] transition-colors truncate font-display">
                       {cleanPrimary}
                     </h4>
 
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 font-mono">
-                      <span className="font-sans font-bold text-[#14532D] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
+                      <span className="font-sans font-bold text-[#0F2A20] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
                         {cropName(item.crop_code)}
                       </span>
                       <span className="flex items-center gap-1 font-medium text-slate-600">
-                        <Clock size={13} className="text-[#15803D]" />
+                        <Clock size={13} className="text-[#1F7A4D]" />
                         {dateStr} | {timeStr}
                       </span>
 
                       {item.max_confidence !== null && (
-                        <span className="text-[#15803D] font-bold px-2 py-0.5 rounded-md bg-[#F0FDF4] border border-emerald-200">
+                        <span className="text-[#1F7A4D] font-bold px-2 py-0.5 rounded-md bg-[#EAF5EE] border border-emerald-200">
                           Độ tin cậy: {(item.max_confidence * 100).toFixed(1)}%
                         </span>
                       )}
@@ -234,9 +220,8 @@ export function HistoryPage() {
         </div>
       ) : (
         <EmptyState
-          icon={<History size={26} className="text-[#15803D]" />}
-          title="Chưa có bản ghi chẩn đoán nào"
-          description="Bạn chưa thực hiện lượt chẩn đoán nào hoặc không có bản ghi nào khớp với bộ lọc."
+          icon={<History size={26} className="text-[#1F7A4D]" />}
+          title="Chưa có lượt quét"
         />
       )}
 
@@ -251,7 +236,7 @@ export function HistoryPage() {
       <ConfirmDialog
         open={deleteTargetId !== null}
         title="Xóa Bản Ghi Chẩn Đoán?"
-        message="Hành động này sẽ xóa vĩnh viễn mục lịch sử chẩn đoán này và loại bỏ an toàn các tệp hình ảnh tương ứng khỏi máy chủ. Thao tác này không thể hoàn tác."
+        message="Không khôi phục được."
         confirmLabel="Xác Nhận Xóa"
         cancelLabel="Hủy Bỏ"
         loading={deleting}

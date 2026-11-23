@@ -24,7 +24,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-[#0F172A] flex overflow-x-hidden font-['DM_Sans']">
+    <div className="min-h-screen bg-transparent text-[#10201A] flex overflow-x-hidden font-sans">
       {/* Desktop Persistent Sidebar */}
       <div className="hidden md:flex h-screen sticky top-0 shrink-0 z-40">
         <Sidebar />
@@ -36,16 +36,16 @@ export function AppLayout() {
           {/* Backdrop */}
           <div
             onClick={() => setMobileSidebarOpen(false)}
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-200"
+            className="fixed inset-0 bg-forest/60 transition-opacity duration-200"
             aria-hidden="true"
           />
 
           {/* Drawer Panel */}
-          <div className="relative w-72 max-w-[85vw] h-full bg-white/95 backdrop-blur-xl shadow-2xl z-10 flex flex-col animate-in slide-in-from-left duration-200">
+          <div className="relative w-64 max-w-[85vw] h-full bg-forest shadow-2xl z-10 flex flex-col animate-in slide-in-from-left duration-200">
             <button
               onClick={() => setMobileSidebarOpen(false)}
-              aria-label="Đóng thanh điều hướng"
-              className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors z-20 cursor-pointer"
+              aria-label="Đóng menu"
+              className="absolute top-4 right-4 p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors z-20 cursor-pointer"
             >
               <X size={18} />
             </button>

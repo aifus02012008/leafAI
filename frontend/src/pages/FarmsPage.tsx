@@ -10,11 +10,11 @@ import type { CropCode, WatchedFarm } from '../types';
 
 const PUSH_TEXT: Record<PushState, string> = {
   loading: 'Đang kiểm tra…',
-  unsupported: 'Trình duyệt này chưa hỗ trợ thông báo đẩy. Trên iPhone, hãy thêm LEAF_AI ra màn hình chính trước.',
-  'server-disabled': 'Máy chủ chưa bật thông báo đẩy. Cảnh báo vẫn hiện ở biểu tượng chuông.',
-  denied: 'Bạn đã chặn thông báo. Hãy cho phép lại trong phần cài đặt trang web của trình duyệt.',
-  off: 'Chưa bật thông báo trên thiết bị này.',
-  on: 'Đã bật thông báo trên thiết bị này.',
+  unsupported: 'Máy này chưa hỗ trợ',
+  'server-disabled': 'Chưa khả dụng',
+  denied: 'Đã bị chặn trong trình duyệt',
+  off: 'Đang tắt',
+  on: 'Đang bật',
 };
 
 function errorText(err: any, fallback: string): string {
@@ -62,8 +62,8 @@ function AddFarmForm({ onAdded }: { onAdded: (f: WatchedFarm) => void }) {
   const label = 'block text-[11px] font-bold text-slate-600 mb-1';
   return (
     <form onSubmit={submit} className="clean-card p-5 rounded-3xl space-y-3">
-      <h2 className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
-        <Plus size={15} /> Thêm vườn cần theo dõi
+      <h2 className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
+        <Plus size={15} /> Thêm vườn
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
         <div className="sm:col-span-1">
@@ -78,7 +78,7 @@ function AddFarmForm({ onAdded }: { onAdded: (f: WatchedFarm) => void }) {
           </select>
         </div>
         <div>
-          <label htmlFor="farm-radius" className={label}>Bán kính cảnh báo</label>
+          <label htmlFor="farm-radius" className={label}>Bán kính</label>
           <select id="farm-radius" value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="input-clean py-2 text-sm">
             {[2, 5, 10, 20].map((r) => <option key={r} value={r}>{r} km</option>)}
           </select>
@@ -87,11 +87,11 @@ function AddFarmForm({ onAdded }: { onAdded: (f: WatchedFarm) => void }) {
       <div className="flex flex-wrap items-center gap-2.5">
         <button type="button" onClick={locate} disabled={locating} className="btn-secondary text-xs py-2 px-3.5">
           {locating ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
-          <span>{point ? 'Lấy lại vị trí' : 'Dùng vị trí hiện tại'}</span>
+          <span>{point ? 'Lấy lại' : 'Vị trí tôi'}</span>
         </button>
         {point && (
           <span className="text-xs text-slate-600 inline-flex items-center gap-1">
-            <MapPin size={13} className="text-[#15803D]" /> {point.lat.toFixed(3)}, {point.lng.toFixed(3)}
+            <MapPin size={13} className="text-[#1F7A4D]" /> {point.lat.toFixed(3)}, {point.lng.toFixed(3)}
           </span>
         )}
         <button type="submit" disabled={saving} className="btn-primary text-xs py-2.5 px-4 ml-auto">
@@ -99,7 +99,6 @@ function AddFarmForm({ onAdded }: { onAdded: (f: WatchedFarm) => void }) {
           <span>Lưu vườn</span>
         </button>
       </div>
-      <p className="text-[11px] text-slate-500">Đứng tại vườn rồi bấm "Dùng vị trí hiện tại". Vị trí được làm tròn khoảng 110 m.</p>
     </form>
   );
 }
@@ -172,26 +171,18 @@ export function FarmsPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="space-y-1.5">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Vườn & <span className="text-gradient">Thông Báo</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500">
-          Lưu vị trí vườn để nhận cảnh báo khi quanh vườn có nhiều ca bệnh và thời tiết thuận lợi cho bệnh lây lan.
-        </p>
-      </div>
 
       <section className="clean-card p-5 rounded-3xl flex flex-col sm:flex-row sm:items-center gap-3 justify-between" aria-labelledby="push-title">
         <div className="space-y-1">
-          <h2 id="push-title" className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
-            <BellRing size={15} /> Thông báo trên điện thoại
+          <h2 id="push-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
+            <BellRing size={15} /> Thông báo
           </h2>
           <p className="text-xs text-slate-600">{PUSH_TEXT[push.state]}</p>
         </div>
         {(push.state === 'on' || push.state === 'off') && (
           <button type="button" onClick={togglePush} disabled={push.busy} className={push.state === 'on' ? 'btn-secondary text-xs py-2 px-4' : 'btn-primary text-xs py-2 px-4'}>
             {push.busy && <Loader2 size={14} className="animate-spin" />}
-            <span>{push.state === 'on' ? 'Tắt thông báo' : 'Bật thông báo'}</span>
+            <span>{push.state === 'on' ? 'Tắt' : 'Bật'}</span>
           </button>
         )}
       </section>
@@ -199,11 +190,11 @@ export function FarmsPage() {
       <AddFarmForm onAdded={(f) => setFarms((prev) => [...prev, f])} />
 
       <section aria-labelledby="farms-title" className="space-y-3">
-        <h2 id="farms-title" className="text-xs font-bold uppercase tracking-wider text-slate-500">Vườn đang theo dõi</h2>
+        <h2 id="farms-title" className="text-xs font-bold uppercase tracking-wider text-slate-500">Đang theo dõi</h2>
         {loading ? (
           <p className="text-xs text-slate-500">Đang tải…</p>
         ) : farms.length === 0 ? (
-          <p className="text-xs text-slate-500">Chưa có vườn nào.</p>
+          <p className="text-xs text-slate-500">Chưa có vườn</p>
         ) : (
           <ul className="space-y-2.5">
             {farms.map((f) => (
@@ -211,12 +202,12 @@ export function FarmsPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-slate-900 truncate">{f.name}</p>
                   <p className="text-xs text-slate-500">
-                    {f.crop_code ? cropName(f.crop_code) : 'Mọi loại cây'} · bán kính {f.radius_km} km · {f.latitude.toFixed(3)}, {f.longitude.toFixed(3)}
+                    {f.crop_code ? cropName(f.crop_code) : 'Mọi cây'} · {f.radius_km} km
                   </p>
                 </div>
                 <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                  <input type="checkbox" checked={f.alerts_enabled} onChange={() => toggleAlerts(f)} className="accent-[#15803D]" />
-                  Nhận cảnh báo
+                  <input type="checkbox" checked={f.alerts_enabled} onChange={() => toggleAlerts(f)} className="accent-[#1F7A4D]" />
+                  Cảnh báo
                 </label>
                 <button type="button" onClick={() => setDeleteId(f.id)} aria-label={`Xóa vườn ${f.name}`} className="p-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 self-end sm:self-auto">
                   <Trash2 size={14} />
@@ -228,21 +219,18 @@ export function FarmsPage() {
       </section>
 
       <section className="clean-card p-5 rounded-3xl space-y-2" aria-labelledby="privacy-title">
-        <h2 id="privacy-title" className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
+        <h2 id="privacy-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
           <ShieldCheck size={15} /> Quyền riêng tư
         </h2>
-        <p className="text-xs text-slate-600">
-          Xóa toàn bộ vị trí bạn đã chia sẻ cho Radar dịch bệnh và các vườn đang theo dõi. Kết quả chẩn đoán vẫn được giữ, chỉ bỏ thông tin vị trí.
-        </p>
         <button type="button" onClick={() => setPurgeOpen(true)} className="btn-secondary text-xs py-2 px-4 text-red-700">
-          <Trash2 size={14} /> <span>Xóa dữ liệu vị trí của tôi</span>
+          <Trash2 size={14} /> <span>Xóa vị trí của tôi</span>
         </button>
       </section>
 
       <ConfirmDialog
         open={deleteId !== null}
         title="Xóa vườn?"
-        message="Bạn sẽ không nhận cảnh báo dịch bệnh cho vườn này nữa."
+        message="Ngừng cảnh báo cho vườn này."
         loading={busy}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
@@ -250,7 +238,7 @@ export function FarmsPage() {
       <ConfirmDialog
         open={purgeOpen}
         title="Xóa toàn bộ dữ liệu vị trí?"
-        message="Vị trí của mọi lần chẩn đoán đã chia sẻ và tất cả vườn theo dõi sẽ bị xóa vĩnh viễn, không khôi phục được."
+        message="Xóa vĩnh viễn mọi vị trí đã chia sẻ và các vườn. Kết quả chẩn đoán vẫn giữ."
         confirmLabel="Xóa vị trí"
         loading={busy}
         onConfirm={confirmPurge}

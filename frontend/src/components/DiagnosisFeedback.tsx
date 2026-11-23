@@ -35,8 +35,8 @@ export function DiagnosisFeedback({ diagnosisId, initial = null }: DiagnosisFeed
   };
 
   return (
-    <div className="p-4 rounded-2xl bg-white/60 border border-[#E2EFE7] space-y-2.5">
-      <span className="block font-bold text-slate-900 text-xs">Kết quả này có đúng không?</span>
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-semibold text-ink/60 mr-1">Đúng không?</span>
       <div className="flex flex-wrap gap-2">
         {OPTIONS.map(({ value, label, icon: Icon }) => {
           const active = selected === value;
@@ -49,7 +49,7 @@ export function DiagnosisFeedback({ diagnosisId, initial = null }: DiagnosisFeed
               onClick={() => submit(value)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer disabled:cursor-wait ${
                 active
-                  ? 'bg-[#15803D] text-white border-[#15803D]'
+                  ? 'bg-[#1F7A4D] text-white border-[#1F7A4D]'
                   : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300'
               }`}
             >
@@ -59,9 +59,6 @@ export function DiagnosisFeedback({ diagnosisId, initial = null }: DiagnosisFeed
           );
         })}
       </div>
-      {selected && (
-        <p className="text-[11px] text-slate-500">Đã ghi nhận phản hồi. Bạn có thể đổi lựa chọn bất cứ lúc nào.</p>
-      )}
     </div>
   );
 }

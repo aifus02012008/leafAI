@@ -82,7 +82,7 @@ export function NotificationBell() {
         aria-label={unread ? `Thông báo, ${unread} chưa đọc` : 'Thông báo'}
         aria-expanded={open}
         aria-controls={PANEL_ID}
-        className="relative w-9 h-9 rounded-xl border border-[#E2EFE7] hover:bg-emerald-50 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+        className="relative w-9 h-9 rounded-xl border border-[#DCE5DC] hover:bg-emerald-50 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
       >
         <Bell size={16} />
         {unread > 0 && (
@@ -97,12 +97,12 @@ export function NotificationBell() {
           id={PANEL_ID}
           role="region"
           aria-label="Danh sách thông báo"
-          className="absolute right-0 mt-2 w-[min(92vw,360px)] max-h-[70vh] overflow-y-auto bg-white rounded-2xl border border-[#E2EFE7] shadow-xl z-50"
+          className="absolute right-0 mt-2 w-[min(92vw,360px)] max-h-[70vh] overflow-y-auto bg-white rounded-2xl border border-[#DCE5DC] shadow-xl z-50"
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E2EFE7] sticky top-0 bg-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#DCE5DC] sticky top-0 bg-white">
             <span className="text-sm font-bold text-slate-900">Thông báo</span>
             {unread > 0 && (
-              <button type="button" onClick={readAll} className="text-xs font-bold text-[#15803D] inline-flex items-center gap-1">
+              <button type="button" onClick={readAll} className="text-xs font-bold text-[#1F7A4D] inline-flex items-center gap-1">
                 <CheckCheck size={13} /> Đánh dấu đã đọc
               </button>
             )}
@@ -120,7 +120,7 @@ export function NotificationBell() {
                     onClick={() => openItem(n)}
                     className={`w-full text-left px-4 py-3 flex gap-3 border-b border-slate-100 hover:bg-emerald-50/60 ${n.read_at ? '' : 'bg-amber-50/50'}`}
                   >
-                    <span className={`mt-0.5 shrink-0 ${n.kind === 'radar' ? 'text-red-600' : 'text-[#15803D]'}`}>
+                    <span className={`mt-0.5 shrink-0 ${n.kind === 'radar' ? 'text-red-600' : 'text-[#1F7A4D]'}`}>
                       {n.kind === 'radar' ? <Radar size={16} /> : <SprayCan size={16} />}
                     </span>
                     <span className="min-w-0">

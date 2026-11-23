@@ -24,15 +24,15 @@ export function HistoryDetailModal({ diagnosis, onClose, onDeleteRequest }: Hist
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-['DM_Sans']"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-sans"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl lg:max-w-5xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#E2EFE7] relative flex flex-col"
+        className="w-full max-w-4xl lg:max-w-5xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#DCE5DC] relative flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-5 sm:px-8 sm:py-6 bg-white/95 backdrop-blur-md border-b border-[#E2EFE7]">
+        <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-5 sm:px-8 sm:py-6 bg-white/95 backdrop-blur-md border-b border-[#DCE5DC]">
           <div>
             <div className="flex items-center gap-2">
               <span
@@ -48,7 +48,7 @@ export function HistoryDetailModal({ diagnosis, onClose, onDeleteRequest }: Hist
                 Bản ghi #{diagnosis.id}
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A] mt-1 font-['Space_Grotesk']">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#10201A] mt-1 font-display">
               Chi Tiết Hồ Sơ Chẩn Đoán
             </h2>
           </div>
@@ -77,9 +77,9 @@ export function HistoryDetailModal({ diagnosis, onClose, onDeleteRequest }: Hist
         {/* Content */}
         <div className="p-6 sm:p-8 space-y-5">
           {/* Metadata Bar */}
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 p-3.5 rounded-2xl bg-white/60 border border-[#E2EFE7]">
+          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 p-3.5 rounded-2xl bg-white/60 border border-[#DCE5DC]">
             <div className="flex items-center gap-1.5 font-mono">
-              <Calendar size={14} className="text-[#15803D]" />
+              <Calendar size={14} className="text-[#1F7A4D]" />
               <span>{formattedDate}</span>
             </div>
             {diagnosis.inference_time !== null && (

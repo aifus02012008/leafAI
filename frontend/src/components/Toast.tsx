@@ -40,7 +40,7 @@ export function ToastContainer() {
   };
 
   return (
-    <div className="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none font-['DM_Sans']">
+    <div className="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none font-sans">
       {toasts.map((t) => (
         <div
           key={t.id}
@@ -54,7 +54,7 @@ export function ToastContainer() {
         >
           {t.type === 'success' && <CheckCircle2 size={17} className="text-emerald-600 mt-0.5 shrink-0" />}
           {t.type === 'error' && <AlertCircle size={17} className="text-red-500 mt-0.5 shrink-0" />}
-          {t.type === 'info' && <Info size={17} className="text-[#15803D] mt-0.5 shrink-0" />}
+          {t.type === 'info' && <Info size={17} className="text-[#1F7A4D] mt-0.5 shrink-0" />}
 
           <div className="flex-1 text-xs font-semibold leading-relaxed">{t.message}</div>
 

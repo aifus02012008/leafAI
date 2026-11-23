@@ -85,7 +85,7 @@ export function DoseCalculator({ onComputed, onChange, compact = false }: DoseCa
       }}
       className={`space-y-4 ${compact ? '' : 'clean-card p-5 sm:p-6 rounded-3xl'}`}>
       {!compact && (
-        <h3 className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
           <Calculator size={15} /> Tính liều pha thuốc
         </h3>
       )}
@@ -108,7 +108,7 @@ export function DoseCalculator({ onComputed, onChange, compact = false }: DoseCa
           </div>
         </div>
         <div>
-          <label className={label} htmlFor="dose-tank">Dung tích bình phun của bạn</label>
+          <label className={label} htmlFor="dose-tank">Bình phun (lít)</label>
           <select id="dose-tank" value={tank} onChange={(e) => setTank(e.target.value)} className="input-clean py-2 text-sm">
             {TANK_SIZES.map((t) => <option key={t} value={t}>Bình {t} lít</option>)}
           </select>
@@ -116,10 +116,10 @@ export function DoseCalculator({ onComputed, onChange, compact = false }: DoseCa
       </div>
 
       <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-3">
-        <p className="text-[11px] font-bold text-amber-900">Thông tin đọc trên nhãn thuốc</p>
+        <p className="text-[11px] font-bold text-amber-900">Trên nhãn</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className={label} htmlFor="dose-label">Liều trên nhãn (ml hoặc g)</label>
+            <label className={label} htmlFor="dose-label">Liều (ml/g)</label>
             <input id="dose-label" inputMode="decimal" placeholder="vd: 20" value={labelDose} onChange={(e) => setLabelDose(e.target.value)} className="input-clean py-2 text-sm" />
           </div>
           <div>
@@ -127,7 +127,7 @@ export function DoseCalculator({ onComputed, onChange, compact = false }: DoseCa
             <div className="flex gap-1.5" role="radiogroup" aria-label="Liều tính theo">
               {([['per_tank', 'mỗi bình'], ['per_ha', 'mỗi ha']] as [DoseBasis, string][]).map(([v, l]) => (
                 <button key={v} type="button" role="radio" aria-checked={basis === v} onClick={() => setBasis(v)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold border ${basis === v ? 'bg-[#15803D] text-white border-[#15803D]' : 'bg-white text-slate-700 border-slate-200'}`}>
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold border ${basis === v ? 'bg-[#1F7A4D] text-white border-[#1F7A4D]' : 'bg-white text-slate-700 border-slate-200'}`}>
                   {l}
                 </button>
               ))}
@@ -140,16 +140,15 @@ export function DoseCalculator({ onComputed, onChange, compact = false }: DoseCa
             </div>
           )}
           <div>
-            <label className={label} htmlFor="dose-water">Lượng nước phun (lít/ha)</label>
+            <label className={label} htmlFor="dose-water">Nước (lít/ha)</label>
             <input id="dose-water" inputMode="decimal" value={water} onChange={(e) => setWater(e.target.value)} className="input-clean py-2 text-sm" />
-            <p className="text-[10px] text-slate-500 mt-1">Theo nhãn hoặc tập quán địa phương; cây ăn trái tán lớn thường cần nhiều hơn.</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={label} htmlFor="dose-pack">Chai/gói (ml hoặc g) — tùy chọn</label>
+          <label className={label} htmlFor="dose-pack">Chai/gói (ml/g)</label>
           <input id="dose-pack" inputMode="decimal" placeholder="vd: 100" value={packSize} onChange={(e) => setPackSize(e.target.value)} className="input-clean py-2 text-sm" />
         </div>
         <div>
@@ -183,7 +182,7 @@ export function DoseCalculator({ onComputed, onChange, compact = false }: DoseCa
 
 function Stat({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`p-3 rounded-xl border ${highlight ? 'bg-[#F0FDF4] border-emerald-200' : 'bg-white border-[#E2EFE7]'}`}>
+    <div className={`p-3 rounded-xl border ${highlight ? 'bg-[#EAF5EE] border-emerald-200' : 'bg-white border-[#DCE5DC]'}`}>
       <span className="block text-[10px] text-slate-500 font-semibold">{label}</span>
       <span className="block text-sm font-extrabold text-slate-900 font-mono">{value}</span>
     </div>

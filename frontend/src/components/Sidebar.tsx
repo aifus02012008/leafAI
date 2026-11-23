@@ -1,153 +1,160 @@
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  Leaf,
   LayoutDashboard,
   ScanEye,
   BookOpen,
   History,
   LogOut,
-  Sparkles,
-  ChevronRight,
   SprayCan,
   Calculator,
   Mic,
   Radar,
-  BellRing
+  BellRing,
+  type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from './Toast';
 
-const NAV_ITEMS = [
-  { path: '/dashboard', label: 'Bảng Điều Khiển', icon: LayoutDashboard, badge: null },
-  { path: '/diagnose', label: 'Chẩn Đoán AI', icon: ScanEye, badge: 'YOLO' },
-  { path: '/diseases', label: 'Thư Viện Bệnh', icon: BookOpen, badge: null },
-  { path: '/history', label: 'Lịch Sử Quét', icon: History, badge: null },
-  { path: '/radar', label: 'Radar Dịch Bệnh', icon: Radar, badge: 'MỚI' },
-  { path: '/farms', label: 'Vườn & Thông Báo', icon: BellRing, badge: null },
-  { path: '/treatments', label: 'Nhật Ký Điều Trị', icon: SprayCan, badge: null },
-  { path: '/tools', label: 'Tính Liều & Cách Ly', icon: Calculator, badge: null },
-  { path: '/assistant', label: 'Hỏi Đáp Giọng Nói', icon: Mic, badge: null },
+interface NavItem {
+  path: string;
+  label: string;
+  icon: LucideIcon;
+  isNew?: boolean;
+}
+
+interface NavGroup {
+  title: string | null;
+  items: readonly NavItem[];
+}
+
+/** Grouped by what the farmer is trying to do, in the order they usually do it. */
+const NAV_GROUPS: readonly NavGroup[] = [
+  {
+    title: null,
+    items: [{ path: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard }],
+  },
+  {
+    title: 'Chẩn đoán',
+    items: [
+      { path: '/diagnose', label: 'Chụp lá', icon: ScanEye },
+      { path: '/history', label: 'Lịch sử', icon: History },
+      { path: '/diseases', label: 'Thư viện bệnh', icon: BookOpen },
+    ],
+  },
+  {
+    title: 'Điều trị',
+    items: [
+      { path: '/treatments', label: 'Nhật ký', icon: SprayCan },
+      { path: '/tools', label: 'Tính liều', icon: Calculator },
+    ],
+  },
+  {
+    title: 'Cảnh báo',
+    items: [
+      { path: '/radar', label: 'Radar', icon: Radar, isNew: true },
+      { path: '/farms', label: 'Vườn', icon: BellRing },
+    ],
+  },
+  {
+    title: 'Trợ lý',
+    items: [{ path: '/assistant', label: 'Hỏi đáp', icon: Mic }],
+  },
 ];
 
 interface SidebarProps {
   onItemClick?: () => void;
 }
 
+function LeafMark() {
+  return (
+    <svg viewBox="0 0 32 32" className="w-9 h-9" aria-hidden="true">
+      <rect width="32" height="32" rx="9" fill="#5EE6A0" />
+      <path d="M9 23c0-8 5-13 14-14-1 9-6 14-14 14Z" fill="#0F2A20" />
+      <path d="M9.5 22.5 19 13" stroke="#5EE6A0" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function Sidebar({ onItemClick }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleLogout = () => {
     logout();
-    showToast('info', 'Đã đăng xuất thành công.');
+    showToast('info', 'Đã đăng xuất.');
     navigate('/login');
   };
 
   return (
-    <aside className="w-64 h-full bg-white/85 backdrop-blur-md border-r border-[#E2EFE7]/80 flex flex-col justify-between shrink-0 select-none">
-      {/* Top Section */}
-      <div className="flex flex-col">
-        {/* Brand Logo Header */}
-        <div
-          onClick={() => {
-            navigate('/dashboard');
-            onItemClick?.();
-          }}
-          className="p-6 flex items-center gap-3.5 cursor-pointer group border-b border-[#E2EFE7]/60"
-        >
-          <div className="w-11 h-11 rounded-xl bg-[#15803D] flex items-center justify-center text-white shadow-sm shadow-emerald-900/10 group-hover:scale-105 transition-transform">
-            <Leaf className="w-6 h-6 text-white" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-extrabold text-lg tracking-tight text-[#0F172A] flex items-center gap-1.5 font-['Space_Grotesk']">
-              LEAF_AI
-            </div>
-            <p className="text-[11px] font-semibold tracking-wider uppercase text-emerald-800 -mt-0.5 truncate">
-              Bệnh Học Cây Trồng AI
-            </p>
-          </div>
-        </div>
+    <aside className="w-64 h-full bg-forest text-white/80 flex flex-col shrink-0 select-none">
+      <button
+        type="button"
+        onClick={() => {
+          navigate('/dashboard');
+          onItemClick?.();
+        }}
+        className="px-5 pt-6 pb-5 flex items-center gap-3 text-left cursor-pointer"
+      >
+        <LeafMark />
+        <span className="font-display font-extrabold text-xl tracking-tight text-white">
+          LEAF<span className="text-mint">_AI</span>
+        </span>
+      </button>
 
-        {/* Navigation Items */}
-        <div className="p-4 space-y-1.5">
-          <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            Danh Mục Hệ Thống
+      <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5" aria-label="Điều hướng chính">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.title ?? 'home'} className="space-y-0.5">
+            {group.title && (
+              <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-mint/70">
+                {group.title}
+              </p>
+            )}
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onItemClick}
+                  className={({ isActive }) =>
+                    `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      isActive ? 'bg-forest-3 text-white' : 'text-white/70 hover:text-white hover:bg-forest-2'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-mint" aria-hidden="true" />
+                      )}
+                      <Icon size={18} className={isActive ? 'text-mint' : 'text-white/50'} />
+                      <span className="flex-1">{item.label}</span>
+                      {item.isNew && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-sun text-forest">Mới</span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </div>
-          {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={onItemClick}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 ${
-                  isActive
-                    ? 'bg-[#F0FDF4] text-[#15803D] font-bold shadow-xs border border-emerald-200/70'
-                    : 'text-slate-600 hover:text-[#0F172A] hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon
-                    size={18}
-                    className={isActive ? 'text-[#15803D]' : 'text-slate-400'}
-                  />
-                  <span>{item.label}</span>
-                </div>
-                {item.badge ? (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-[#15803D] font-mono">
-                    {item.badge}
-                  </span>
-                ) : isActive ? (
-                  <ChevronRight size={14} className="text-[#15803D]" />
-                ) : null}
-              </NavLink>
-            );
-          })}
-        </div>
-      </div>
+        ))}
+      </nav>
 
-      {/* Bottom Section: AI Engine Status & Profile */}
-      <div className="p-4 space-y-3 border-t border-[#E2EFE7]/60">
-        {/* Model Status Card */}
-        <div className="p-3.5 rounded-xl bg-[#F0FDF4] border border-emerald-200/70 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-[#15803D] flex items-center gap-1.5">
-              <Sparkles size={14} className="text-emerald-600" />
-              Động Cơ Thị Giác YOLO
-            </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Hoạt Động
-            </span>
+      <div className="p-4 space-y-3 border-t border-white/10">
+        <div className="flex items-center gap-2.5 rounded-xl bg-forest-2 p-2.5">
+          <div className="w-8 h-8 rounded-full bg-mint text-forest flex items-center justify-center font-bold text-xs shrink-0">
+            {user?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
-          <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-            Chẩn đoán bệnh lá chè · thư viện bệnh sầu riêng, măng cụt, chôm chôm
+          <p className="flex-1 min-w-0 text-xs font-semibold text-white truncate" title={user?.email}>
+            {user?.email ? user.email.split('@')[0] : 'Tài khoản'}
           </p>
-        </div>
-
-        {/* User Profile & Sign Out */}
-        <div className="pt-1 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-full bg-[#15803D] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-900 truncate" title={user?.email}>
-                {user?.email ? user.email.split('@')[0] : 'Kỹ Sư Nông Học'}
-              </p>
-              <p className="text-[10px] text-slate-400 truncate font-mono">
-                {user?.email || 'Đã Đăng Nhập'}
-              </p>
-            </div>
-          </div>
-
           <button
+            type="button"
             onClick={handleLogout}
-            title="Đăng xuất khỏi tài khoản"
+            title="Đăng xuất"
             aria-label="Đăng xuất"
-            className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
           >
             <LogOut size={16} />
           </button>

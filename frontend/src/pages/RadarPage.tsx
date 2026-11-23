@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BellPlus, CloudRain, Droplets, Loader2, LocateFixed, Radar, ShieldCheck, Thermometer } from 'lucide-react';
+import { AlertTriangle, BellPlus, CloudRain, Droplets, Loader2, LocateFixed, Radar, Thermometer } from 'lucide-react';
 import { apiGetRadar } from '../api/radar';
 import { apiCreateFarm } from '../api/farms';
 import { RadarMap } from '../components/RadarMap';
@@ -89,14 +89,6 @@ export function RadarPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1.5">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Radar <span className="text-gradient">Dịch Bệnh</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-3xl">
-          Cảnh báo sớm từ các ca bệnh nông dân quanh bạn đã chia sẻ (ẩn danh) kết hợp dự báo độ ẩm, nhiệt độ và mưa 3 ngày tới.
-        </p>
-      </div>
 
       <div className="clean-card p-4 sm:p-5 rounded-3xl flex flex-col lg:flex-row gap-3 lg:items-end">
         <div className="flex-1 min-w-0">
@@ -134,11 +126,11 @@ export function RadarPage() {
         </div>
         <button type="button" onClick={useMyLocation} disabled={locating} className="btn-secondary text-xs py-2.5 px-4">
           {locating ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
-          <span>Dùng vị trí của tôi</span>
+          <span>Vị trí tôi</span>
         </button>
         <button type="button" onClick={watchArea} disabled={watching} className="btn-primary text-xs py-2.5 px-4">
           {watching ? <Loader2 size={14} className="animate-spin" /> : <BellPlus size={14} />}
-          <span>Theo dõi vùng này</span>
+          <span>Theo dõi</span>
         </button>
       </div>
 
@@ -148,45 +140,39 @@ export function RadarPage() {
             <RadarMap center={point} radiusKm={radius} cells={data?.grid ?? []} />
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-3xl z-10">
-                <Loader2 size={24} className="animate-spin text-[#15803D]" />
+                <Loader2 size={24} className="animate-spin text-[#1F7A4D]" />
               </div>
             )}
           </div>
-          <p className="text-[11px] text-slate-500 flex items-start gap-1.5">
-            <ShieldCheck size={13} className="text-[#15803D] shrink-0 mt-0.5" />
-            Vị trí chỉ được lưu khi người dùng đồng ý, làm tròn khoảng 110 m; bản đồ chỉ hiện ô ~2 km có từ 2 hộ báo cáo trở lên.
-          </p>
         </div>
 
         <div className="lg:col-span-5 space-y-4">
           <section aria-labelledby="radar-weather" className="clean-card p-4 rounded-3xl space-y-3">
-            <h2 id="radar-weather" className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
-              <CloudRain size={15} /> Thời tiết 3 ngày tới
+            <h2 id="radar-weather" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
+              <CloudRain size={15} /> 3 ngày tới
             </h2>
             {data?.weather ? (
               <div className="grid grid-cols-3 gap-2 text-xs">
                 {data.weather.map((d) => (
-                  <div key={d.day} className={`p-2.5 rounded-xl border text-center ${d.humid_hours >= 6 ? 'bg-sky-50 border-sky-200' : 'bg-white border-[#E2EFE7]'}`}>
+                  <div key={d.day} className={`p-2.5 rounded-xl border text-center ${d.humid_hours >= 6 ? 'bg-sky-50 border-sky-200' : 'bg-white border-[#DCE5DC]'}`}>
                     <div className="font-bold text-slate-800">{WEEKDAY[new Date(d.day + 'T00:00:00').getDay()]} {formatDate(d.day).slice(0, 5)}</div>
-                    <div className="flex items-center justify-center gap-1 text-sky-700 mt-1"><Droplets size={12} />{d.humid_hours} giờ ≥90%</div>
+                    <div className="flex items-center justify-center gap-1 text-sky-700 mt-1"><Droplets size={12} />{d.humid_hours}h ẩm</div>
                     <div className="flex items-center justify-center gap-1 text-slate-600"><Thermometer size={12} />{Math.round(d.t_min)}–{Math.round(d.t_max)}°C</div>
-                    <div className="text-slate-600">Mưa {d.precip_mm} mm</div>
+                    <div className="flex items-center justify-center gap-1 text-slate-600"><CloudRain size={12} />{d.precip_mm} mm</div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500">Chưa lấy được dự báo thời tiết cho khu vực này.</p>
+              <p className="text-xs text-slate-500">Chưa có dự báo</p>
             )}
           </section>
 
           <section aria-labelledby="radar-alerts" className="clean-card p-4 rounded-3xl space-y-3">
-            <h2 id="radar-alerts" className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
-              <Radar size={15} /> Cảnh báo quanh {areaLabel}
+            <h2 id="radar-alerts" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
+              <Radar size={15} /> Cảnh báo
             </h2>
             {data && data.alerts.length === 0 && (
-              <p className="text-xs text-slate-600">
-                Chưa ghi nhận ca bệnh nào được chia sẻ trong bán kính {radius} km, {data.lookback_days} ngày qua.
-              </p>
+              <p className="text-xs text-slate-600">Chưa có ca bệnh trong {radius} km</p>
             )}
             <ul className="space-y-2.5">
               {data?.alerts.map((a) => (

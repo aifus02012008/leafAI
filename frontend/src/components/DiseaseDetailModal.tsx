@@ -189,30 +189,30 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-['DM_Sans']"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-sans"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl lg:max-w-5xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#E2EFE7] relative flex flex-col"
+        className="w-full max-w-4xl lg:max-w-5xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#DCE5DC] relative flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
-        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-[#E2EFE7] px-6 py-5 sm:px-8 sm:py-6">
+        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-[#DCE5DC] px-6 py-5 sm:px-8 sm:py-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-[#F0FDF4] text-[#15803D] font-bold flex items-center gap-1 border border-emerald-200">
-                  <Leaf size={11} className="text-[#15803D]" />
+                <span className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-[#EAF5EE] text-[#1F7A4D] font-bold flex items-center gap-1 border border-emerald-200">
+                  <Leaf size={11} className="text-[#1F7A4D]" />
                   {cropScientific} • Cây {cropNameVi}
                 </span>
                 <span className="text-[10px] font-mono tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
                   Lộ Trình Điều Trị Toàn Diện
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A] mt-1 font-['Space_Grotesk']">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#10201A] mt-1 font-display">
                 {currentDisease.display_name}
               </h2>
-              <p className="text-xs text-[#15803D] font-mono font-semibold mt-0.5">
+              <p className="text-xs text-[#1F7A4D] font-mono font-semibold mt-0.5">
                 Tác nhân / Phân loại: {cleanClass}
               </p>
             </div>
@@ -228,14 +228,14 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
           </div>
 
           {/* Unified Tab Navigation */}
-          <div className="flex items-center gap-1.5 sm:gap-2 mt-4 pt-3 border-t border-[#E2EFE7] overflow-x-auto no-scrollbar text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 mt-4 pt-3 border-t border-[#DCE5DC] overflow-x-auto no-scrollbar text-xs">
             <button
               type="button"
               onClick={() => setActiveTab('timeline')}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'timeline'
-                  ? 'bg-[#15803D] text-white shadow-xs'
-                  : 'bg-white text-emerald-800 hover:bg-[#F0FDF4] border border-emerald-200'
+                  ? 'bg-[#1F7A4D] text-white shadow-xs'
+                  : 'bg-white text-emerald-800 hover:bg-[#EAF5EE] border border-emerald-200'
               }`}
             >
               <ListChecks size={13} />
@@ -246,7 +246,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
               onClick={() => setActiveTab('symptoms')}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'symptoms'
-                  ? 'bg-[#15803D] text-white shadow-xs'
+                  ? 'bg-[#1F7A4D] text-white shadow-xs'
                   : 'bg-white text-amber-800 hover:bg-amber-50 border border-amber-200'
               }`}
             >
@@ -258,8 +258,8 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
               onClick={() => setActiveTab('prevention')}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'prevention'
-                  ? 'bg-[#15803D] text-white shadow-xs'
-                  : 'bg-white text-[#15803D] hover:bg-emerald-50 border border-emerald-200'
+                  ? 'bg-[#1F7A4D] text-white shadow-xs'
+                  : 'bg-white text-[#1F7A4D] hover:bg-emerald-50 border border-emerald-200'
               }`}
             >
               <ShieldAlert size={13} />
@@ -270,8 +270,8 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
               onClick={() => setActiveTab('all')}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'all'
-                  ? 'bg-[#15803D] text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#E2EFE7]'
+                  ? 'bg-[#1F7A4D] text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#DCE5DC]'
               }`}
             >
               Tất Cả Thông Tin
@@ -287,14 +287,14 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
           {(activeTab === 'timeline' || activeTab === 'all') && (
             <section className="space-y-6">
               {/* Single Section Header Banner */}
-              <div className="bg-[#F0FDF4] border border-emerald-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
+              <div className="bg-[#EAF5EE] border border-emerald-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-white border border-emerald-200 flex items-center justify-center text-[#15803D] shadow-2xs">
+                    <div className="w-9 h-9 rounded-xl bg-white border border-emerald-200 flex items-center justify-center text-[#1F7A4D] shadow-2xs">
                       <ListChecks size={18} />
                     </div>
                     <div>
-                      <h3 className="text-sm sm:text-base font-extrabold text-[#14532D] font-['Space_Grotesk']">
+                      <h3 className="text-sm sm:text-base font-extrabold text-[#0F2A20] font-display">
                         Lộ Trình Điều Trị Toàn Diện
                       </h3>
                       <p className="text-xs text-slate-600">
@@ -302,7 +302,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                       </p>
                     </div>
                   </div>
-                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-white text-[#15803D] border border-emerald-200 self-start sm:self-auto shadow-2xs">
+                  <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-white text-[#1F7A4D] border border-emerald-200 self-start sm:self-auto shadow-2xs">
                     {stages.length} Mốc Thời Gian
                   </span>
                 </div>
@@ -324,8 +324,8 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                     <div
                       className={`absolute -left-6 sm:-left-8 top-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 shadow-xs flex items-center justify-center text-[10px] font-black transition-all ${
                         stage.isFinal
-                          ? 'bg-[#15803D] text-white border-emerald-600'
-                          : 'bg-white border-[#15803D] text-[#15803D] group-hover:bg-[#15803D] group-hover:text-white'
+                          ? 'bg-[#1F7A4D] text-white border-emerald-600'
+                          : 'bg-white border-[#1F7A4D] text-[#1F7A4D] group-hover:bg-[#1F7A4D] group-hover:text-white'
                       }`}
                     >
                       {stage.isFinal ? <Sprout size={13} /> : idx + 1}
@@ -335,8 +335,8 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                     <div
                       className={`rounded-2xl p-5 sm:p-6 border shadow-2xs space-y-3.5 transition-shadow ${
                         stage.isFinal
-                          ? 'bg-gradient-to-br from-[#F0FDF4] via-white to-emerald-50/40 border-emerald-300 shadow-xs'
-                          : 'bg-[#F8FAF9] border-[#E2EFE7] hover:shadow-xs'
+                          ? 'bg-gradient-to-br from-[#EAF5EE] via-white to-emerald-50/40 border-emerald-300 shadow-xs'
+                          : 'bg-[#F8FAF9] border-[#DCE5DC] hover:shadow-xs'
                       }`}
                     >
                       {/* Stage Card Header */}
@@ -346,12 +346,12 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                             className={`text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
                               stage.isFinal
                                 ? 'bg-emerald-600 text-white border-emerald-600'
-                                : 'bg-emerald-50 text-[#15803D] border-emerald-200'
+                                : 'bg-emerald-50 text-[#1F7A4D] border-emerald-200'
                             }`}
                           >
                             {stage.timeframe || `Giai đoạn ${stage.stageNum}`}
                           </span>
-                          <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm font-['Space_Grotesk']">
+                          <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm font-display">
                             {stage.title}
                           </h4>
                         </div>
@@ -363,8 +363,8 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                           {/* 1. What to do (Hành động & Hoạt chất can thiệp) */}
                           {stage.content.action && (
                             <div className="bg-white p-3.5 rounded-xl border border-emerald-200/70 shadow-2xs space-y-1">
-                              <span className="font-bold text-[#14532D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                                <ShieldCheck size={14} className="text-[#15803D]" />
+                              <span className="font-bold text-[#0F2A20] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                                <ShieldCheck size={14} className="text-[#1F7A4D]" />
                                 Hành động & Hoạt chất can thiệp
                               </span>
                               <p className="text-slate-700 leading-relaxed pl-5">
@@ -421,19 +421,19 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                           {stage.content.recoveryPeriod && (
                             <div className="bg-emerald-50/80 p-4 rounded-xl border border-emerald-200 flex items-center justify-between gap-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-white border border-emerald-300 flex items-center justify-center text-[#15803D] shadow-2xs">
+                                <div className="w-10 h-10 rounded-xl bg-white border border-emerald-300 flex items-center justify-center text-[#1F7A4D] shadow-2xs">
                                   <Clock size={20} />
                                 </div>
                                 <div>
                                   <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
                                     Thời Gian Phục Hồi Ước Tính
                                   </div>
-                                  <div className="text-sm sm:text-base font-extrabold text-[#14532D] font-['Space_Grotesk']">
+                                  <div className="text-sm sm:text-base font-extrabold text-[#0F2A20] font-display">
                                     {stage.content.recoveryPeriod}
                                   </div>
                                 </div>
                               </div>
-                              <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-white text-[#15803D] border border-emerald-200 hidden sm:inline-block">
+                              <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-white text-[#1F7A4D] border border-emerald-200 hidden sm:inline-block">
                                 Chu kỳ chuẩn {cropScientific}
                               </span>
                             </div>
@@ -442,14 +442,14 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                           {/* Clear Criteria for Considering the Plant Recovered */}
                           {stage.content.criteria && stage.content.criteria.length > 0 && (
                             <div className="bg-white p-4 rounded-xl border border-emerald-200/90 shadow-2xs space-y-2">
-                              <span className="font-extrabold text-[#14532D] flex items-center gap-1.5 uppercase tracking-wider text-xs font-['Space_Grotesk']">
-                                <CheckCircle2 size={16} className="text-[#15803D]" />
+                              <span className="font-extrabold text-[#0F2A20] flex items-center gap-1.5 uppercase tracking-wider text-xs font-display">
+                                <CheckCircle2 size={16} className="text-[#1F7A4D]" />
                                 Tiêu chuẩn xác định cây {cropLower} đã khỏi bệnh:
                               </span>
                               <ul className="space-y-2 pl-1 pt-1">
                                 {stage.content.criteria.map((item, cIdx) => (
                                   <li key={cIdx} className="flex items-start gap-2.5 text-slate-700 leading-relaxed">
-                                    <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#15803D] flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                                    <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#1F7A4D] flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                                       {cIdx + 1}
                                     </div>
                                     <span>{item}</span>
@@ -479,7 +479,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
                         <ul className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
                           {stage.content.extraLines.map((line, i) => (
                             <li key={i} className="flex items-start gap-2 leading-relaxed">
-                              <CheckCircle2 size={13} className="text-[#15803D] shrink-0 mt-0.5" />
+                              <CheckCircle2 size={13} className="text-[#1F7A4D] shrink-0 mt-0.5" />
                               <span>{line}</span>
                             </li>
                           ))}
@@ -499,11 +499,11 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
             <section className="space-y-5 pt-2">
               {currentDisease.description && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 font-['Space_Grotesk']">
-                    <BookOpen size={15} className="text-[#15803D]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 font-display">
+                    <BookOpen size={15} className="text-[#1F7A4D]" />
                     Tổng Quan Bệnh Học & Tác Nhân Gây Hại
                   </h4>
-                  <p className="text-slate-700 leading-relaxed text-xs sm:text-sm bg-[#F8FAF9] p-4 sm:p-5 rounded-2xl border border-[#E2EFE7]">
+                  <p className="text-slate-700 leading-relaxed text-xs sm:text-sm bg-[#F8FAF9] p-4 sm:p-5 rounded-2xl border border-[#DCE5DC]">
                     {currentDisease.description}
                   </p>
                 </div>
@@ -511,7 +511,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
 
               {currentDisease.symptoms && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2 font-['Space_Grotesk']">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2 font-display">
                     <AlertCircle size={15} className="text-amber-600" />
                     Dấu Hiệu & Triệu Chứng Chẩn Đoán
                   </h4>
@@ -531,11 +531,11 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
               ========================================================================= */}
           {(activeTab === 'prevention' || activeTab === 'all') && currentDisease.prevention && (
             <section className="space-y-2 pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#14532D] flex items-center gap-2 font-['Space_Grotesk']">
-                <ShieldAlert size={15} className="text-[#15803D]" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F2A20] flex items-center gap-2 font-display">
+                <ShieldAlert size={15} className="text-[#1F7A4D]" />
                 Biện Pháp Canh Tác & Phòng Ngừa Tái Nhiễm IPM
               </h4>
-              <div className="text-slate-700 leading-relaxed text-xs sm:text-sm bg-[#F0FDF4] p-4 sm:p-5 rounded-2xl border border-emerald-200/80 whitespace-pre-line">
+              <div className="text-slate-700 leading-relaxed text-xs sm:text-sm bg-[#EAF5EE] p-4 sm:p-5 rounded-2xl border border-emerald-200/80 whitespace-pre-line">
                 {currentDisease.prevention}
               </div>
             </section>
@@ -543,9 +543,9 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
         </div>
 
         {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-20 p-4 sm:p-5 bg-white/95 backdrop-blur-md border-t border-[#E2EFE7] flex items-center justify-between">
+        <div className="sticky bottom-0 z-20 p-4 sm:p-5 bg-white/95 backdrop-blur-md border-t border-[#DCE5DC] flex items-center justify-between">
           <div className="text-[11px] text-slate-500 hidden sm:flex items-center gap-1.5">
-            <Leaf size={13} className="text-[#15803D]" />
+            <Leaf size={13} className="text-[#1F7A4D]" />
             <span>Phác đồ bệnh học {cropLower} {cropScientific} • LEAF_AI</span>
           </div>
           <button

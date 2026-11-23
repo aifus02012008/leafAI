@@ -1,31 +1,41 @@
 @import "tailwindcss";
 
+/*
+ * LEAF_AI visual system — taken from the project poster:
+ * deep forest panels, mint "AI" accent, sun-yellow for things that need attention.
+ */
+@theme {
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-forest: #0F2A20;
+  --color-forest-2: #173B2D;
+  --color-forest-3: #21503D;
+  --color-mint: #5EE6A0;
+  --color-mint-soft: #C9F5DD;
+  --color-leaf: #1F7A4D;
+  --color-leaf-dark: #17603C;
+  --color-leaf-wash: #EAF5EE;
+  --color-paper: #F3F6F1;
+  --color-ink: #10201A;
+  --color-sun: #F2C94C;
+  --color-sun-wash: #FDF5D8;
+  --color-line: #DCE5DC;
+}
+
 @layer base {
   :root {
-    --color-primary: #15803D;
-    --color-primary-hover: #166534;
-    --color-primary-light: #F0FDF4;
-    --color-secondary: #059669;
-    --color-accent: #D97706;
-    --color-background: #F8FAF9;
-    --color-foreground: #0F172A;
-    --color-card: #FFFFFF;
-    --color-card-foreground: #0F172A;
-    --color-muted: #F1F5F3;
-    --color-muted-foreground: #475569;
-    --color-border: #E2EFE7;
-    --color-border-subtle: rgba(15, 23, 42, 0.06);
-    --color-destructive: #DC2626;
-    --color-ring: #15803D;
-
-    --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
-    --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
-    --shadow-xl: 0 20px 32px -6px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
+    --color-primary: #1F7A4D;
+    --color-primary-hover: #17603C;
+    --color-primary-light: #EAF5EE;
+    --color-accent: #F2C94C;
+    --color-background: #F3F6F1;
+    --color-foreground: #10201A;
+    --color-border: #DCE5DC;
+    --color-ring: #1F7A4D;
+    --shadow-sm: 0 1px 2px rgba(15, 42, 32, 0.05);
+    --shadow-md: 0 6px 18px -6px rgba(15, 42, 32, 0.14);
   }
 
   * {
@@ -36,188 +46,200 @@
 
   body {
     background-color: var(--color-background);
-    background-image: linear-gradient(rgba(248, 250, 249, 0.72), rgba(248, 250, 249, 0.78)), url('/background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     min-height: 100vh;
-    margin: 0;
-    padding: 0;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading);
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 }
 
-/* Background Canvas Utilities */
 .app-canvas {
   background: transparent;
   min-height: 100vh;
   width: 100%;
 }
 
-/* Modern SaaS Card System - Frosted Glass Effect */
+/* Cards: plain white sheets on the paper background */
 .clean-card {
-  background-color: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-radius: 20px;
-  border: 1px solid rgba(226, 239, 231, 0.85);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.clean-card-hover {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  background-color: #FFFFFF;
+  border-radius: 18px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .clean-card-hover:hover {
   transform: translateY(-2px);
-  border-color: rgba(21, 128, 61, 0.3);
+  border-color: rgba(31, 122, 77, 0.35);
   box-shadow: var(--shadow-md);
 }
 
-/* Primary Button - Deep Forest Green */
-.btn-primary {
-  background-color: var(--color-primary);
-  color: #FFFFFF;
+.btn-primary,
+.btn-secondary,
+.btn-accent {
   font-weight: 600;
   border-radius: 12px;
   padding: 10px 20px;
-  box-shadow: 0 2px 8px -1px rgba(21, 128, 61, 0.35);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(21, 128, 61, 0.2);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+  border: 1px solid var(--color-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px -2px rgba(21, 128, 61, 0.45);
 }
 
-.btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+.btn-accent:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
-.btn-primary:disabled {
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-accent:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
-/* Secondary Button - Refined Natural Border */
 .btn-secondary {
   background-color: #FFFFFF;
-  color: #1E293B;
-  font-weight: 600;
-  border-radius: 12px;
-  padding: 10px 18px;
+  color: var(--color-foreground);
   border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #F8FAF9;
-  border-color: rgba(21, 128, 61, 0.35);
+  border-color: var(--color-primary);
   color: var(--color-primary);
-  transform: translateY(-1px);
 }
 
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Accent Button - Warm Amber */
 .btn-accent {
   background-color: var(--color-accent);
-  color: #FFFFFF;
-  font-weight: 600;
-  border-radius: 12px;
-  padding: 10px 20px;
-  border: none;
-  box-shadow: 0 2px 8px -1px rgba(217, 119, 6, 0.35);
-  transition: all 0.2s ease;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  color: #3A2E05;
+  border: 1px solid #E3B835;
 }
 
 .btn-accent:hover:not(:disabled) {
-  background-color: #B45309;
-  transform: translateY(-1px);
+  background-color: #E9BC33;
 }
 
-/* Custom Clean Input */
 .input-clean {
   background-color: #FFFFFF;
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 11px 16px;
-  color: #0F172A;
+  color: var(--color-foreground);
   outline: none;
   font-size: 14px;
-  transition: all 0.2s ease;
   width: 100%;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .input-clean:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+  box-shadow: 0 0 0 3px rgba(31, 122, 77, 0.15);
 }
 
 .input-clean::placeholder {
-  color: #94A3B8;
+  color: #8A988F;
 }
 
-/* Subtle Forest Gradient Text */
+/* Kept for older markup: renders as the brand leaf green, not a gradient */
 .text-gradient {
-  background: linear-gradient(135deg, #15803D 0%, #047857 70%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-primary);
 }
 
-/* Smooth Page In Transition */
+/* ---------- Viewfinder (diagnose page signature) ---------- */
+.viewfinder {
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 50% 40%, #1B4434 0%, var(--color-forest) 70%);
+  border-radius: 22px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.viewfinder::before {
+  /* faint leaf-vein grid, like a cutting mat */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(94, 230, 160, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 230, 160, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  z-index: -1;
+}
+
+.vf-corner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-color: var(--color-mint);
+  border-style: solid;
+  border-width: 0;
+  pointer-events: none;
+}
+.vf-corner.tl { top: 18px; left: 18px; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 10px; }
+.vf-corner.tr { top: 18px; right: 18px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 10px; }
+.vf-corner.bl { bottom: 18px; left: 18px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 10px; }
+.vf-corner.br { bottom: 18px; right: 18px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 10px; }
+
+.viewfinder[data-drag="true"] .vf-corner {
+  width: 46px;
+  height: 46px;
+}
+
+.vf-scanline {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 2px;
+  background: var(--color-mint);
+  box-shadow: 0 0 18px 4px rgba(94, 230, 160, 0.55);
+  animation: vfScan 1.8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes vfScan {
+  from { top: 10%; }
+  to { top: 90%; }
+}
+
+/* ---------- Motion ---------- */
 @keyframes pageFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .page-slide-in {
-  animation: pageFadeIn 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pageFadeIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
   width: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-slide-in {
+  .page-slide-in,
+  .vf-scanline {
     animation: none !important;
   }
   * {
@@ -226,7 +248,6 @@
   }
 }
 
-/* Clean Professional Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -235,9 +256,6 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 42, 32, 0.18);
   border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(21, 128, 61, 0.4);
 }

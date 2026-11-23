@@ -8,9 +8,9 @@ export function FollowupVerdictCard({ result }: { result: FollowupResult }) {
   const pct = (v: number | null) => (v === null ? '—' : `${formatNumber(v)}%`);
 
   return (
-    <div className="p-4 rounded-2xl bg-white border border-[#E2EFE7] space-y-3 text-xs" aria-live="polite">
+    <div className="p-4 rounded-2xl bg-white border border-[#DCE5DC] space-y-3 text-xs" aria-live="polite">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-bold text-slate-900">Đánh giá hiệu quả điều trị</span>
+        <span className="font-bold text-slate-900">Hiệu quả thuốc</span>
         <span className={`px-2.5 py-0.5 rounded-full border font-bold ${meta.className}`}>{meta.label}</span>
       </div>
 
@@ -45,8 +45,8 @@ export function FollowupVerdictCard({ result }: { result: FollowupResult }) {
       )}
 
       {result.rotation_suggestions.length > 0 && (
-        <div className="p-3 rounded-xl bg-[#F0FDF4] border border-emerald-200 space-y-1.5">
-          <span className="font-bold text-[#14532D] flex items-center gap-1.5">
+        <div className="p-3 rounded-xl bg-[#EAF5EE] border border-emerald-200 space-y-1.5">
+          <span className="font-bold text-[#0F2A20] flex items-center gap-1.5">
             <RefreshCw size={13} /> Hoạt chất khác nhóm tác động nên luân phiên
           </span>
           <ul className="flex flex-wrap gap-1.5">

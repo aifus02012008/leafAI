@@ -43,12 +43,12 @@ export function RadarMap({ center, radiusKm, cells }: RadarMapProps) {
       <Circle
         center={[center.lat, center.lng]}
         radius={radiusKm * 1000}
-        pathOptions={{ color: '#15803D', weight: 2, fillOpacity: 0.05 }}
+        pathOptions={{ color: '#1F7A4D', weight: 2, fillOpacity: 0.05 }}
       />
       <CircleMarker
         center={[center.lat, center.lng]}
         radius={7}
-        pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#15803D', fillOpacity: 1 }}
+        pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#1F7A4D', fillOpacity: 1 }}
       >
         <Tooltip>Vị trí vườn của bạn</Tooltip>
       </CircleMarker>

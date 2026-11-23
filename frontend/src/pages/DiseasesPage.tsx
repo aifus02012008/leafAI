@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, BookOpen, Leaf } from 'lucide-react';
+import { Search, BookOpen } from 'lucide-react';
 import { apiGetDiseases, apiGetDiseaseDetail } from '../api/diseases';
 import { DiseaseCard } from '../components/DiseaseCard';
 import { DiseaseDetailModal } from '../components/DiseaseDetailModal';
@@ -45,19 +45,6 @@ export function DiseasesPage() {
 
   return (
     <div className="space-y-8 sm:space-y-10">
-      {/* Title Header */}
-      <div className="space-y-1.5">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0FDF4] border border-emerald-200/80 text-xs font-bold text-[#15803D]">
-          <Leaf size={13} className="text-[#15803D]" />
-          <span>Cơ Sở Dữ Liệu Bệnh Học Lá Cây Trồng</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Bệnh Học Cây Trồng & <span className="text-gradient">Thư Viện Bệnh Hại</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
-          Thư viện bệnh lá chè, sầu riêng, măng cụt và chôm chôm: tác nhân gây bệnh, triệu chứng chẩn đoán và lộ trình điều trị.
-        </p>
-      </div>
 
       <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
 
@@ -69,13 +56,13 @@ export function DiseasesPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm bệnh hại (vd: Thán thư, Phytophthora, Đốm rong, Rầy xanh, Phấn trắng)..."
+            placeholder="Tìm bệnh…"
             className="input-clean pl-10 py-2.5 text-xs sm:text-sm shadow-2xs"
           />
         </div>
 
         <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
-          <span className="px-3.5 py-2 rounded-xl bg-white/85 border border-[#E2EFE7] shadow-2xs font-mono text-[#15803D]">
+          <span className="px-3.5 py-2 rounded-xl bg-white/85 border border-[#DCE5DC] shadow-2xs font-mono text-[#1F7A4D]">
             {diseases.length} Tác Nhân Bệnh Đã Hiệu Chuẩn
           </span>
         </div>
@@ -83,7 +70,7 @@ export function DiseasesPage() {
 
       {/* Disease Cards Grid */}
       {loading ? (
-        <LoadingState message="Đang tải danh mục bệnh học..." />
+        <LoadingState message="Đang tải…" />
       ) : diseases.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {diseases.map((d) => (
@@ -96,9 +83,8 @@ export function DiseasesPage() {
         </div>
       ) : (
         <EmptyState
-          icon={<BookOpen size={24} className="text-[#15803D]" />}
-          title="Không tìm thấy bệnh hại phù hợp"
-          description="Không tìm thấy bệnh hại nào khớp với từ khóa và loại cây đã chọn. Vui lòng thử bộ lọc khác."
+          icon={<BookOpen size={24} className="text-[#1F7A4D]" />}
+          title="Không tìm thấy"
           action={
             <button
               type="button"

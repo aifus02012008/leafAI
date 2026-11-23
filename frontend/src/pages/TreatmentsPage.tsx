@@ -70,28 +70,20 @@ export function TreatmentsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1.5">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight font-['Space_Grotesk']">
-          Nhật Ký <span className="text-gradient">Điều Trị</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 max-w-2xl">
-          Theo dõi các lần phun thuốc, ngày được thu hoạch và đánh giá thuốc có tác dụng hay không bằng ảnh chụp lại.
-        </p>
-      </div>
 
       {(due.length > 0 || waitingHarvest.length > 0) && (
         <section aria-labelledby="todo-title" className="clean-card p-5 rounded-3xl space-y-3">
-          <h2 id="todo-title" className="text-xs font-bold uppercase tracking-wider text-[#15803D] flex items-center gap-2">
+          <h2 id="todo-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
             <ClipboardList size={15} /> Việc cần làm
           </h2>
           <ul className="space-y-2 text-sm">
             {due.map((t) => (
               <li key={`due-${t.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
                 <span>
-                  <b>Chụp lại lá {cropName(t.crop_code).toLowerCase()}</b> để kiểm tra hiệu quả {t.active_name} (phun {formatDate(t.applied_on)})
+                  <b>{cropName(t.crop_code)}</b> · {t.active_name} · {formatDate(t.applied_on)}
                 </span>
                 <button type="button" onClick={() => startFollowup(t)} className="btn-primary text-xs py-2 px-3.5 shrink-0">
-                  <Camera size={14} /> <span>Chụp lại ngay</span>
+                  <Camera size={14} /> <span>Chụp lại</span>
                 </button>
               </li>
             ))}
@@ -99,7 +91,7 @@ export function TreatmentsPage() {
               <li key={`phi-${t.id}`} className="flex items-center gap-2 p-3 rounded-2xl bg-red-50/60 border border-red-200">
                 <CalendarClock size={15} className="text-red-600 shrink-0" />
                 <span>
-                  Vườn {cropName(t.crop_code).toLowerCase()}: <b>không thu hoạch trước {formatDate(t.harvest_safe_on)}</b> (cách ly {t.active_name})
+                  {cropName(t.crop_code)}: <b>thu hoạch từ {formatDate(t.harvest_safe_on)}</b>
                 </span>
               </li>
             ))}
@@ -108,13 +100,12 @@ export function TreatmentsPage() {
       )}
 
       {loading ? (
-        <LoadingState message="Đang tải nhật ký điều trị..." />
+        <LoadingState message="Đang tải…" />
       ) : items.length === 0 ? (
         <EmptyState
-          icon={<SprayCan size={24} className="text-[#15803D]" />}
-          title="Chưa có lần điều trị nào"
-          description='Sau khi chẩn đoán phát hiện bệnh, bấm "Ghi nhận đã phun thuốc" để LEAF AI nhắc chụp lại lá và đánh giá hiệu quả.'
-          action={<button type="button" onClick={() => navigate('/diagnose')} className="btn-primary text-xs">Đi tới chẩn đoán</button>}
+          icon={<SprayCan size={24} className="text-[#1F7A4D]" />}
+          title="Chưa có lần phun"
+          action={<button type="button" onClick={() => navigate('/diagnose')} className="btn-primary text-xs">Chụp lá</button>}
         />
       ) : (
         <ul className="space-y-4">
@@ -124,16 +115,16 @@ export function TreatmentsPage() {
             return (
               <li key={t.id} className="clean-card p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row gap-4">
                 {t.original_image_url && (
-                  <img src={resolveMediaUrl(t.original_image_url)} alt="Ảnh lá trước điều trị" className="w-20 h-20 rounded-2xl object-cover border border-[#E2EFE7] shrink-0" />
+                  <img src={resolveMediaUrl(t.original_image_url)} alt="Ảnh lá trước điều trị" className="w-20 h-20 rounded-2xl object-cover border border-[#DCE5DC] shrink-0" />
                 )}
                 <div className="flex-1 min-w-0 space-y-1.5 text-xs">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold text-[#14532D] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">{cropName(t.crop_code)}</span>
+                    <span className="font-bold text-[#0F2A20] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">{cropName(t.crop_code)}</span>
                     <h3 className="text-sm font-bold text-slate-900 truncate">{t.disease_name || 'Chưa rõ bệnh'}</h3>
                   </div>
                   <p className="text-slate-600">
-                    Phun <b>{t.active_name}</b>{t.moa_code ? ` (nhóm ${t.moa_code})` : ''}{t.product_name ? ` — ${t.product_name}` : ''} ngày {formatDate(t.applied_on)}
-                    {t.severity_before !== null && ` · vết bệnh ban đầu ${formatNumber(t.severity_before)}%`}
+                    <b>{t.active_name}</b> · {formatDate(t.applied_on)}
+                    {t.severity_before !== null && ` · ${formatNumber(t.severity_before)}%`}
                   </p>
                   <div className="flex flex-wrap gap-2 items-center">
                     <HarvestBadge treatment={t} />
@@ -143,14 +134,14 @@ export function TreatmentsPage() {
                       </span>
                     ) : (
                       <span className="text-[11px] text-slate-500">
-                        {followupDays > 0 ? `Chụp lại sau ${followupDays} ngày (${formatDate(t.followup_due_on)})` : 'Đã đến hạn chụp lại lá'}
+                        {followupDays > 0 ? `Chụp lại sau ${followupDays} ngày` : 'Đến hạn chụp lại'}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="flex sm:flex-col gap-2 shrink-0">
                   <button type="button" onClick={() => startFollowup(t)} className="btn-secondary text-xs py-2 px-3">
-                    <Camera size={14} /> <span>{latest ? 'Chụp lại lần nữa' : 'Chụp lại lá'}</span>
+                    <Camera size={14} /> <span>Chụp lại</span>
                   </button>
                   <button type="button" onClick={() => setDeleteId(t.id)} aria-label="Xóa lần điều trị" className="p-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 self-end">
                     <Trash2 size={14} />
@@ -165,7 +156,7 @@ export function TreatmentsPage() {
       <ConfirmDialog
         open={deleteId !== null}
         title="Xóa lần điều trị?"
-        message="Lần phun và các kết quả tái khám liên quan sẽ bị xóa khỏi nhật ký."
+        message="Không khôi phục được."
         loading={deleting}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteId(null)}
