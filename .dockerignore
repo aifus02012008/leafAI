@@ -15,3 +15,7 @@ backend/app/storage/results/*
 *.pyc
 *.pyo
 .pytest_cache
+datasets/
+ml/runs/
+ml/candidates/
+ml/*.log

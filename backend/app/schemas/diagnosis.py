@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
 
 FeedbackValue = Literal["correct", "incorrect", "unsure"]
 
@@ -32,6 +32,12 @@ class DiagnosisResponse(BaseModel):
     detections: list[DetectionResponse] = []
     user_feedback: Optional[FeedbackValue] = None
     severity_pct: Optional[float] = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def analysis_source(self) -> Literal["model", "gemini"]:
+        """"gemini" when the Gemini leaf skill produced this diagnosis (shown as an AI reference)."""
+        return "gemini" if (self.model_version or "").startswith("gemini-vision") else "model"
 
 
 class DiagnosisListResponse(BaseModel):

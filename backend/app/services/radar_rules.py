@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
+from app.services.disease_weather_rules import DRY_HOT, WeatherProfile, favourable_share, profile_for
+
 Level = Literal["low", "medium", "high"]
 Category = Literal["humid", "pest"]
 
@@ -63,22 +65,15 @@ def _case_score(cases: NearbyCases) -> float:
     return min(cases.weighted / CASES_HIGH, 1.0)
 
 
-def _weather_score(days: list[DayWeather], category: Category) -> float:
-    if not days:
-        return 0.0
-    wet_days = sum(1 for d in days if d.humid_hours >= HUMID_DAY_HOURS or d.precip_mm >= 5)
-    wet_share = wet_days / len(days)
-    return (1.0 - wet_share) * 0.8 if category == "pest" else wet_share
+def _weather_score(days: list[DayWeather], profile: WeatherProfile) -> float:
+    """Share of forecast days favourable to this disease (per-disease profile, see disease_weather_rules)."""
+    return favourable_share(days, profile)
 
 
-def _is_wet(d: DayWeather) -> bool:
-    return d.humid_hours >= HUMID_DAY_HOURS or d.precip_mm >= 5
-
-
-def _first_wet_day(days: list[DayWeather], after: date) -> date | None:
-    """First infection-favourable day strictly after `after` (spraying must precede it)."""
+def _first_favourable_day(days: list[DayWeather], after: date, profile: WeatherProfile) -> date | None:
+    """First infection-favourable day strictly after `after` (preventive spraying must precede it)."""
     for d in days:
-        if d.day > after and _is_wet(d):
+        if d.day > after and profile.favourable(d):
             return d.day
     return None
 
@@ -91,14 +86,16 @@ def _level(score: float) -> Level:
     return "low"
 
 
-def _weather_sentence(days: list[DayWeather] | None, category: Category) -> str:
+def _weather_sentence(days: list[DayWeather] | None, profile: WeatherProfile) -> str:
     if days is None:
         return "Chưa lấy được dự báo thời tiết, mức nguy cơ chỉ dựa trên số ca bệnh."
     peak = max((d.humid_hours for d in days), default=0)
     rain = sum(d.precip_mm for d in days)
-    if category == "pest":
-        return f"{len(days)} ngày tới tổng lượng mưa {rain:.0f} mm; thời tiết khô nóng thuận lợi cho sâu hại."
-    return f"{len(days)} ngày tới có ngày độ ẩm ≥ 90% kéo dài {peak} giờ, tổng mưa {rain:.0f} mm."
+    favourable = sum(1 for d in days if profile.favourable(d))
+    weather = f"{len(days)} ngày tới: ẩm ≥ 90% tối đa {peak} giờ/ngày, tổng mưa {rain:.0f} mm"
+    if favourable:
+        return f"{weather}; {favourable} ngày {profile.note}."
+    return f"{weather}; thời tiết chưa thuận lợi cho bệnh này."
 
 
 def assess_risk(
@@ -107,20 +104,21 @@ def assess_risk(
     radius_km: float,
     today: date,
 ) -> RiskAlert:
-    category = disease_category(cases.disease)
+    profile = profile_for(cases.disease)
+    sprayable = profile is not DRY_HOT  # preventive fungicide timing; pests are scouted, not pre-sprayed
     case_score = _case_score(cases)
     if days is None:
         score = case_score * 0.8
     else:
-        score = 0.55 * case_score + 0.45 * _weather_score(days, category)
+        score = 0.55 * case_score + 0.45 * _weather_score(days, profile)
     level = _level(score)
-    spray_before = _first_wet_day(days, today) if days and category == "humid" else None
-    wet_today = bool(days) and category == "humid" and any(d.day == today and _is_wet(d) for d in days)
+    spray_before = _first_favourable_day(days, today, profile) if days and sprayable else None
+    wet_today = bool(days) and sprayable and any(d.day == today and profile.favourable(d) for d in days)
 
     parts = [
         f"Trong bán kính {radius_km:g} km có {cases.cases} ca {cases.disease} trong 7 ngày qua."
         if cases.cases else f"Chưa ghi nhận ca {cases.disease} nào trong bán kính {radius_km:g} km.",
-        _weather_sentence(days, category),
+        _weather_sentence(days, profile),
         f"Nguy cơ lây lan {LEVEL_LABEL[level]}.",
     ]
     if level != "low" and spray_before:

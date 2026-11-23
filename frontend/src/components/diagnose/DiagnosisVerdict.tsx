@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, CheckCircle2, Droplets, SprayCan, Scissors } from 'lucide-react';
+import { BookOpen, CheckCircle2, Droplets, MessageCircle, Sparkles, SprayCan, Scissors } from 'lucide-react';
+import { openChat } from '../assistant/chatEvents';
 import { DiagnosisFeedback } from '../DiagnosisFeedback';
 import { formatNumber } from '../../utils/format';
 import type { Detection, DiagnosisResult } from '../../types';
@@ -34,9 +35,23 @@ const NEXT_STEPS = [
 export function DiagnosisVerdict({ result, canRecordTreatment, onRecordTreatment, followupSlot }: DiagnosisVerdictProps) {
   const top = topDetection(result.detections);
   const confidencePct = top ? Math.round(top.confidence * 100) : null;
+  const byGemini = result.analysis_source === 'gemini';
+  const askDoctor = () =>
+    openChat({
+      diagnosisId: result.id,
+      label: top ? `${top.class_name.split(' (')[0]} · ${confidencePct}%` : 'Lá khoẻ',
+    });
 
   return (
     <div className="space-y-4">
+      {byGemini && (
+        <p
+          className="inline-flex items-center gap-1.5 rounded-full bg-sun-wash text-[#8A6A00] px-3 py-1 text-xs font-bold"
+          title="Kết quả do Gemini AI phân tích, chỉ để tham khảo"
+        >
+          <Sparkles size={13} /> AI tham khảo
+        </p>
+      )}
       {top ? (
         <div className="rounded-[18px] p-6 space-y-4 bg-forest text-white">
           <h2 className="font-display text-2xl font-extrabold leading-tight">{top.class_name}</h2>
@@ -64,6 +79,11 @@ export function DiagnosisVerdict({ result, canRecordTreatment, onRecordTreatment
       </div>
 
       {followupSlot}
+
+      <button type="button" onClick={askDoctor} className="btn-secondary w-full text-sm py-2.5">
+        <MessageCircle size={16} className="text-leaf" />
+        Hỏi bác sĩ AI
+      </button>
 
       {top && (
         <div className="clean-card p-4 space-y-3">

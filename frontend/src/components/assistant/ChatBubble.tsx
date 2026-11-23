@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Loader2, MessageCircle, Mic, MicOff, Send, X } from 'lucide-react';
+import { Leaf, Loader2, MessageCircle, Mic, MicOff, Send, X } from 'lucide-react';
 import { apiAskAssistant } from '../../api/assistant';
 import { useCrops } from '../../hooks/useCrops';
 import { useSpeechRecognition, useSpeechSynthesis } from '../../hooks/useSpeech';
 import type { CropCode } from '../../types';
 import { ChatMessage, type ChatItem } from './ChatMessage';
-import { OPEN_CHAT_EVENT } from './chatEvents';
+import { OPEN_CHAT_EVENT, type ChatDiagnosisContext } from './chatEvents';
 
 const SUGGESTIONS = ['Sầu riêng cháy mép lá?', 'Chôm chôm phấn trắng?', 'Thán thư măng cụt?'] as const;
+const DIAGNOSIS_SUGGESTIONS = ['Xử lý thế nào?', 'Dùng thuốc gì?', 'Bao lâu thì khỏi?'] as const;
 
 function errorText(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
@@ -22,13 +23,18 @@ export function ChatBubble() {
   const [draft, setDraft] = useState('');
   const [crop, setCrop] = useState<CropCode | ''>('');
   const [asking, setAsking] = useState(false);
+  const [context, setContext] = useState<ChatDiagnosisContext | null>(null);
   const nextId = useRef(1);
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const tts = useSpeechSynthesis();
 
   useEffect(() => {
-    const onOpen = () => setOpen(true);
+    const onOpen = (event: Event) => {
+      const detail = (event as CustomEvent<ChatDiagnosisContext | undefined>).detail;
+      if (detail) setContext(detail);
+      setOpen(true);
+    };
     window.addEventListener(OPEN_CHAT_EVENT, onOpen);
     return () => window.removeEventListener(OPEN_CHAT_EVENT, onOpen);
   }, []);
@@ -56,7 +62,7 @@ export function ChatBubble() {
     push({ role: 'user', text: q });
     setAsking(true);
     try {
-      const res = await apiAskAssistant(q, crop || null);
+      const res = await apiAskAssistant(q, crop || null, context?.diagnosisId);
       push({
         role: 'bot',
         text: res.answer,
@@ -110,13 +116,30 @@ export function ChatBubble() {
             </button>
           </header>
 
+          {context && (
+            <div className="px-4 py-2 bg-leaf-wash border-b border-line flex items-center gap-2 text-xs text-ink shrink-0">
+              <Leaf size={14} className="text-leaf shrink-0" />
+              <span className="truncate flex-1">
+                Đang hỏi về: <b>{context.label}</b>
+              </span>
+              <button
+                type="button"
+                onClick={() => setContext(null)}
+                aria-label="Bỏ ngữ cảnh chẩn đoán"
+                className="w-6 h-6 rounded-md text-ink/50 hover:text-ink hover:bg-white flex items-center justify-center cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
           <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3" aria-live="polite">
             {items.length === 0 ? (
               <div className="h-full flex flex-col justify-end gap-2">
                 <p className="self-start max-w-[85%] rounded-2xl rounded-bl-md bg-white border border-line px-3.5 py-2.5 text-sm text-ink mb-auto">
                   Hỏi gì về bệnh cây? Gõ hoặc bấm micro để nói.
                 </p>
-                {SUGGESTIONS.map((s) => (
+                {(context ? DIAGNOSIS_SUGGESTIONS : SUGGESTIONS).map((s) => (
                   <button
                     key={s}
                     type="button"

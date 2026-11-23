@@ -26,12 +26,21 @@ class ModelUnavailableError(RuntimeError):
 class Detector(Protocol):
     version: str | None
     class_names: dict[int, str]
+    kind: str  # "detect" (lesion boxes) or "classify" (whole-leaf label)
 
     def detect(self, image_path: str) -> list[RawDetection]: ...
 
 
+# A classifier returns one score per class; keep only the few plausible ones.
+MAX_CLASSIFY_CANDIDATES = 3
+
+
 class YoloDetector:
-    """Ultralytics YOLO model wrapper that returns framework-free RawDetection objects."""
+    """Ultralytics YOLO wrapper (detect or classify) that returns framework-free RawDetection objects.
+
+    Classification models (trained from folder-per-class datasets) have no lesion boxes, so each
+    candidate class is reported with a box covering the whole image.
+    """
 
     def __init__(self, crop: CropConfig):
         from ultralytics import YOLO  # heavy import, only when a model is actually needed
@@ -42,6 +51,7 @@ class YoloDetector:
         self.version = crop.model_version
         names = getattr(self._model, "names", None) or {}
         self.class_names = {int(k): str(v) for k, v in dict(names).items()}
+        self.kind = "classify" if getattr(self._model, "task", "detect") == "classify" else "detect"
 
     def detect(self, image_path: str) -> list[RawDetection]:
         with self._infer_lock:
@@ -51,7 +61,11 @@ class YoloDetector:
                 imgsz=self._crop.img_size,
                 verbose=False,
             )
-        if not results or results[0].boxes is None:
+        if not results:
+            return []
+        if self.kind == "classify":
+            return self._classify_candidates(results[0])
+        if results[0].boxes is None:
             return []
         boxes = results[0].boxes
         detections = []
@@ -65,6 +79,23 @@ class YoloDetector:
                 x1=x1, y1=y1, x2=x2, y2=y2,
             ))
         return detections
+
+    def _classify_candidates(self, result) -> list[RawDetection]:
+        probs = getattr(result, "probs", None)
+        if probs is None:
+            return []
+        height, width = result.orig_shape[:2]
+        scores = probs.data.cpu().numpy().tolist()
+        ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:MAX_CLASSIFY_CANDIDATES]
+        return [
+            RawDetection(
+                label=self.class_names.get(i, f"Class_{i}"),
+                confidence=float(scores[i]),
+                x1=0.0, y1=0.0, x2=float(width), y2=float(height),
+            )
+            for i in ranked
+            if scores[i] >= self._crop.base_confidence
+        ]
 
 
 class ModelRegistry:

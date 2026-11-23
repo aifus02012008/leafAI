@@ -191,3 +191,68 @@ def test_gemini_blocked_or_empty_response_falls_back(monkeypatch):
     assert assistant_service._llm_answer("q", []) is None
     monkeypatch.setattr(assistant_service.httpx, "post", lambda *a, **k: _FakeResponse({}, status=429))
     assert assistant_service._llm_answer("q", []) is None
+
+
+# ---------- "Hỏi bác sĩ AI": diagnosis context ----------
+
+def _make_diagnosis(email: str, crop: str, disease: str) -> int:
+    from app.models.detection import DetectionResult
+    from app.models.diagnosis import DiagnosisHistory
+
+    db = SessionLocal()
+    try:
+        uid = db.query(User).filter(User.email == email).one().id
+        diag = DiagnosisHistory(
+            user_id=uid, crop_code=crop, original_image_path="originals/x.jpg", status="detected",
+            inference_time=0.1, model_version="gemini-vision:test", severity_pct=4.2,
+        )
+        db.add(diag)
+        db.flush()
+        db.add(DetectionResult(history_id=diag.id, class_name=disease, confidence=0.81, x1=0, y1=0, x2=1, y2=1))
+        db.commit()
+        return diag.id
+    finally:
+        db.close()
+
+
+def test_ask_with_diagnosis_pins_disease_and_context(client, headers, monkeypatch):
+    disease = "Phấn trắng chôm chôm (Rambutan powdery mildew)"
+    diag_id = _make_diagnosis("assistant_user@leafai.dev", "rambutan", disease)
+    captured = {}
+
+    def fake_llm(question, contexts):
+        captured.update(question=question, contexts=contexts)
+        return "Trả lời theo bối cảnh."
+
+    monkeypatch.setattr(assistant_service, "_llm_answer", fake_llm)
+    res = client.post("/api/assistant/ask", headers=headers, json={"question": "phải làm sao?", "diagnosis_id": diag_id})
+    assert res.status_code == 200, res.text
+    assert captured["contexts"][0].class_name == disease
+    assert "BỐI CẢNH" in captured["question"] and "81%" in captured["question"] and "AI tham khảo" in captured["question"]
+    assert res.json()["related"][0]["crop_code"] == "rambutan"
+
+
+def test_ask_with_diagnosis_library_answer_uses_diagnosed_disease(client, headers, monkeypatch):
+    disease = "Thán thư măng cụt (Mangosteen anthracnose)"
+    diag_id = _make_diagnosis("assistant_user@leafai.dev", "mangosteen", disease)
+    monkeypatch.setattr(assistant_service, "_llm_answer", lambda *a, **k: None)
+    res = client.post("/api/assistant/ask", headers=headers, json={"question": "xử lý thế nào", "diagnosis_id": diag_id})
+    assert res.status_code == 200
+    assert "Thán thư măng cụt" in res.json()["answer"]
+
+
+def test_ask_with_someone_elses_diagnosis_is_404(client, headers):
+    email = "assistant_other@leafai.dev"
+    db = SessionLocal()
+    try:
+        u = db.query(User).filter(User.email == email).first()
+        if u:
+            db.delete(u)
+            db.commit()
+    finally:
+        db.close()
+    pw = "Password123!"
+    client.post("/api/auth/register", json={"email": email, "password": pw, "password_confirmation": pw})
+    diag_id = _make_diagnosis(email, "durian", "Thán thư sầu riêng (Durian anthracnose)")
+    res = client.post("/api/assistant/ask", headers=headers, json={"question": "xử lý thế nào", "diagnosis_id": diag_id})
+    assert res.status_code == 404

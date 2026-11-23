@@ -17,7 +17,7 @@ const SHORTCUTS: readonly { to: string; label: string; icon: LucideIcon }[] = [
 ];
 
 function cleanName(raw: string): string {
-  return raw.replace('Tomato___', '').replace(/_/g, ' ');
+  return raw.replace(/_/g, ' ');
 }
 
 function Metric({ label, value, tone }: { label: string; value: number; tone: 'ink' | 'sun' | 'leaf' }) {
@@ -74,7 +74,7 @@ export function DashboardPage() {
         ))}
         <button
           type="button"
-          onClick={openChat}
+          onClick={() => openChat()}
           className="clean-card clean-card-hover p-4 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-ink cursor-pointer"
         >
           <MessageCircle size={22} className="text-leaf" />

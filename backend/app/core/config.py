@@ -64,13 +64,6 @@ class Settings(BaseSettings):
         # Nhãn phụ
         "disease":                                                      0.25,
 
-        # Backwards compatibility for existing historical records
-        "Tomato___Late_blight":                                         0.15,
-        "Tomato___Bacterial_spot":                                      0.50,
-        "Tomato___Early_blight":                                        0.50,
-        "Tomato___Septoria_leaf_spot":                                  0.50,
-        "Tomato___Leaf_mold":                                           0.50,
-        "Tomato___Powdery_mildew":                                      0.50,
     }
     DEFAULT_CLASS_CONFIDENCE: float = 0.25  # Fallback: Giữ ngưỡng mặc định cho các nhãn chưa được cấu hình riêng
     MAX_UPLOAD_SIZE_MB: int = 10
@@ -81,6 +74,13 @@ class Settings(BaseSettings):
     ASSISTANT_PROVIDER: str = "auto"
     GEMINI_API_KEY: str | None = None
     GEMINI_MODEL: str = "gemini-3.5-flash"
+    # Gemini leaf skill (chẩn đoán ảnh bằng Gemini Vision): dùng cho cây chưa có model
+    # (măng cụt, chôm chôm) và làm phương án dự phòng khi model không chắc chắn.
+    GEMINI_VISION_ENABLED: bool = True
+    GEMINI_VISION_MODEL: str | None = None  # mặc định dùng GEMINI_MODEL
+    GEMINI_VISION_TIMEOUT_SECONDS: float = 20.0
+    GEMINI_VISION_PER_MINUTE: int = 5
+    GEMINI_MIN_CONFIDENCE: float = 0.5  # dưới ngưỡng này coi như "chưa rõ", yêu cầu chụp lại
     ANTHROPIC_API_KEY: str | None = None
     ASSISTANT_MODEL: str = "claude-haiku-5-5"
 
@@ -230,13 +230,6 @@ LABEL_MAPPING: dict[str, str] = {
     "Helopeltis": "Lá chè bị bọ xít muỗi gây hại (Tea mosquito bug infested leaf)",
     "Lá chè bị bọ xít muỗi gây hại (Tea mosquito bug infested leaf)": "Lá chè bị bọ xít muỗi gây hại (Tea mosquito bug infested leaf)",
 
-    # Tomato legacy mapping
-    "Tomato___Late_blight": "Thối đen lá chè (Black rot of tea)",
-    "Tomato___Septoria_leaf_spot": "Gỉ sắt lá chè (Leaf rust of tea)",
-    "Tomato___Bacterial_spot": "Bệnh rầy xanh (Tea green leafhopper)",
-    "Tomato___Early_blight": "Cháy nâu lá chè (Brown blight of tea)",
-    "Tomato___Leaf_mold": "Lá chè bị nhện đỏ gây hại (Red spider mite infested tea leaf)",
-    "Tomato___Powdery_mildew": "Lá chè bị bọ xít muỗi gây hại (Tea mosquito bug infested leaf)",
 }
 
 def map_disease_label(raw_label: str | None) -> str:

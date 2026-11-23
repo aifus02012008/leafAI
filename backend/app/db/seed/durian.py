@@ -13,6 +13,7 @@ RHIZOCTONIA = "Cháy lá chết ngọn sầu riêng (Durian Rhizoctonia leaf bli
 ANTHRACNOSE = "Thán thư sầu riêng (Durian anthracnose)"
 ALGAL = "Đốm rong sầu riêng (Durian algal leaf spot)"
 PSYLLID = "Rầy phấn trắng hại sầu riêng (Durian psyllid)"
+PHOMOPSIS = "Đốm lá Phomopsis sầu riêng (Durian Phomopsis leaf spot)"
 
 _phytophthora = disease_entry(
     class_name=PHYTOPHTHORA,
@@ -202,10 +203,79 @@ _psyllid = disease_entry(
     ),
 )
 
+_phomopsis = disease_entry(
+    class_name=PHOMOPSIS,
+    description=(
+        "Do nấm Phomopsis spp. (Diaporthe) gây ra, thường gặp trên lá bánh tẻ và lá già của sầu riêng. "
+        "Nấm lây qua bào tử theo nước mưa văng và gió, phát triển mạnh khi trời mưa nhiều, ẩm độ cao, "
+        "vườn rậm rạp, cây thiếu dinh dưỡng hoặc sau đợt ra đọt dày. Bệnh làm giảm diện tích quang hợp, "
+        "nặng có thể gây cháy lá, rụng lá."
+    ),
+    symptoms=(
+        "Đốm nhỏ màu nâu nhạt đến nâu sẫm, hình tròn hoặc bất định, thường có viền nâu đậm, xung quanh "
+        "có quầng vàng. Tâm vết bệnh về sau chuyển xám trắng, trên đó có các chấm đen li ti (ổ nấm). "
+        "Nhiều đốm liên kết thành mảng cháy, đặc biệt ở mép và chóp lá; lá bệnh nặng vàng và rụng."
+    ),
+    prevention=(
+        "1. Tỉa cành, tạo tán thông thoáng sau thu hoạch; không để vườn quá rậm.\n"
+        "2. Thu gom, tiêu hủy lá bệnh rụng dưới gốc để giảm nguồn bào tử.\n"
+        "3. Bón phân cân đối NPK, tăng kali và hữu cơ, bổ sung trung vi lượng để lá dày khỏe.\n"
+        "4. Thoát nước tốt mùa mưa; tưới gốc, tránh tưới phun lên tán lúc chiều tối.\n"
+        "5. Phun phòng khi cây ra đọt non trong mùa mưa theo khuyến cáo địa phương."
+    ),
+    treatment=(
+        "Cắt bỏ lá bệnh nặng đem tiêu hủy. Phun một trong các hoạt chất: Azoxystrobin + Difenoconazole, "
+        "Propiconazole, Mancozeb, Propineb hoặc thuốc gốc đồng (Copper hydroxide); phun 2 lần cách nhau "
+        "7–10 ngày, luân phiên hoạt chất khác nhóm. Dùng đúng liều và thời gian cách ly ghi trên nhãn."
+    ),
+    stages=(
+        Stage(
+            timeframe="Ngày 1–3",
+            title="Canh tác — Vệ sinh vườn và giảm ẩm",
+            action="Cắt bỏ lá bệnh nặng, gom lá rụng đem tiêu hủy; tỉa cành tăm, cành vượt cho tán thông thoáng.",
+            monitoring="Số lá có đốm mới trên các cành đã đánh dấu.",
+            improvement="Không xuất hiện thêm đốm mới trên lá non.",
+            extra="Nếu đốm mới tiếp tục lan sang lá bánh tẻ sau 3 ngày, chuyển ngay sang biện pháp sinh học/hóa học.",
+        ),
+        Stage(
+            timeframe="Ngày 3–7",
+            title="Sinh học — Tăng sức đề kháng",
+            action="Bón phân hữu cơ ủ nấm đối kháng Trichoderma quanh gốc; phun bổ sung kali, canxi, vi lượng qua lá.",
+            monitoring="Màu lá, độ dày lá non, tốc độ lan của đốm cũ.",
+            improvement="Đốm cũ khô, không lan rộng; lá mới xanh đều.",
+            extra="Trời mưa liên tục hoặc đốm vẫn lan nhanh thì phun thuốc hóa học ở giai đoạn 3.",
+        ),
+        Stage(
+            timeframe="Ngày 7–21",
+            title="Hóa học — Phun thuốc đặc trị khi cần",
+            action=(
+                "Phun Azoxystrobin + Difenoconazole hoặc Propiconazole/Mancozeb/Copper hydroxide, 2 lần cách nhau "
+                "7–10 ngày, luân phiên nhóm hoạt chất; phun ướt đều hai mặt lá."
+            ),
+            monitoring="Đốm mới trên đọt non sau mỗi lần phun.",
+            improvement="Không còn đốm mới sau 10–14 ngày; vết cũ khô viền rõ.",
+            extra="Nếu sau 2 lần phun bệnh vẫn lan, chụp lại lá trên LEAF AI và liên hệ cán bộ BVTV để kiểm tra kháng thuốc.",
+        ),
+    ),
+    recovery="3–5 tuần (lá bệnh cũ không hồi phục, đánh giá trên lá mới).",
+    criteria=(
+        "Không xuất hiện đốm mới trên đợt đọt kế tiếp.",
+        "Vết bệnh cũ khô, không còn quầng vàng lan rộng.",
+        "Tỷ lệ lá rụng giảm rõ so với trước điều trị.",
+    ),
+    note="Đốm cũ không mất đi; theo dõi đợt lá mới và tiếp tục vệ sinh vườn trong mùa mưa.",
+    recovery_info=(
+        "⏱️ Thời gian khống chế: 2–3 tuần.\n"
+        "🌱 Lá mới sạch bệnh: 3–5 tuần.\n"
+        "💡 Lưu ý: Mùa mưa là thời điểm bệnh lây mạnh, cần thu gom lá rụng thường xuyên."
+    ),
+)
+
 DURIAN_DISEASES = [
     _phytophthora,
     _rhizoctonia,
     anthracnose(ANTHRACNOSE, "sầu riêng"),
     algal_leaf_spot(ALGAL, "sầu riêng"),
     _psyllid,
+    _phomopsis,
 ]

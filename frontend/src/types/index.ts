@@ -20,6 +20,8 @@ export interface Crop {
   name_en: string;
   scientific_name: string;
   is_available: boolean;
+  /** 'model' = trained model, 'gemini' = Gemini leaf skill (AI reference), null = not yet. */
+  diagnosis_mode?: 'model' | 'gemini' | null;
   model_version: string | null;
   disease_count: number;
 }
@@ -46,6 +48,8 @@ export interface DiagnosisResult {
   detections: Detection[];
   user_feedback?: FeedbackValue | null;
   severity_pct?: number | null;
+  /** 'gemini' when the Gemini leaf skill produced the diagnosis (show as AI reference). */
+  analysis_source?: 'model' | 'gemini';
   summary: string;
 }
 

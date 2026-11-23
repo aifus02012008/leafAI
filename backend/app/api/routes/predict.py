@@ -14,8 +14,14 @@ from app.core.rate_limit import limit_predict
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.diagnosis import PredictResponse
-from app.services.model_registry import ModelUnavailableError, model_registry
-from app.services.prediction_service import build_summary, run_prediction
+from app.services.gemini_skill import GeminiSkillError, GeminiSkillRateLimited
+from app.services.model_registry import ModelUnavailableError
+from app.services.prediction_service import (
+    InconclusiveImageError,
+    build_summary,
+    can_diagnose,
+    run_prediction,
+)
 from app.services.radar_service import coarsen
 from app.utils.image_utils import validate_and_save_upload
 
@@ -35,7 +41,7 @@ async def predict(
     db: Session = Depends(get_db)
 ):
     crop_cfg = resolve_crop(crop)
-    if not model_registry.is_available(crop_cfg):
+    if not can_diagnose(crop_cfg):
         if crop_cfg.code == DEFAULT_CROP_CODE:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -55,6 +61,21 @@ async def predict(
     try:
         # Model loading/inference is blocking: keep it off the event loop.
         diagnosis, outcome = await run_in_threadpool(run_prediction, temp_path, current_user.id, db, crop_cfg, location)
+    except InconclusiveImageError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Ảnh chưa đủ rõ để nhận diện lá {crop_cfg.name_vi.lower()}. Hãy chụp cận một chiếc lá, đủ sáng, rõ nét rồi thử lại."
+        )
+    except GeminiSkillRateLimited:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Bạn chụp hơi nhanh. Đợi khoảng 1 phút rồi thử lại."
+        )
+    except GeminiSkillError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"AI chẩn đoán lá {crop_cfg.name_vi.lower()} đang bận. Vui lòng thử lại sau ít phút."
+        )
     except ModelUnavailableError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

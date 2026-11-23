@@ -104,7 +104,7 @@ export function BoundingBoxViewer({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {detections.map((det, index) => {
-              const cleanName = det.class_name.replace('Tomato___', '').replace(/_/g, ' ');
+              const cleanName = det.class_name.replace(/_/g, ' ');
               const confPct = (det.confidence * 100).toFixed(1);
               const isActive = activeDetectionIndex === index;
 

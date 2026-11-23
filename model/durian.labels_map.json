@@ -1,0 +1,143 @@
+{
+  "crop": "durian",
+  "task": "classify",
+  "imgsz": 224,
+  "names": {
+    "0": "Leaf_Algal",
+    "1": "Leaf_Blight",
+    "2": "Leaf_Colletotrichum",
+    "3": "Leaf_Healthy",
+    "4": "Leaf_Phomopsis",
+    "5": "Leaf_Rhizoctonia"
+  },
+  "trained_at": "2026-11-23T15:11:13+00:00",
+  "base_model": "yolo11n-cls.pt",
+  "dataset_counts": {
+    "train": {
+      "Leaf_Algal": 330,
+      "Leaf_Blight": 309,
+      "Leaf_Colletotrichum": 281,
+      "Leaf_Healthy": 342,
+      "Leaf_Phomopsis": 287,
+      "Leaf_Rhizoctonia": 278
+    },
+    "val": {
+      "Leaf_Algal": 65,
+      "Leaf_Blight": 64,
+      "Leaf_Colletotrichum": 61,
+      "Leaf_Healthy": 69,
+      "Leaf_Phomopsis": 61,
+      "Leaf_Rhizoctonia": 59
+    },
+    "test": {
+      "Leaf_Algal": 67,
+      "Leaf_Blight": 66,
+      "Leaf_Colletotrichum": 59,
+      "Leaf_Healthy": 73,
+      "Leaf_Phomopsis": 63,
+      "Leaf_Rhizoctonia": 61
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.8638,
+    "macro_f1": 0.8654,
+    "per_class": {
+      "Leaf_Algal": {
+        "precision": 0.9844,
+        "recall": 0.9403,
+        "f1": 0.9618,
+        "support": 67
+      },
+      "Leaf_Blight": {
+        "precision": 0.9245,
+        "recall": 0.7424,
+        "f1": 0.8235,
+        "support": 66
+      },
+      "Leaf_Colletotrichum": {
+        "precision": 0.9016,
+        "recall": 0.9322,
+        "f1": 0.9167,
+        "support": 59
+      },
+      "Leaf_Healthy": {
+        "precision": 0.8929,
+        "recall": 0.6849,
+        "f1": 0.7752,
+        "support": 73
+      },
+      "Leaf_Phomopsis": {
+        "precision": 0.8955,
+        "recall": 0.9524,
+        "f1": 0.9231,
+        "support": 63
+      },
+      "Leaf_Rhizoctonia": {
+        "precision": 0.6705,
+        "recall": 0.9672,
+        "f1": 0.7919,
+        "support": 61
+      }
+    },
+    "confusion": {
+      "labels": [
+        "Leaf_Algal",
+        "Leaf_Blight",
+        "Leaf_Colletotrichum",
+        "Leaf_Healthy",
+        "Leaf_Phomopsis",
+        "Leaf_Rhizoctonia"
+      ],
+      "matrix": [
+        [
+          63,
+          0,
+          1,
+          2,
+          1,
+          0
+        ],
+        [
+          0,
+          49,
+          5,
+          1,
+          1,
+          10
+        ],
+        [
+          0,
+          2,
+          55,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          50,
+          4,
+          19
+        ],
+        [
+          1,
+          0,
+          0,
+          2,
+          60,
+          0
+        ],
+        [
+          0,
+          2,
+          0,
+          0,
+          0,
+          59
+        ]
+      ]
+    }
+  }
+}

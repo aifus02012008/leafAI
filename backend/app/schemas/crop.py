@@ -11,5 +11,7 @@ class CropResponse(BaseModel):
     name_en: str
     scientific_name: str
     is_available: bool
+    # "model": trained model; "gemini": Gemini leaf skill (AI reference); None: not diagnosable yet.
+    diagnosis_mode: Optional[str] = None
     model_version: Optional[str] = None
     disease_count: int = 0

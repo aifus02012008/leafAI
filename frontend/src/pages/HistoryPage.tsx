@@ -129,7 +129,7 @@ export function HistoryPage() {
             const dateStr = dateObj.toLocaleDateString('vi-VN');
             const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const cleanPrimary = item.primary_disease
-              ? item.primary_disease.replace('Tomato___', '').replace(/_/g, ' ')
+              ? item.primary_disease.replace(/_/g, ' ')
               : item.status === 'detected'
               ? 'Có bệnh'
               : 'Lá khoẻ';

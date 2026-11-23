@@ -10,7 +10,10 @@ from app.models.detection import DetectionResult
 from app.core.config import settings
 from app.core.crops import CropConfig
 from app.services.detection_rules import DetectionOutcome, evaluate_detections
-from app.services.model_registry import model_registry
+from app.models.disease import Disease
+from app.services import gemini_skill
+from app.services.gemini_skill.service import image_size
+from app.services.model_registry import ModelUnavailableError, model_registry
 from app.services.severity import measure_severity
 from app.services.storage import StorageError, get_storage
 
@@ -28,7 +31,7 @@ BOX_PALETTE = [
 
 def clean_class_display(name: str) -> str:
     """Format an already-mapped disease label for drawing on the image."""
-    return name.replace("Tomato___", "").replace("_", " ")
+    return name.replace("_", " ")
 
 def draw_bounding_boxes(image_path: str, detections: list[dict], output_path: str) -> str:
     """Draw clear, modern bounding boxes with stylized tags matching reference UI."""
@@ -184,6 +187,74 @@ def _persist(
     return diagnosis
 
 
+class InconclusiveImageError(ValueError):
+    """Neither the model nor the Gemini skill could read the leaf: ask the user for a clearer photo."""
+
+
+GEMINI_VERSION_PREFIX = "gemini-vision"
+
+
+def _gemini_version() -> str:
+    return f"{GEMINI_VERSION_PREFIX}:{settings.GEMINI_VISION_MODEL or settings.GEMINI_MODEL}"
+
+
+def crop_disease_catalogue(db: Session, crop: CropConfig) -> list[dict]:
+    rows = db.query(Disease.class_name, Disease.symptoms).filter(Disease.crop_code == crop.code).all()
+    return [{"class_name": name, "symptoms": symptoms or ""} for name, symptoms in rows]
+
+
+def gemini_outcome(verdict: gemini_skill.GeminiLeafVerdict, size: tuple[int, int]) -> DetectionOutcome | None:
+    """Translate a Gemini verdict into the standard outcome; None when it is not usable."""
+    if verdict.status == "unknown" or verdict.confidence < settings.GEMINI_MIN_CONFIDENCE:
+        return None
+    if verdict.status == "healthy":
+        return DetectionOutcome(
+            status="no_detection", healthy_confidence=verdict.confidence, source="gemini", note=verdict.reason
+        )
+    width, height = size
+    x1, y1, x2, y2 = verdict.box or (0.0, 0.0, 1.0, 1.0)
+    detection = {
+        "class_name": verdict.disease,
+        "confidence": round(verdict.confidence, 4),
+        "x1": round(x1 * width, 2),
+        "y1": round(y1 * height, 2),
+        "x2": round(x2 * width, 2),
+        "y2": round(y2 * height, 2),
+    }
+    return DetectionOutcome(status="detected", detections=(detection,), source="gemini", note=verdict.reason)
+
+
+def _ask_gemini(db: Session, crop: CropConfig, orig_dest: Path, user_id: int) -> DetectionOutcome | None:
+    verdict = gemini_skill.diagnose_leaf(str(orig_dest), crop, crop_disease_catalogue(db, crop), user_id)
+    return gemini_outcome(verdict, image_size(str(orig_dest)))
+
+
+def _analyse(db: Session, crop: CropConfig, orig_dest: Path, user_id: int) -> tuple[DetectionOutcome, str | None, str]:
+    """(outcome, model_version, kind): the crop model first; Gemini when there is no model or it is unsure."""
+    if not model_registry.is_available(crop):
+        outcome = _ask_gemini(db, crop, orig_dest, user_id)  # GeminiSkillError propagates: nothing else can diagnose
+        if outcome is None:
+            raise InconclusiveImageError(crop.code)
+        return outcome, _gemini_version(), "detect"
+    detector = model_registry.get(crop)
+    outcome = evaluate_detections(detector.detect(str(orig_dest)), crop)
+    if outcome.unclear_disease_suppressed:
+        logger.info("Suppressed unclear disease in favor of Healthy (%s)", outcome.healthy_confidence)
+    if outcome.is_inconclusive and gemini_skill.is_enabled():
+        try:
+            fallback = _ask_gemini(db, crop, orig_dest, user_id)
+        except gemini_skill.GeminiSkillError as exc:
+            logger.info("Gemini fallback skipped for crop '%s' (%s)", crop.code, type(exc).__name__)
+            fallback = None
+        if fallback is not None:
+            return fallback, _gemini_version(), "detect"
+    return outcome, getattr(detector, "version", None), getattr(detector, "kind", "detect")
+
+
+def can_diagnose(crop: CropConfig) -> bool:
+    return model_registry.is_available(crop) or gemini_skill.is_enabled()
+
+
 def run_prediction(
     image_path: str,
     user_id: int,
@@ -191,26 +262,31 @@ def run_prediction(
     crop: CropConfig,
     location: tuple[float, float] | None = None,
 ) -> tuple[DiagnosisHistory, DetectionOutcome]:
-    """Run the crop's model on an uploaded image, persist the diagnosis and return it with its outcome.
+    """Diagnose an uploaded leaf photo, persist the diagnosis and return it with its outcome.
 
-    Raises ModelUnavailableError when the crop has no usable model.
+    Uses the crop's trained model; falls back to the Gemini leaf skill when the crop has no model or the
+    model is inconclusive. Gemini results are never shared to the radar.
+    Raises ModelUnavailableError, gemini_skill.GeminiSkillError or InconclusiveImageError.
     """
-    detector = model_registry.get(crop)
+    if not can_diagnose(crop):
+        raise ModelUnavailableError(f"No model or Gemini skill for crop '{crop.code}'")
     start_time = time.time()
     uid, orig_dest = _store_original(image_path)
     result_rel_path: str | None = None
     try:
-        outcome = evaluate_detections(detector.detect(str(orig_dest)), crop)
+        outcome, model_version, kind = _analyse(db, crop, orig_dest, user_id)
         inference_time = time.time() - start_time
-        if outcome.unclear_disease_suppressed:
-            logger.info("Suppressed unclear disease in favor of Healthy (%s)", outcome.healthy_confidence)
-        result_rel_path = _render_annotated(uid, orig_dest, outcome.detections)
+        if outcome.source == "gemini":
+            location = None  # AI-reference results must not feed the outbreak radar
+        # A classifier's "box" is the whole image; drawing it adds nothing, so keep the original only.
+        if kind == "detect":
+            result_rel_path = _render_annotated(uid, orig_dest, outcome.detections)
         severity = measure_severity(str(orig_dest))
         diagnosis = _persist(
             db,
             user_id=user_id,
             crop=crop,
-            model_version=getattr(detector, "version", None),
+            model_version=model_version,
             orig_rel_path=f"originals/{orig_dest.name}",
             result_rel_path=result_rel_path,
             outcome=outcome,
@@ -250,6 +326,14 @@ def _remove_quietly(path: Path) -> None:
 
 def build_summary(crop: CropConfig, outcome: DetectionOutcome, detections: list) -> str:
     """Human-readable Vietnamese summary of a diagnosis."""
+    base = _model_summary(crop, outcome, detections)
+    if outcome.source != "gemini":
+        return base
+    reason = f" {outcome.note}" if outcome.note else ""
+    return f"AI tham khảo (Gemini): {base}{reason} Nên đối chiếu triệu chứng hoặc hỏi cán bộ BVTV."
+
+
+def _model_summary(crop: CropConfig, outcome: DetectionOutcome, detections: list) -> str:
     leaf = f"lá {crop.name_vi.lower()}"
     if not detections:
         conf = outcome.healthy_confidence
@@ -265,7 +349,7 @@ def build_summary(crop: CropConfig, outcome: DetectionOutcome, detections: list)
             )
         return f"Không phát hiện dấu hiệu bệnh hại trên lá ở ngưỡng độ tin cậy hiện tại. {leaf.capitalize()} khỏe mạnh."
     top = max(detections, key=lambda d: d.confidence)
-    name = top.class_name.replace("Tomato___", "").replace("_", " ")
+    name = top.class_name.replace("_", " ")
     return (
         f"Phát hiện dấu hiệu {name} trên {leaf} với độ tin cậy {top.confidence * 100:.1f}% "
         f"trên {len(detections)} vùng tổn thương."

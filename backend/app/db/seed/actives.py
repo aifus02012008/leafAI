@@ -80,6 +80,7 @@ DISEASE_ACTIVES = MappingProxyType({
     ("durian", durian.RHIZOCTONIA): ("validamycin", "hexaconazole", "azoxystrobin"),
     ("durian", durian.ANTHRACNOSE): _FUNGAL_LEAF,
     ("durian", durian.ALGAL): _ALGAL,
+    ("durian", durian.PHOMOPSIS): ("azoxystrobin", "difenoconazole", "propiconazole", "mancozeb", "propineb", "copper_hydroxide"),
     ("durian", durian.PSYLLID): ("thiamethoxam", "imidacloprid", "dinotefuran", "abamectin", "mineral_oil"),
     ("mangosteen", mangosteen.ANTHRACNOSE): _FUNGAL_LEAF,
     ("mangosteen", mangosteen.PESTALOTIOPSIS): ("mancozeb", "propineb", "azoxystrobin", "difenoconazole", "copper_hydroxide"),

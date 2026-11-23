@@ -185,7 +185,7 @@ export function DiseaseDetailModal({ disease, onClose }: DiseaseDetailModalProps
 
   if (!currentDisease) return null;
 
-  const cleanClass = currentDisease.class_name.replace('Tomato___', '').replace(/_/g, ' ');
+  const cleanClass = currentDisease.class_name.replace(/_/g, ' ');
 
   return (
     <div

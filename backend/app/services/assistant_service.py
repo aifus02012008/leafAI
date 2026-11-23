@@ -57,6 +57,30 @@ class ContextHit:
 
 
 @dataclass(frozen=True)
+class DiagnosisContext:
+    """What the user just diagnosed; grounds the answer on that disease first."""
+
+    crop_code: str
+    crop_name: str
+    disease: str | None          # canonical class_name, None when the leaf looked healthy
+    confidence: float | None
+    severity_pct: float | None
+    source: str                  # "model" | "gemini"
+
+    def describe(self) -> str:
+        if not self.disease:
+            return f"Người dùng vừa chụp lá {self.crop_name.lower()} và kết quả là lá khỏe."
+        parts = [f"Người dùng vừa chụp lá {self.crop_name.lower()}, kết quả: {self.disease}"]
+        if self.confidence is not None:
+            parts.append(f"độ tin cậy {self.confidence * 100:.0f}%")
+        if self.severity_pct is not None:
+            parts.append(f"diện tích vết bệnh khoảng {self.severity_pct:.1f}%")
+        if self.source == "gemini":
+            parts.append("(kết quả AI tham khảo)")
+        return ", ".join(parts) + "."
+
+
+@dataclass(frozen=True)
 class AssistantAnswer:
     answer: str
     source: str  # "ai" | "library"
@@ -228,10 +252,31 @@ def _llm_answer(question: str, contexts: list[ContextHit]) -> str | None:
         return None
 
 
-def answer_question(db: Session, user_id: int, question: str, crop_code: str | None) -> AssistantAnswer:
+def _diagnosed_hit(db: Session, ctx: DiagnosisContext) -> ContextHit | None:
+    if not ctx.disease:
+        return None
+    row = db.query(Disease).filter(Disease.crop_code == ctx.crop_code, Disease.class_name == ctx.disease).first()
+    if row is None:
+        return None
+    return ContextHit(row.id, row.crop_code, row.class_name, row.symptoms or "", row.treatment or "", float("inf"))
+
+
+def answer_question(
+    db: Session,
+    user_id: int,
+    question: str,
+    crop_code: str | None,
+    diagnosis: DiagnosisContext | None = None,
+) -> AssistantAnswer:
     _check_rate_limit(user_id)
     hits = retrieve_context(db, question, crop_code)
-    ai_text = _llm_answer(question, hits)
+    llm_question = question
+    if diagnosis is not None:
+        pinned = _diagnosed_hit(db, diagnosis)
+        if pinned is not None:  # the diagnosed disease always leads the context
+            hits = [pinned, *[h for h in hits if h.id != pinned.id]][:MAX_CONTEXTS]
+        llm_question = f"BỐI CẢNH: {diagnosis.describe()}\n{question}"
+    ai_text = _llm_answer(llm_question, hits)
     if ai_text:
         return AssistantAnswer(f"{ai_text}\n{DISCLAIMER}", "ai", tuple(hits))
     return AssistantAnswer(f"{_library_answer(hits)}\n{DISCLAIMER}", "library", tuple(hits))

@@ -32,6 +32,13 @@ class DetectionOutcome:
     detections: tuple[dict, ...] = field(default_factory=tuple)
     healthy_confidence: float | None = None
     unclear_disease_suppressed: bool = False
+    source: str = "model"        # "model" (trained detector/classifier) or "gemini" (Gemini leaf skill)
+    note: str | None = None      # short reason from the Gemini skill, shown in the summary
+
+    @property
+    def is_inconclusive(self) -> bool:
+        """The model found nothing it is confident about: neither a disease nor a healthy leaf."""
+        return not self.detections and self.healthy_confidence is None
 
 
 def _to_record(det: RawDetection, class_name: str) -> dict:

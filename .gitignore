@@ -59,3 +59,10 @@ htmlcov/
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Training datasets (large, downloaded separately)
+datasets/
+ml/runs/
+yolo11*.pt
+ml/*.log
+ml/candidates/

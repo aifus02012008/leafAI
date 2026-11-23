@@ -26,14 +26,22 @@ crops:
     name_en: Durian
     scientific_name: Durio zibethinus
     weights: model/durian.pt
-    model_version: durian-v1
-    default_threshold: 0.30
-    healthy_threshold: 0.35
-    healthy_labels: [Healthy, Healthy_leaf, No_Disease, no-disease]
+    model_version: durian-cls-v1  # YOLO11n-cls, Mendeley DOI 10.17632/pxzvksbwnj.5 (CC BY 4.0)
+    img_size: 224
+    base_confidence: 0.10
+    default_threshold: 0.45
+    healthy_threshold: 0.45
+    healthy_labels: [Leaf_Healthy, Healthy, Healthy_leaf, No_Disease, no-disease]
     label_map:
+      # Labels of the trained classifier (ml/configs/durian.yaml)
+      Leaf_Algal: "Đốm rong sầu riêng (Durian algal leaf spot)"
+      Leaf_Colletotrichum: "Thán thư sầu riêng (Durian anthracnose)"
+      Leaf_Rhizoctonia: "Cháy lá chết ngọn sầu riêng (Durian Rhizoctonia leaf blight)"
+      Leaf_Phomopsis: "Đốm lá Phomopsis sầu riêng (Durian Phomopsis leaf spot)"
+      Leaf_Blight: "Cháy lá do Phytophthora trên sầu riêng (Durian Phytophthora leaf blight)"
+      # Aliases kept for other datasets
       Leaf_Phytophthora: "Cháy lá do Phytophthora trên sầu riêng (Durian Phytophthora leaf blight)"
       Phytophthora: "Cháy lá do Phytophthora trên sầu riêng (Durian Phytophthora leaf blight)"
-      Leaf_Blight: "Cháy lá chết ngọn sầu riêng (Durian Rhizoctonia leaf blight)"
       Rhizoctonia: "Cháy lá chết ngọn sầu riêng (Durian Rhizoctonia leaf blight)"
       Anthracnose: "Thán thư sầu riêng (Durian anthracnose)"
       Algal_spot: "Đốm rong sầu riêng (Durian algal leaf spot)"

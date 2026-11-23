@@ -50,6 +50,16 @@ export function CropSelector({ crops, value, onChange, disabled = false }: CropS
                   Sắp có
                 </span>
               )}
+              {!unavailable && crop.diagnosis_mode === 'gemini' && (
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${
+                    selected ? 'bg-white/15 text-mint' : 'bg-leaf-wash text-leaf'
+                  }`}
+                  title="Chẩn đoán bằng Gemini AI (tham khảo) vì chưa có mô hình riêng"
+                >
+                  AI
+                </span>
+              )}
             </button>
           );
         })}
