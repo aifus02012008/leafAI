@@ -48,9 +48,9 @@ export function AssistantPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl">
-
-      <div className="clean-card p-6 rounded-3xl flex flex-col items-center gap-4 text-center">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="lg:col-span-5 space-y-6">
+      <div className="clean-card p-5 flex flex-col items-center gap-4 text-center">
         {stt.supported ? (
           <button
             type="button"
@@ -74,7 +74,7 @@ export function AssistantPage() {
         </p>
       </div>
 
-      <form onSubmit={submit} className="clean-card p-5 rounded-3xl space-y-3">
+      <form onSubmit={submit} className="clean-card p-5 space-y-3">
         <label htmlFor="assistant-q" className="sr-only">Câu hỏi</label>
         <textarea
           id="assistant-q"
@@ -95,17 +95,12 @@ export function AssistantPage() {
             <span>Gửi</span>
           </button>
         </div>
-        <div className="flex flex-wrap gap-2 pt-1">
-          {SUGGESTIONS.map((s) => (
-            <button key={s} type="button" onClick={() => { setQuestion(s); void ask(s); }} className="text-xs px-3 py-1.5 rounded-full bg-white border border-[#DCE5DC] hover:border-emerald-300">
-              {s}
-            </button>
-          ))}
-        </div>
       </form>
+      </div>
 
-      {answer && (
-        <section aria-live="polite" className="clean-card p-5 sm:p-6 rounded-3xl space-y-3">
+      <div className="lg:col-span-7">
+      {answer ? (
+        <section aria-live="polite" className="clean-card p-5 space-y-3 h-full">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
               <Bot size={15} /> {answer.source === 'ai' ? 'AI' : 'Thư viện'}
@@ -124,7 +119,27 @@ export function AssistantPage() {
             </p>
           )}
         </section>
+      ) : (
+        <section aria-label="Câu hỏi gợi ý" className="clean-card p-5 space-y-3 h-full">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
+            <Bot size={15} /> Hỏi thử
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2">
+            {SUGGESTIONS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                disabled={asking}
+                onClick={() => { setQuestion(s); void ask(s); }}
+                className="text-left text-sm font-medium px-4 py-3 rounded-xl bg-paper hover:bg-leaf-wash border border-transparent hover:border-[#1F7A4D]/30 transition-colors cursor-pointer"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </section>
       )}
+      </div>
     </div>
   );
 }

@@ -30,7 +30,7 @@ function HarvestCalculator() {
   };
 
   return (
-    <form onSubmit={submit} className="clean-card p-5 sm:p-6 rounded-3xl space-y-4">
+    <form onSubmit={submit} className="clean-card p-5 space-y-4">
       <h3 className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
         <CalendarClock size={15} /> Ngày được hái
       </h3>
@@ -60,7 +60,7 @@ function HarvestCalculator() {
 
 export function ToolsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-7"><DoseCalculator /></div>
         <div className="lg:col-span-5"><HarvestCalculator /></div>

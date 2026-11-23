@@ -83,7 +83,7 @@ export function DoseCalculator({ onComputed, onChange, compact = false }: DoseCa
         setResult(null);
         onChange?.();
       }}
-      className={`space-y-4 ${compact ? '' : 'clean-card p-5 sm:p-6 rounded-3xl'}`}>
+      className={`space-y-4 ${compact ? '' : 'clean-card p-5'}`}>
       {!compact && (
         <h3 className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
           <Calculator size={15} /> Tính liều pha thuốc

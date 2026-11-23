@@ -13,19 +13,19 @@ import type { Treatment } from '../types';
 
 function HarvestBadge({ treatment }: { treatment: Treatment }) {
   if (!treatment.harvest_safe_on) {
-    return <span className="text-[11px] text-slate-500">Chưa nhập thời gian cách ly</span>;
+    return <span className="text-[11px] text-slate-500">Chưa có cách ly</span>;
   }
   const days = daysUntil(treatment.harvest_safe_on);
   if (days <= 0) {
     return (
       <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
-        Đã qua thời gian cách ly
+        Hết cách ly
       </span>
     );
   }
   return (
     <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
-      Chưa được thu hoạch · còn {days} ngày (từ {formatDate(treatment.harvest_safe_on)})
+      Cách ly · còn {days} ngày
     </span>
   );
 }
@@ -69,14 +69,14 @@ export function TreatmentsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
       {(due.length > 0 || waitingHarvest.length > 0) && (
-        <section aria-labelledby="todo-title" className="clean-card p-5 rounded-3xl space-y-3">
+        <section aria-labelledby="todo-title" className="clean-card p-5 space-y-3">
           <h2 id="todo-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
             <ClipboardList size={15} /> Việc cần làm
           </h2>
-          <ul className="space-y-2 text-sm">
+          <ul className="grid grid-cols-1 xl:grid-cols-2 gap-2 text-sm">
             {due.map((t) => (
               <li key={`due-${t.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
                 <span>
@@ -108,12 +108,12 @@ export function TreatmentsPage() {
           action={<button type="button" onClick={() => navigate('/diagnose')} className="btn-primary text-xs">Chụp lá</button>}
         />
       ) : (
-        <ul className="space-y-4">
+        <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {items.map((t) => {
             const latest = t.followups[t.followups.length - 1];
             const followupDays = daysUntil(t.followup_due_on);
             return (
-              <li key={t.id} className="clean-card p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row gap-4">
+              <li key={t.id} className="clean-card p-4 flex flex-col sm:flex-row gap-4">
                 {t.original_image_url && (
                   <img src={resolveMediaUrl(t.original_image_url)} alt="Ảnh lá trước điều trị" className="w-20 h-20 rounded-2xl object-cover border border-[#DCE5DC] shrink-0" />
                 )}

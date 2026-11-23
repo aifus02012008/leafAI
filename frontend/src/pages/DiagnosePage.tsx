@@ -126,7 +126,7 @@ export function DiagnosePage() {
       : null;
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       {followup.treatment && (
         <div className="rounded-[18px] bg-sun-wash border border-sun p-4 flex items-center gap-4">
           {followup.treatment.original_image_url && (

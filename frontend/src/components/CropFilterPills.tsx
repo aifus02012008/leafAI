@@ -10,7 +10,7 @@ interface CropFilterPillsProps {
 /** "Tất cả / Chè / Sầu riêng / ..." filter used by the library and history pages. */
 export function CropFilterPills({ crops, value, onChange, label = 'Lọc theo cây trồng' }: CropFilterPillsProps) {
   const options: { code: CropCode | null; name: string }[] = [
-    { code: null, name: 'Tất cả cây' },
+    { code: null, name: 'Mọi cây' },
     ...crops.map((c) => ({ code: c.code, name: c.name_vi })),
   ];
 
@@ -18,7 +18,7 @@ export function CropFilterPills({ crops, value, onChange, label = 'Lọc theo c�
     <div
       role="group"
       aria-label={label}
-      className="flex flex-wrap items-center gap-1.5 text-xs bg-white/60 p-1.5 rounded-2xl border border-[#DCE5DC]"
+      className="flex flex-wrap items-center gap-1 text-xs bg-white p-1 rounded-xl border border-[#DCE5DC]"
     >
       {options.map((opt) => {
         const active = opt.code === value;
@@ -28,7 +28,7 @@ export function CropFilterPills({ crops, value, onChange, label = 'Lọc theo c�
             type="button"
             aria-pressed={active}
             onClick={() => onChange(opt.code)}
-            className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
               active ? 'bg-[#1F7A4D] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >

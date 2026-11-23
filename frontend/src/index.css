@@ -64,6 +64,7 @@
   }
 }
 
+@layer components {
 .app-canvas {
   background: transparent;
   min-height: 100vh;
@@ -167,6 +168,8 @@
 /* Kept for older markup: renders as the brand leaf green, not a gradient */
 .text-gradient {
   color: var(--color-primary);
+}
+
 }
 
 /* ---------- Viewfinder (diagnose page signature) ---------- */

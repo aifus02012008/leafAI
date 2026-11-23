@@ -49,7 +49,7 @@ export function StatCard({
   };
 
   return (
-    <div className="clean-card clean-card-hover p-6 sm:p-7 flex flex-col justify-between min-h-[170px] border border-[#DCE5DC] bg-white">
+    <div className="clean-card clean-card-hover p-5 flex flex-col justify-between min-h-[170px] border border-[#DCE5DC] bg-white">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 font-sans">
           {title}

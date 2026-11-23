@@ -30,7 +30,7 @@ export function BoundingBoxViewer({
   return (
     <div className="space-y-4">
       {/* Viewer Container */}
-      <div className="clean-card rounded-2xl overflow-hidden relative group border border-[#DCE5DC] shadow-sm bg-white">
+      <div className="clean-card overflow-hidden relative group border border-[#DCE5DC] shadow-sm bg-white">
         {/* Top Floating Controls Bar */}
         <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none gap-2 flex-wrap">
           <div className="pointer-events-auto flex items-center gap-2">

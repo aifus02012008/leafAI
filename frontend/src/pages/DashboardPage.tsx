@@ -81,7 +81,7 @@ export function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <section className="lg:col-span-7 clean-card p-6" aria-labelledby="chart-title">
+        <section className="lg:col-span-7 clean-card p-5" aria-labelledby="chart-title">
           <h2 id="chart-title" className="font-display text-base font-bold text-ink">Bệnh hay gặp</h2>
           {chartData.length > 0 ? (
             <div className="h-72 w-full pt-4">
@@ -105,7 +105,7 @@ export function DashboardPage() {
           )}
         </section>
 
-        <section className="lg:col-span-5 clean-card p-6" aria-labelledby="recent-title">
+        <section className="lg:col-span-5 clean-card p-5" aria-labelledby="recent-title">
           <div className="flex items-center justify-between">
             <h2 id="recent-title" className="font-display text-base font-bold text-ink">Gần đây</h2>
             <Link to="/history" className="text-xs font-bold text-leaf hover:text-leaf-dark flex items-center gap-1">

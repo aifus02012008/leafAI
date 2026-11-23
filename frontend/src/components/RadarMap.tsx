@@ -32,7 +32,7 @@ export function RadarMap({ center, radiusKm, cells }: RadarMapProps) {
       center={[center.lat, center.lng]}
       zoom={12}
       scrollWheelZoom={false}
-      className="h-[320px] sm:h-[380px] w-full rounded-2xl z-0"
+      className="h-[320px] sm:h-[360px] w-full rounded-2xl z-0"
       attributionControl
     >
       <Recenter center={center} radiusKm={radiusKm} />

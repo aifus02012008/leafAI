@@ -44,13 +44,10 @@ export function DiseasesPage() {
   };
 
   return (
-    <div className="space-y-8 sm:space-y-10">
-
-      <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
-
+    <div className="space-y-6">
       {/* Search & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-lg">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+        <div className="relative flex-1 min-w-0">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -61,18 +58,17 @@ export function DiseasesPage() {
           />
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
-          <span className="px-3.5 py-2 rounded-xl bg-white/85 border border-[#DCE5DC] shadow-2xs font-mono text-[#1F7A4D]">
-            {diseases.length} Tác Nhân Bệnh Đã Hiệu Chuẩn
-          </span>
-        </div>
+        <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
+        <span className="self-start lg:self-auto px-3 py-2 rounded-xl bg-white border border-[#DCE5DC] font-mono text-xs font-semibold text-[#1F7A4D] whitespace-nowrap">
+          {diseases.length} bệnh
+        </span>
       </div>
 
       {/* Disease Cards Grid */}
       {loading ? (
         <LoadingState message="Đang tải…" />
       ) : diseases.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {diseases.map((d) => (
             <DiseaseCard
               key={d.id}

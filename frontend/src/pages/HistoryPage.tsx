@@ -4,8 +4,6 @@ import {
   Search,
   Trash2,
   Eye,
-  Clock,
-  Crosshair
 } from 'lucide-react';
 import { apiGetHistory, apiGetHistoryDetail, apiDeleteHistory } from '../api/diagnosis';
 import { resolveMediaUrl } from '../api/client';
@@ -84,14 +82,10 @@ export function HistoryPage() {
   };
 
   return (
-    <div className="space-y-8 sm:space-y-10">
-
-      <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
-
-      {/* Filter and Search Bar Card */}
-      <div className="clean-card p-5 sm:p-6 rounded-3xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-xs">
-        {/* Search Input */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-lg">
+    <div className="space-y-6">
+      {/* Search + filters in one toolbar */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -102,18 +96,18 @@ export function HistoryPage() {
           />
         </form>
 
-        {/* Status Category Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 text-xs bg-white/60 p-1.5 rounded-2xl border border-[#DCE5DC]">
+        <CropFilterPills crops={crops} value={cropFilter} onChange={setCropFilter} />
+        <div className="flex flex-wrap items-center gap-1 text-xs bg-white p-1 rounded-xl border border-[#DCE5DC]">
           {[
-            { id: 'all', label: 'Tất Cả' },
-            { id: 'detected', label: 'Bệnh Phát Hiện' },
-            { id: 'no_detection', label: 'Không Phát Hiện' },
+            { id: 'all', label: 'Tất cả' },
+            { id: 'detected', label: 'Có bệnh' },
+            { id: 'no_detection', label: 'Khoẻ' },
           ].map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                 statusFilter === tab.id
                   ? 'bg-[#1F7A4D] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -129,7 +123,7 @@ export function HistoryPage() {
       {loading ? (
         <LoadingState message="Đang tải…" />
       ) : items.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {items.map((item) => {
             const dateObj = new Date(item.created_at);
             const dateStr = dateObj.toLocaleDateString('vi-VN');
@@ -137,83 +131,58 @@ export function HistoryPage() {
             const cleanPrimary = item.primary_disease
               ? item.primary_disease.replace('Tomato___', '').replace(/_/g, ' ')
               : item.status === 'detected'
-              ? 'Đã Phát Hiện Bệnh'
-              : 'Lá Khỏe Mạnh / Không Có Bệnh';
+              ? 'Có bệnh'
+              : 'Lá khoẻ';
 
             return (
-              <div
-                key={item.id}
-                className="clean-card clean-card-hover p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 group shadow-xs"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  {/* Thumbnail */}
+              <div key={item.id} className="clean-card clean-card-hover p-3 flex items-center gap-3 group">
+                <button
+                  type="button"
+                  onClick={() => handleOpenDetail(item.id)}
+                  className="flex items-center gap-3 min-w-0 flex-1 text-left cursor-pointer"
+                  title="Xem chi tiết"
+                >
                   <img
                     src={resolveMediaUrl(item.original_image_url)}
                     alt={`Lá ${cropName(item.crop_code).toLowerCase()}`}
-                    className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover bg-slate-100 border border-[#DCE5DC] shrink-0"
+                    className="w-14 h-14 rounded-xl object-cover bg-slate-100 shrink-0"
                   />
-
-                  {/* Info */}
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <h4 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#1F7A4D] transition-colors truncate font-display">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-slate-900 group-hover:text-[#1F7A4D] transition-colors truncate">
                       {cleanPrimary}
-                    </h4>
-
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 font-mono">
-                      <span className="font-sans font-bold text-[#0F2A20] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
-                        {cropName(item.crop_code)}
-                      </span>
-                      <span className="flex items-center gap-1 font-medium text-slate-600">
-                        <Clock size={13} className="text-[#1F7A4D]" />
-                        {dateStr} | {timeStr}
-                      </span>
-
+                    </p>
+                    <p className="flex flex-wrap items-center gap-x-2 text-xs text-slate-500 mt-0.5">
+                      <span className="font-semibold text-[#0F2A20]">{cropName(item.crop_code)}</span>
+                      <span className="font-mono">{dateStr} {timeStr}</span>
                       {item.max_confidence !== null && (
-                        <span className="text-[#1F7A4D] font-bold px-2 py-0.5 rounded-md bg-[#EAF5EE] border border-emerald-200">
-                          Độ tin cậy: {(item.max_confidence * 100).toFixed(1)}%
-                        </span>
+                        <span className="font-mono font-bold text-[#1F7A4D]">{(item.max_confidence * 100).toFixed(0)}%</span>
                       )}
-
-                      <span className="flex items-center gap-1 text-slate-500 font-medium">
-                        <Crosshair size={13} className="text-teal-600" />
-                        {item.detection_count} Vùng Bệnh
-                      </span>
-                    </div>
+                    </p>
                   </div>
-                </div>
-
-                {/* Status & Actions */}
-                <div className="flex items-center gap-2.5 self-end sm:self-center shrink-0">
-                  <span
-                    className={`text-xs font-semibold px-3 py-1 rounded-full font-mono ${
-                      item.status === 'detected'
-                        ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    }`}
-                  >
-                    {item.status === 'detected' ? 'Có Bệnh' : 'Khỏe Mạnh'}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => handleOpenDetail(item.id)}
-                    className="btn-secondary text-xs flex items-center gap-1.5 py-2 px-3.5"
-                    title="Xem chi tiết kiểm tra"
-                  >
-                    <Eye size={14} />
-                    <span>Xem Chi Tiết</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTargetId(item.id)}
-                    className="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
-                    title="Xóa Bản Ghi"
-                    aria-label="Xóa Bản Ghi"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+                </button>
+                <span
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.status === 'detected' ? 'bg-sun' : 'bg-mint'}`}
+                  title={item.status === 'detected' ? 'Có bệnh' : 'Khoẻ'}
+                  aria-label={item.status === 'detected' ? 'Có bệnh' : 'Khoẻ'}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleOpenDetail(item.id)}
+                  className="w-9 h-9 rounded-xl text-slate-500 hover:text-[#1F7A4D] hover:bg-[#EAF5EE] hidden sm:flex items-center justify-center transition-colors cursor-pointer"
+                  title="Xem chi tiết"
+                  aria-label="Xem chi tiết"
+                >
+                  <Eye size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTargetId(item.id)}
+                  className="w-9 h-9 rounded-xl text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Xóa"
+                  aria-label="Xóa"
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             );
           })}

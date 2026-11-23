@@ -61,19 +61,19 @@ function AddFarmForm({ onAdded }: { onAdded: (f: WatchedFarm) => void }) {
 
   const label = 'block text-[11px] font-bold text-slate-600 mb-1';
   return (
-    <form onSubmit={submit} className="clean-card p-5 rounded-3xl space-y-3">
+    <form onSubmit={submit} className="clean-card p-5 space-y-3">
       <h2 className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
         <Plus size={15} /> Thêm vườn
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-        <div className="sm:col-span-1">
+      <div className="grid grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_6.5rem_auto_auto] gap-3 items-end text-sm">
+        <div className="col-span-2 lg:col-span-1">
           <label htmlFor="farm-name" className={label}>Tên vườn</label>
-          <input id="farm-name" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder="vd: Vườn sau nhà" className="input-clean py-2 text-sm" />
+          <input id="farm-name" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder="Vườn sau nhà" className="input-clean py-2 text-sm" />
         </div>
         <div>
           <label htmlFor="farm-crop" className={label}>Cây trồng</label>
           <select id="farm-crop" value={crop} onChange={(e) => setCrop(e.target.value)} className="input-clean py-2 text-sm">
-            <option value="">Mọi loại cây</option>
+            <option value="">Mọi cây</option>
             {crops.map((c) => <option key={c.code} value={c.code}>{c.name_vi}</option>)}
           </select>
         </div>
@@ -83,20 +83,19 @@ function AddFarmForm({ onAdded }: { onAdded: (f: WatchedFarm) => void }) {
             {[2, 5, 10, 20].map((r) => <option key={r} value={r}>{r} km</option>)}
           </select>
         </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2.5">
-        <button type="button" onClick={locate} disabled={locating} className="btn-secondary text-xs py-2 px-3.5">
-          {locating ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
-          <span>{point ? 'Lấy lại' : 'Vị trí tôi'}</span>
+        <button
+          type="button"
+          onClick={locate}
+          disabled={locating}
+          title={point ? `${point.lat.toFixed(3)}, ${point.lng.toFixed(3)}` : undefined}
+          className={`btn-secondary text-xs h-[38px] px-3.5 ${point ? 'border-[#1F7A4D] text-[#1F7A4D]' : ''}`}
+        >
+          {locating ? <Loader2 size={14} className="animate-spin" /> : point ? <MapPin size={14} /> : <LocateFixed size={14} />}
+          <span>{point ? 'Đã lấy vị trí' : 'Vị trí tôi'}</span>
         </button>
-        {point && (
-          <span className="text-xs text-slate-600 inline-flex items-center gap-1">
-            <MapPin size={13} className="text-[#1F7A4D]" /> {point.lat.toFixed(3)}, {point.lng.toFixed(3)}
-          </span>
-        )}
-        <button type="submit" disabled={saving} className="btn-primary text-xs py-2.5 px-4 ml-auto">
+        <button type="submit" disabled={saving} className="btn-primary text-xs h-[38px] px-4">
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-          <span>Lưu vườn</span>
+          <span>Lưu</span>
         </button>
       </div>
     </form>
@@ -170,62 +169,67 @@ export function FarmsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="lg:col-span-8 space-y-6">
+        <AddFarmForm onAdded={(f) => setFarms((prev) => [...prev, f])} />
 
-      <section className="clean-card p-5 rounded-3xl flex flex-col sm:flex-row sm:items-center gap-3 justify-between" aria-labelledby="push-title">
-        <div className="space-y-1">
-          <h2 id="push-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
-            <BellRing size={15} /> Thông báo
+        <section aria-labelledby="farms-title" className="space-y-3">
+          <h2 id="farms-title" className="text-xs font-bold uppercase tracking-wider text-slate-500">Đang theo dõi</h2>
+          {loading ? (
+            <p className="text-xs text-slate-500">Đang tải…</p>
+          ) : farms.length === 0 ? (
+            <p className="text-xs text-slate-500">Chưa có vườn</p>
+          ) : (
+            <ul className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              {farms.map((f) => (
+                <li key={f.id} className="clean-card px-4 py-3 flex items-center gap-3">
+                  <MapPin size={16} className="text-[#1F7A4D] shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-slate-900 truncate">{f.name}</p>
+                    <p className="text-xs text-slate-500">
+                      {f.crop_code ? cropName(f.crop_code) : 'Mọi cây'} · {f.radius_km} km
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer" title="Nhận cảnh báo">
+                    <input type="checkbox" checked={f.alerts_enabled} onChange={() => toggleAlerts(f)} className="accent-[#1F7A4D]" />
+                    <BellRing size={14} aria-hidden="true" />
+                    <span className="sr-only">Cảnh báo</span>
+                  </label>
+                  <button type="button" onClick={() => setDeleteId(f.id)} aria-label={`Xóa vườn ${f.name}`} className="p-2 rounded-xl text-red-600 hover:bg-red-50">
+                    <Trash2 size={14} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <aside className="lg:col-span-4 space-y-6">
+        <section className="clean-card p-5 flex items-center gap-3 justify-between" aria-labelledby="push-title">
+          <div className="space-y-0.5">
+            <h2 id="push-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
+              <BellRing size={15} /> Thông báo
+            </h2>
+            <p className="text-xs text-slate-600">{PUSH_TEXT[push.state]}</p>
+          </div>
+          {(push.state === 'on' || push.state === 'off') && (
+            <button type="button" onClick={togglePush} disabled={push.busy} className={push.state === 'on' ? 'btn-secondary text-xs py-2 px-4' : 'btn-primary text-xs py-2 px-4'}>
+              {push.busy && <Loader2 size={14} className="animate-spin" />}
+              <span>{push.state === 'on' ? 'Tắt' : 'Bật'}</span>
+            </button>
+          )}
+        </section>
+
+        <section className="clean-card p-5 flex items-center gap-3 justify-between" aria-labelledby="privacy-title">
+          <h2 id="privacy-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
+            <ShieldCheck size={15} /> Quyền riêng tư
           </h2>
-          <p className="text-xs text-slate-600">{PUSH_TEXT[push.state]}</p>
-        </div>
-        {(push.state === 'on' || push.state === 'off') && (
-          <button type="button" onClick={togglePush} disabled={push.busy} className={push.state === 'on' ? 'btn-secondary text-xs py-2 px-4' : 'btn-primary text-xs py-2 px-4'}>
-            {push.busy && <Loader2 size={14} className="animate-spin" />}
-            <span>{push.state === 'on' ? 'Tắt' : 'Bật'}</span>
+          <button type="button" onClick={() => setPurgeOpen(true)} className="btn-secondary text-xs py-2 px-3.5 text-red-700">
+            <Trash2 size={14} /> <span>Xóa vị trí</span>
           </button>
-        )}
-      </section>
-
-      <AddFarmForm onAdded={(f) => setFarms((prev) => [...prev, f])} />
-
-      <section aria-labelledby="farms-title" className="space-y-3">
-        <h2 id="farms-title" className="text-xs font-bold uppercase tracking-wider text-slate-500">Đang theo dõi</h2>
-        {loading ? (
-          <p className="text-xs text-slate-500">Đang tải…</p>
-        ) : farms.length === 0 ? (
-          <p className="text-xs text-slate-500">Chưa có vườn</p>
-        ) : (
-          <ul className="space-y-2.5">
-            {farms.map((f) => (
-              <li key={f.id} className="clean-card p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900 truncate">{f.name}</p>
-                  <p className="text-xs text-slate-500">
-                    {f.crop_code ? cropName(f.crop_code) : 'Mọi cây'} · {f.radius_km} km
-                  </p>
-                </div>
-                <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                  <input type="checkbox" checked={f.alerts_enabled} onChange={() => toggleAlerts(f)} className="accent-[#1F7A4D]" />
-                  Cảnh báo
-                </label>
-                <button type="button" onClick={() => setDeleteId(f.id)} aria-label={`Xóa vườn ${f.name}`} className="p-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 self-end sm:self-auto">
-                  <Trash2 size={14} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="clean-card p-5 rounded-3xl space-y-2" aria-labelledby="privacy-title">
-        <h2 id="privacy-title" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
-          <ShieldCheck size={15} /> Quyền riêng tư
-        </h2>
-        <button type="button" onClick={() => setPurgeOpen(true)} className="btn-secondary text-xs py-2 px-4 text-red-700">
-          <Trash2 size={14} /> <span>Xóa vị trí của tôi</span>
-        </button>
-      </section>
+        </section>
+      </aside>
 
       <ConfirmDialog
         open={deleteId !== null}

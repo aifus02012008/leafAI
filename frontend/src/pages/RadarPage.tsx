@@ -90,7 +90,7 @@ export function RadarPage() {
   return (
     <div className="space-y-6">
 
-      <div className="clean-card p-4 sm:p-5 rounded-3xl flex flex-col lg:flex-row gap-3 lg:items-end">
+      <div className="clean-card p-4 flex flex-col lg:flex-row gap-3 lg:items-end">
         <div className="flex-1 min-w-0">
           <label htmlFor="radar-area" className="block text-[11px] font-bold text-slate-600 mb-1">Khu vực</label>
           <select
@@ -135,8 +135,8 @@ export function RadarPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-7 space-y-4">
-          <div className="clean-card p-3 rounded-3xl relative">
+        <div className="lg:col-span-7">
+          <div className="clean-card p-3 relative">
             <RadarMap center={point} radiusKm={radius} cells={data?.grid ?? []} />
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-3xl z-10">
@@ -147,27 +147,27 @@ export function RadarPage() {
         </div>
 
         <div className="lg:col-span-5 space-y-4">
-          <section aria-labelledby="radar-weather" className="clean-card p-4 rounded-3xl space-y-3">
+          <section aria-labelledby="radar-weather" className="clean-card p-4 space-y-3">
             <h2 id="radar-weather" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
               <CloudRain size={15} /> 3 ngày tới
             </h2>
             {data?.weather ? (
-              <div className="grid grid-cols-3 gap-2 text-xs">
+              <ul className="space-y-1.5 text-xs">
                 {data.weather.map((d) => (
-                  <div key={d.day} className={`p-2.5 rounded-xl border text-center ${d.humid_hours >= 6 ? 'bg-sky-50 border-sky-200' : 'bg-white border-[#DCE5DC]'}`}>
-                    <div className="font-bold text-slate-800">{WEEKDAY[new Date(d.day + 'T00:00:00').getDay()]} {formatDate(d.day).slice(0, 5)}</div>
-                    <div className="flex items-center justify-center gap-1 text-sky-700 mt-1"><Droplets size={12} />{d.humid_hours}h ẩm</div>
-                    <div className="flex items-center justify-center gap-1 text-slate-600"><Thermometer size={12} />{Math.round(d.t_min)}–{Math.round(d.t_max)}°C</div>
-                    <div className="flex items-center justify-center gap-1 text-slate-600"><CloudRain size={12} />{d.precip_mm} mm</div>
-                  </div>
+                  <li key={d.day} className={`grid grid-cols-[4.5rem_1fr_1fr_1fr] items-center gap-2 px-3 py-2 rounded-xl border ${d.humid_hours >= 6 ? 'bg-sky-50 border-sky-200' : 'bg-white border-[#DCE5DC]'}`}>
+                    <span className="font-bold text-slate-800">{WEEKDAY[new Date(d.day + 'T00:00:00').getDay()]} {formatDate(d.day).slice(0, 5)}</span>
+                    <span className="flex items-center gap-1 text-sky-700"><Droplets size={12} />{d.humid_hours}h ẩm</span>
+                    <span className="flex items-center gap-1 text-slate-600"><Thermometer size={12} />{Math.round(d.t_min)}–{Math.round(d.t_max)}°</span>
+                    <span className="flex items-center gap-1 text-slate-600"><CloudRain size={12} />{d.precip_mm} mm</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
               <p className="text-xs text-slate-500">Chưa có dự báo</p>
             )}
           </section>
 
-          <section aria-labelledby="radar-alerts" className="clean-card p-4 rounded-3xl space-y-3">
+          <section aria-labelledby="radar-alerts" className="clean-card p-4 space-y-3">
             <h2 id="radar-alerts" className="text-xs font-bold uppercase tracking-wider text-[#1F7A4D] flex items-center gap-2">
               <Radar size={15} /> Cảnh báo
             </h2>
