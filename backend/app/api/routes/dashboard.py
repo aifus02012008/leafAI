@@ -7,9 +7,10 @@ from app.models.user import User
 from app.models.diagnosis import DiagnosisHistory
 from app.models.detection import DetectionResult
 from app.schemas.dashboard import DashboardStats, RecentDiagnosisItem
-from app.core.config import map_disease_label
+from app.api.presenters import display_label, map_for_crop
 
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
+
 
 @router.get("/stats", response_model=DashboardStats)
 def get_dashboard_stats(
@@ -35,18 +36,26 @@ def get_dashboard_stats(
     
     # Disease distribution for this user with mapped labels
     distribution_rows = db.query(
+        DiagnosisHistory.crop_code,
         DetectionResult.class_name,
         func.count(DetectionResult.id)
     ).join(
         DiagnosisHistory, DetectionResult.history_id == DiagnosisHistory.id
     ).filter(
         DiagnosisHistory.user_id == current_user.id
-    ).group_by(DetectionResult.class_name).all()
+    ).group_by(DiagnosisHistory.crop_code, DetectionResult.class_name).all()
     
-    disease_distribution = {}
-    for raw_name, count in distribution_rows:
-        mapped = map_disease_label(raw_name)
+    disease_distribution: dict[str, int] = {}
+    for crop_code, raw_name, count in distribution_rows:
+        mapped = map_for_crop(crop_code, raw_name)
         disease_distribution[mapped] = disease_distribution.get(mapped, 0) + count
+
+    crop_counts = dict(
+        db.query(DiagnosisHistory.crop_code, func.count(DiagnosisHistory.id))
+        .filter(DiagnosisHistory.user_id == current_user.id)
+        .group_by(DiagnosisHistory.crop_code)
+        .all()
+    )
     
     # Recent 5 diagnoses
     recent_recs = db.query(DiagnosisHistory).filter(
@@ -59,7 +68,7 @@ def get_dashboard_stats(
         primary = None
         if det_count > 0:
             best = max(r.detections, key=lambda d: d.confidence)
-            primary = map_disease_label(best.class_name)
+            primary = display_label(r, best.class_name)
             
         recent_list.append(RecentDiagnosisItem(
             id=r.id,
@@ -67,6 +76,7 @@ def get_dashboard_stats(
             created_at=r.created_at.isoformat() if r.created_at else "",
             detection_count=det_count,
             primary_disease=primary,
+            crop_code=r.crop_code,
             original_image_url=f"/api/images/{r.original_image_path}"
         ))
         
@@ -75,5 +85,6 @@ def get_dashboard_stats(
         detected_count=detected,
         no_detection_count=no_detection,
         disease_distribution=disease_distribution,
+        crop_counts=crop_counts,
         recent_diagnoses=recent_list
     )

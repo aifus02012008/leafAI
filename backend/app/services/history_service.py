@@ -6,16 +6,21 @@ from app.models.diagnosis import DiagnosisHistory
 from app.models.detection import DetectionResult
 from app.core.config import settings
 from pathlib import Path
+from datetime import datetime, timezone
 import os
 
 def get_user_history(
     user_id: int,
     db: Session,
     status_filter: str | None = None,
-    search: str | None = None
+    search: str | None = None,
+    crop_code: str | None = None
 ) -> list[DiagnosisHistory]:
     """Retrieve history records strictly owned by the authenticated user."""
     query = db.query(DiagnosisHistory).filter(DiagnosisHistory.user_id == user_id)
+
+    if crop_code:
+        query = query.filter(DiagnosisHistory.crop_code == crop_code)
     
     if status_filter and status_filter != "all":
         query = query.filter(DiagnosisHistory.status == status_filter)
@@ -28,6 +33,15 @@ def get_user_history(
         )
         
     return query.order_by(desc(DiagnosisHistory.created_at)).all()
+
+def set_feedback(history_id: int, user_id: int, feedback: str, db: Session) -> DiagnosisHistory:
+    """Record the user's verdict on a diagnosis (ownership enforced)."""
+    rec = get_diagnosis_detail(history_id, user_id, db)
+    rec.user_feedback = feedback
+    rec.feedback_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(rec)
+    return rec
 
 def get_diagnosis_detail(history_id: int, user_id: int, db: Session) -> DiagnosisHistory:
     """Retrieve diagnosis record with strict ownership check."""

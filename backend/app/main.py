@@ -6,8 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.db.init_db import init_database
-from app.services.model_service import model_service
-from app.api.routes import auth, predict, history, diseases, dashboard
+from app.core.crops import DEFAULT_CROP_CODE, get_crop, list_crops
+from app.services.model_registry import model_registry
+from app.api.routes import auth, predict, history, diseases, dashboard, crops, tools, treatments, assistant, radar
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,10 +27,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Database initialization failure: {e}", exc_info=True)
         
-    # 2. Preload YOLO Model
+    # 2. Preload the default crop's model; other crops load lazily on first use.
     try:
-        model_service.load_model()
-        logger.info(f"AI Model ready. Classes: {model_service.class_names}")
+        model_registry.get(get_crop(DEFAULT_CROP_CODE))
     except Exception as e:
         logger.error(f"AI Model failed to load at startup: {e}. Model predictions will report error until resolved.")
         
@@ -68,8 +68,16 @@ app.add_middleware(
 def health_check():
     return {
         "status": "healthy",
-        "model_loaded": model_service.is_loaded,
-        "model_classes": list(model_service.class_names.values()) if model_service.is_loaded else [],
+        "model_loaded": model_registry.is_loaded(DEFAULT_CROP_CODE),
+        "model_classes": list(model_registry.class_names(DEFAULT_CROP_CODE).values()),
+        "crops": [
+            {
+                "code": crop.code,
+                "available": model_registry.is_available(crop),
+                "loaded": model_registry.is_loaded(crop.code),
+            }
+            for crop in list_crops()
+        ],
         "version": "1.0.0"
     }
 
@@ -116,6 +124,11 @@ app.include_router(predict.router)
 app.include_router(history.router)
 app.include_router(diseases.router)
 app.include_router(dashboard.router)
+app.include_router(crops.router)
+app.include_router(tools.router)
+app.include_router(treatments.router)
+app.include_router(assistant.router)
+app.include_router(radar.router)
 
 # Mount frontend dist static files for seamless standalone execution
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"

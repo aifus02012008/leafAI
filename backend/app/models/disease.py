@@ -1,12 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Column, Integer, String, Text, DateTime, Index
 from datetime import datetime, timezone
 from app.db.base import Base
 
 class Disease(Base):
     __tablename__ = "diseases"
-    
+    __table_args__ = (
+        Index("uq_diseases_crop_class", "crop_code", "class_name", unique=True),
+    )
+
     id = Column(Integer, primary_key=True, index=True)
-    class_name = Column(String(100), unique=True, nullable=False, index=True)
+    crop_code = Column(String(32), nullable=False, default="tea", server_default="tea", index=True)
+    class_name = Column(String(100), nullable=False, index=True)
     display_name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     symptoms = Column(Text, nullable=True)

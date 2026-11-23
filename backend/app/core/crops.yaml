@@ -1,0 +1,74 @@
+# ---------------------------------------------------------------------------
+# Cấu hình cây trồng & mô hình nhận diện bệnh lá
+# ---------------------------------------------------------------------------
+# - Một cây trồng "khả dụng" khi file weights của nó tồn tại (hoặc model được
+#   đăng ký thủ công). Chỉ cần thả file .pt vào đúng đường dẫn là cây được bật.
+# - `weights` là đường dẫn tương đối tính từ thư mục gốc dự án. Có thể ghi đè
+#   bằng biến môi trường MODEL_PATH_<CODE> (ví dụ MODEL_PATH_DURIAN).
+# - Cây chè dùng `weights: settings` => lấy MODEL_PATH và bảng ngưỡng/nhãn cũ
+#   trong app/core/config.py để giữ nguyên hành vi hiện tại.
+# - `label_map`: nhãn thô của model -> tên bệnh chuẩn (phải trùng class_name
+#   trong thư viện bệnh app/db/seed/<crop>.py).
+#   ⚠️ Nhãn thô của sầu riêng/măng cụt/chôm chôm là DỰ KIẾN theo các bộ dữ
+#   liệu công khai; cần chốt lại khi train xong model thật.
+# ---------------------------------------------------------------------------
+
+crops:
+  - code: tea
+    name_vi: Chè
+    name_en: Tea
+    scientific_name: Camellia sinensis
+    weights: settings
+    model_version: tea-yolo-v1
+
+  - code: durian
+    name_vi: Sầu riêng
+    name_en: Durian
+    scientific_name: Durio zibethinus
+    weights: model/durian.pt
+    model_version: durian-v1
+    default_threshold: 0.30
+    healthy_threshold: 0.35
+    healthy_labels: [Healthy, Healthy_leaf, No_Disease, no-disease]
+    label_map:
+      Leaf_Phytophthora: "Cháy lá do Phytophthora trên sầu riêng (Durian Phytophthora leaf blight)"
+      Phytophthora: "Cháy lá do Phytophthora trên sầu riêng (Durian Phytophthora leaf blight)"
+      Leaf_Blight: "Cháy lá chết ngọn sầu riêng (Durian Rhizoctonia leaf blight)"
+      Rhizoctonia: "Cháy lá chết ngọn sầu riêng (Durian Rhizoctonia leaf blight)"
+      Anthracnose: "Thán thư sầu riêng (Durian anthracnose)"
+      Algal_spot: "Đốm rong sầu riêng (Durian algal leaf spot)"
+      Algal_Leaf_Spot: "Đốm rong sầu riêng (Durian algal leaf spot)"
+      Psyllid: "Rầy phấn trắng hại sầu riêng (Durian psyllid)"
+
+  - code: mangosteen
+    name_vi: Măng cụt
+    name_en: Mangosteen
+    scientific_name: Garcinia mangostana
+    weights: model/mangosteen.pt
+    model_version: mangosteen-v1
+    default_threshold: 0.30
+    healthy_threshold: 0.35
+    healthy_labels: [Healthy, Healthy_leaf, No_Disease, no-disease]
+    label_map:
+      Anthracnose: "Thán thư măng cụt (Mangosteen anthracnose)"
+      Leaf_Spot: "Đốm lá Pestalotiopsis trên măng cụt (Mangosteen Pestalotiopsis leaf spot)"
+      Pestalotiopsis: "Đốm lá Pestalotiopsis trên măng cụt (Mangosteen Pestalotiopsis leaf spot)"
+      Algal_Leaf_Spot: "Đốm rong măng cụt (Mangosteen algal leaf spot)"
+      Sooty_Mold: "Bồ hóng măng cụt (Mangosteen sooty mold)"
+
+  - code: rambutan
+    name_vi: Chôm chôm
+    name_en: Rambutan
+    scientific_name: Nephelium lappaceum
+    weights: model/rambutan.pt
+    model_version: rambutan-v1
+    default_threshold: 0.30
+    healthy_threshold: 0.35
+    healthy_labels: [Healthy, Healthy_leaf, No_Disease, no-disease]
+    label_map:
+      Powdery-mildew: "Phấn trắng chôm chôm (Rambutan powdery mildew)"
+      Powdery_Mildew: "Phấn trắng chôm chôm (Rambutan powdery mildew)"
+      Anthracnose: "Thán thư chôm chôm (Rambutan anthracnose)"
+      algal-fungal-disease: "Đốm rong chôm chôm (Rambutan algal leaf spot)"
+      Algal_Leaf_Spot: "Đốm rong chôm chôm (Rambutan algal leaf spot)"
+      Sooty_Mold: "Bồ hóng chôm chôm (Rambutan sooty mold)"

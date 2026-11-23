@@ -70,7 +70,12 @@ class Settings(BaseSettings):
     }
     DEFAULT_CLASS_CONFIDENCE: float = 0.25  # Fallback: Giữ ngưỡng mặc định cho các nhãn chưa được cấu hình riêng
     MAX_UPLOAD_SIZE_MB: int = 10
-    
+    # Số model cây trồng tối đa giữ trong RAM cùng lúc (LRU). Tăng khi server có nhiều RAM.
+    MAX_LOADED_MODELS: int = 2
+    # Trợ lý hỏi đáp: để trống ANTHROPIC_API_KEY thì trợ lý trả lời từ thư viện bệnh (không gọi AI).
+    ANTHROPIC_API_KEY: str | None = None
+    ASSISTANT_MODEL: str = "claude-haiku-5-5"
+
     @property
     def max_upload_bytes(self) -> int:
         return self.MAX_UPLOAD_SIZE_MB * 1024 * 1024

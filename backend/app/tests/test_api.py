@@ -28,7 +28,7 @@ def test_health_endpoint(client):
     assert len(data["model_classes"]) == 6
 
 def test_diseases_catalog(client):
-    res = client.get("/api/diseases")
+    res = client.get("/api/diseases", params={"crop": "tea"})
     assert res.status_code == 200
     diseases = res.json()
     assert len(diseases) == 6
@@ -216,9 +216,18 @@ def test_predict_healthy_leaf(client):
     token = res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     
-    sample_healthy = "backend/app/storage/originals/334e1f8bccb3_orig.jpg"
-    with open(sample_healthy, "rb") as f:
-        file_bytes = f.read()
+    from pathlib import Path
+    sample_healthy = Path("backend/app/storage/originals/334e1f8bccb3_orig.jpg")
+    if not sample_healthy.exists():
+        sample_healthy = Path("app/storage/originals/334e1f8bccb3_orig.jpg")
+    if sample_healthy.exists():
+        with open(sample_healthy, "rb") as f:
+            file_bytes = f.read()
+    else:
+        img = Image.new("RGB", (640, 640), color=(34, 139, 34))
+        buf = BytesIO()
+        img.save(buf, format="JPEG")
+        file_bytes = buf.getvalue()
         
     files = {"file": ("healthy_leaf.jpg", BytesIO(file_bytes), "image/jpeg")}
     pred_res = client.post("/api/predict", headers=headers, files=files)

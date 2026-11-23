@@ -5,10 +5,13 @@ import logging
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy.orm import Session
-from app.services.model_service import model_service
 from app.models.diagnosis import DiagnosisHistory
 from app.models.detection import DetectionResult
-from app.core.config import settings, map_disease_label
+from app.core.config import settings
+from app.core.crops import CropConfig
+from app.services.detection_rules import DetectionOutcome, evaluate_detections
+from app.services.model_registry import model_registry
+from app.services.severity import measure_severity
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +26,8 @@ BOX_PALETTE = [
 ]
 
 def clean_class_display(name: str) -> str:
-    """Format label to standard customer display."""
-    mapped = map_disease_label(name)
-    return mapped.replace("Tomato___", "").replace("_", " ")
+    """Format an already-mapped disease label for drawing on the image."""
+    return name.replace("Tomato___", "").replace("_", " ")
 
 def draw_bounding_boxes(image_path: str, detections: list[dict], output_path: str) -> str:
     """Draw clear, modern bounding boxes with stylized tags matching reference UI."""
@@ -113,144 +115,127 @@ def draw_bounding_boxes(image_path: str, detections: list[dict], output_path: st
     composed.save(output_path, "JPEG", quality=92)
     return output_path
 
-def run_prediction(image_path: str, user_id: int, db: Session) -> DiagnosisHistory:
-    """Execute complete inference pipeline and persist results."""
-    start_time = time.time()
-    
-    # Generate unique ID and relative paths
+def _store_original(image_path: str) -> tuple[str, Path]:
+    """Copy the validated upload into permanent storage; returns (uid, destination)."""
     uid = uuid.uuid4().hex[:12]
-    ext = Path(image_path).suffix.lower()
-    if not ext:
-        ext = ".jpg"
-        
-    orig_filename = f"{uid}_orig{ext}"
-    orig_dest = settings.originals_dir / orig_filename
-    
-    # Securely copy source image to permanent originals storage
-    shutil.copy2(image_path, str(orig_dest))
-    
-    # Execute inference
-    results = model_service.predict(str(orig_dest))
-    inference_time = time.time() - start_time
-    
-    healthy_boxes: list[dict] = []
-    disease_boxes: list[dict] = []
-    
-    if results and len(results) > 0:
-        res = results[0]
-        if res.boxes is not None and len(res.boxes) > 0:
-            boxes = res.boxes
-            for idx in range(len(boxes)):
-                box = boxes[idx]
-                xyxy = box.xyxy[0].cpu().numpy().tolist()
-                conf = float(box.conf[0].cpu().numpy())
-                cls_idx = int(box.cls[0].cpu().numpy())
-                
-                raw_class_name = model_service.class_names.get(cls_idx, f"Class_{cls_idx}")
-                
-                # Kiểm tra nếu đây là nhãn Healthy từ model
-                is_healthy_cls = raw_class_name.strip().lower() == "healthy" or cls_idx == 3
-                
-                if is_healthy_cls:
-                    healthy_threshold = settings.CLASS_CONFIDENCE_THRESHOLDS.get("Healthy", 0.35)
-                    if conf >= healthy_threshold:
-                        healthy_boxes.append({
-                            "class_name": "Healthy",
-                            "confidence": round(conf, 4),
-                            "x1": round(xyxy[0], 2),
-                            "y1": round(xyxy[1], 2),
-                            "x2": round(xyxy[2], 2),
-                            "y2": round(xyxy[3], 2)
-                        })
-                    continue
-                
-                # Phân loại và lọc ngưỡng đối với nhãn bệnh hại
-                final_label = map_disease_label(raw_class_name)
-                class_threshold = settings.CLASS_CONFIDENCE_THRESHOLDS.get(
-                    raw_class_name,
-                    settings.CLASS_CONFIDENCE_THRESHOLDS.get(
-                        final_label,
-                        settings.DEFAULT_CLASS_CONFIDENCE
-                    )
-                )
-                if conf < class_threshold:
-                    continue  # Bỏ qua ứng viên dưới ngưỡng độ tin cậy của phân lớp
-                
-                disease_boxes.append({
-                    "class_name": final_label,
-                    "confidence": round(conf, 4),
-                    "x1": round(xyxy[0], 2),
-                    "y1": round(xyxy[1], 2),
-                    "x2": round(xyxy[2], 2),
-                    "y2": round(xyxy[3], 2)
-                })
-                
-    # Đánh giá Healthy vs Bệnh hại:
-    # Nếu bệnh không quá rõ ràng (unclear / faint) hoặc nhãn Healthy chiếm ưu thế
-    max_healthy_conf = max((b["confidence"] for b in healthy_boxes), default=0.0)
-    max_disease_conf = max((b["confidence"] for b in disease_boxes), default=0.0)
-    
-    is_leaf_healthy = False
-    unclear_disease = False
-    
-    if len(disease_boxes) == 0:
-        is_leaf_healthy = True
-    elif max_healthy_conf > 0:
-        # Khi model đồng thời nhận diện vùng lá Healthy:
-        # 1. Độ tin cậy Healthy cao hơn hoặc bằng độ tin cậy bệnh hại
-        # 2. Hoặc Healthy >= 0.50 trong khi bệnh hại còn mờ nhạt (< 0.45)
-        if max_healthy_conf >= max_disease_conf or (max_healthy_conf >= 0.50 and max_disease_conf < 0.45):
-            is_leaf_healthy = True
-            unclear_disease = True
-            logger.info(
-                f"Suppressed unclear disease ({max_disease_conf:.2f}) in favor of Healthy ({max_healthy_conf:.2f})"
-            )
-            
-    if is_leaf_healthy:
-        status = "no_detection"
-        detections = []
-    else:
-        status = "detected"
-        detections = disease_boxes
-    
-    # Generate annotated image
-    result_rel_path = None
-    if detections:
-        result_filename = f"{uid}_annotated.jpg"
-        result_dest = settings.results_dir / result_filename
-        draw_bounding_boxes(str(orig_dest), detections, str(result_dest))
-        result_rel_path = f"results/{result_filename}"
-        
-    orig_rel_path = f"originals/{orig_filename}"
-    
-    # Store records in SQLite
+    ext = Path(image_path).suffix.lower() or ".jpg"
+    dest = settings.originals_dir / f"{uid}_orig{ext}"
+    shutil.copy2(image_path, str(dest))
+    return uid, dest
+
+
+def _render_annotated(uid: str, orig_dest: Path, detections: tuple[dict, ...]) -> str | None:
+    if not detections:
+        return None
+    result_filename = f"{uid}_annotated.jpg"
+    draw_bounding_boxes(str(orig_dest), list(detections), str(settings.results_dir / result_filename))
+    return f"results/{result_filename}"
+
+
+def _persist(
+    db: Session,
+    *,
+    user_id: int,
+    crop: CropConfig,
+    model_version: str | None,
+    orig_rel_path: str,
+    result_rel_path: str | None,
+    outcome: DetectionOutcome,
+    inference_time: float,
+    severity_pct: float | None = None,
+    location: tuple[float, float] | None = None,
+) -> DiagnosisHistory:
     diagnosis = DiagnosisHistory(
         user_id=user_id,
+        crop_code=crop.code,
+        model_version=model_version,
         original_image_path=orig_rel_path,
         result_image_path=result_rel_path,
-        status=status,
-        inference_time=round(inference_time, 3)
+        status=outcome.status,
+        inference_time=round(inference_time, 3),
+        severity_pct=severity_pct,
+        latitude=location[0] if location else None,
+        longitude=location[1] if location else None,
+        share_to_radar=location is not None,
     )
     db.add(diagnosis)
     db.flush()
-    
-    for det in detections:
-        rec = DetectionResult(
-            history_id=diagnosis.id,
-            class_name=det["class_name"],
-            confidence=det["confidence"],
-            x1=det["x1"],
-            y1=det["y1"],
-            x2=det["x2"],
-            y2=det["y2"]
-        )
-        db.add(rec)
-        
+    for det in outcome.detections:
+        db.add(DetectionResult(history_id=diagnosis.id, **det))
     db.commit()
     db.refresh(diagnosis)
-    
-    # Gắn metadata bổ sung phục vụ response
-    setattr(diagnosis, "healthy_confidence", round(max_healthy_conf, 4) if max_healthy_conf > 0 else None)
-    setattr(diagnosis, "unclear_disease_suppressed", unclear_disease)
-    
     return diagnosis
+
+
+def run_prediction(
+    image_path: str,
+    user_id: int,
+    db: Session,
+    crop: CropConfig,
+    location: tuple[float, float] | None = None,
+) -> tuple[DiagnosisHistory, DetectionOutcome]:
+    """Run the crop's model on an uploaded image, persist the diagnosis and return it with its outcome.
+
+    Raises ModelUnavailableError when the crop has no usable model.
+    """
+    detector = model_registry.get(crop)
+    start_time = time.time()
+    uid, orig_dest = _store_original(image_path)
+    result_rel_path: str | None = None
+    try:
+        outcome = evaluate_detections(detector.detect(str(orig_dest)), crop)
+        inference_time = time.time() - start_time
+        if outcome.unclear_disease_suppressed:
+            logger.info("Suppressed unclear disease in favor of Healthy (%s)", outcome.healthy_confidence)
+        result_rel_path = _render_annotated(uid, orig_dest, outcome.detections)
+        severity = measure_severity(str(orig_dest))
+        diagnosis = _persist(
+            db,
+            user_id=user_id,
+            crop=crop,
+            model_version=getattr(detector, "version", None),
+            orig_rel_path=f"originals/{orig_dest.name}",
+            result_rel_path=result_rel_path,
+            outcome=outcome,
+            inference_time=inference_time,
+            severity_pct=severity.severity_pct if severity else None,
+            location=location,
+        )
+    except Exception:
+        db.rollback()
+        _remove_quietly(orig_dest)
+        if result_rel_path:
+            _remove_quietly(settings.storage_dir / result_rel_path)
+        raise
+    return diagnosis, outcome
+
+
+def _remove_quietly(path: Path) -> None:
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        logger.warning("Could not remove orphaned file %s", path)
+
+
+def build_summary(crop: CropConfig, outcome: DetectionOutcome, detections: list) -> str:
+    """Human-readable Vietnamese summary of a diagnosis."""
+    leaf = f"lá {crop.name_vi.lower()}"
+    if not detections:
+        conf = outcome.healthy_confidence
+        if conf:
+            if outcome.unclear_disease_suppressed:
+                return (
+                    f"Mô hình xác nhận {leaf} khỏe mạnh với độ tin cậy {conf * 100:.1f}%. "
+                    "Các triệu chứng nghi ngờ mờ nhạt hoặc không đủ rõ ràng để xác nhận bệnh hại."
+                )
+            return (
+                f"Mô hình xác nhận {leaf} khỏe mạnh (Healthy) với độ tin cậy {conf * 100:.1f}%. "
+                "Không phát hiện dấu hiệu bệnh hại."
+            )
+        return f"Không phát hiện dấu hiệu bệnh hại trên lá ở ngưỡng độ tin cậy hiện tại. {leaf.capitalize()} khỏe mạnh."
+    top = max(detections, key=lambda d: d.confidence)
+    name = top.class_name.replace("Tomato___", "").replace("_", " ")
+    return (
+        f"Phát hiện dấu hiệu {name} trên {leaf} với độ tin cậy {top.confidence * 100:.1f}% "
+        f"trên {len(detections)} vùng tổn thương."
+    )

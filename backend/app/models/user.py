@@ -13,3 +13,4 @@ class User(Base):
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     
     diagnoses = relationship("DiagnosisHistory", back_populates="user", cascade="all, delete-orphan")
+    treatments = relationship("Treatment", cascade="all, delete-orphan", passive_deletes=True)
