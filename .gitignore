@@ -48,3 +48,14 @@ backend/app/storage/results/*
 *.swo
 .DS_Store
 Thumbs.db
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Deploy tool local state
+.vercel/
+.firebase/
+
+# TypeScript incremental build info
+*.tsbuildinfo
