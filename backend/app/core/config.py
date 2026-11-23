@@ -1,12 +1,16 @@
 from __future__ import annotations
 from pydantic_settings import BaseSettings
 from pathlib import Path
-import os
+
+# Development-only fallback; production startup refuses to run with it.
+DEV_SECRET_KEY = "leafai-super-secret-key-at-least-32-chars-long-development"
+MIN_SECRET_LENGTH = 32
+
 
 class Settings(BaseSettings):
     APP_ENV: str = "development"
     DATABASE_URL: str = "sqlite:///./data/leafai.db"
-    SECRET_KEY: str = "leafai-super-secret-key-at-least-32-chars-long-development"
+    SECRET_KEY: str = DEV_SECRET_KEY
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     FRONTEND_ORIGIN: str = "http://localhost:5173"
     MODEL_PATH: str = "../model/model.pt"
@@ -72,9 +76,36 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 10
     # Số model cây trồng tối đa giữ trong RAM cùng lúc (LRU). Tăng khi server có nhiều RAM.
     MAX_LOADED_MODELS: int = 2
-    # Trợ lý hỏi đáp: để trống ANTHROPIC_API_KEY thì trợ lý trả lời từ thư viện bệnh (không gọi AI).
+    # Trợ lý hỏi đáp. ASSISTANT_PROVIDER: auto (Gemini nếu có key, rồi Claude) | gemini | anthropic | none.
+    # Không có key nào thì trợ lý trả lời từ thư viện bệnh (không gọi AI).
+    ASSISTANT_PROVIDER: str = "auto"
+    GEMINI_API_KEY: str | None = None
+    GEMINI_MODEL: str = "gemini-3.5-flash"
     ANTHROPIC_API_KEY: str | None = None
     ASSISTANT_MODEL: str = "claude-haiku-5-5"
+
+    # Giới hạn tần suất (mỗi phút). Tắt được khi test.
+    RATE_LIMIT_ENABLED: bool = True
+    AUTH_RATE_LIMIT_PER_MINUTE: int = 10
+    PREDICT_RATE_LIMIT_PER_MINUTE: int = 20
+    LOGIN_PER_EMAIL_PER_MINUTE: int = 5
+    IMAGE_REDIRECT_PER_MINUTE: int = 120
+    # Chỉ tin X-Forwarded-For khi chạy sau reverse proxy (Render, HF Spaces).
+    TRUST_PROXY_HEADERS: bool = False
+
+    # Job định kỳ (GitHub Actions cron gọi /api/internal/jobs/alerts với header X-Cron-Secret).
+    CRON_SECRET: str | None = None
+    # Web Push (VAPID). Tạo khóa: python -m app.scripts.generate_vapid_keys
+    VAPID_PUBLIC_KEY: str | None = None
+    VAPID_PRIVATE_KEY: str | None = None
+    VAPID_SUBJECT: str = "mailto:admin@leafai.local"
+    MAX_FARMS_PER_USER: int = 10
+
+    # Lưu ảnh: "local" (thư mục storage) hoặc "supabase" (Supabase Storage, bucket riêng tư).
+    STORAGE_BACKEND: str = "local"
+    SUPABASE_URL: str | None = None
+    SUPABASE_SERVICE_KEY: str | None = None
+    SUPABASE_BUCKET: str = "leaf-images"
 
     @property
     def max_upload_bytes(self) -> int:
@@ -138,6 +169,18 @@ class Settings(BaseSettings):
         extra = "ignore"
 
 settings = Settings()
+
+
+def validate_production_settings(s: Settings) -> None:
+    """Refuse to start a production server with insecure defaults."""
+    if s.APP_ENV.lower() != "production":
+        return
+    if s.SECRET_KEY == DEV_SECRET_KEY or len(s.SECRET_KEY) < MIN_SECRET_LENGTH:
+        raise RuntimeError(
+            f"SECRET_KEY must be set to a random value of at least {MIN_SECRET_LENGTH} characters in production."
+        )
+    if s.CRON_SECRET is not None and len(s.CRON_SECRET) < MIN_SECRET_LENGTH:
+        raise RuntimeError(f"CRON_SECRET must be at least {MIN_SECRET_LENGTH} characters.")
 
 # Mapping label đề xuất theo danh sách khách hàng:
 LABEL_MAPPING: dict[str, str] = {

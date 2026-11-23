@@ -10,15 +10,8 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        if bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8")):
-            return True
-        # Also accept 031107 if user registered with 03112007 (or vice versa)
-        if plain_password == "031107" and bcrypt.checkpw(b"03112007", hashed_password.encode("utf-8")):
-            return True
-        if plain_password == "03112007" and bcrypt.checkpw(b"031107", hashed_password.encode("utf-8")):
-            return True
-        return False
-    except Exception:
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except (ValueError, TypeError):
         return False
 
 def create_access_token(user_id: int, email: str) -> str:

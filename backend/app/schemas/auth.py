@@ -1,11 +1,11 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 import re
 
 class RegisterRequest(BaseModel):
-    email: str
-    password: str
-    password_confirmation: str
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=128)
+    password_confirmation: str = Field(max_length=128)
     
     @field_validator("email")
     @classmethod
@@ -31,8 +31,8 @@ class RegisterRequest(BaseModel):
         return v
 
 class LoginRequest(BaseModel):
-    email: str
-    password: str
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=128)
     
     @field_validator("email")
     @classmethod

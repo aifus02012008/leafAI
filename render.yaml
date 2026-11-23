@@ -11,3 +11,14 @@ services:
         value: production
       - key: FRONTEND_ORIGIN
         value: https://hieu0345984559.github.io
+      - key: TRUST_PROXY_HEADERS
+        value: "true"
+      # Generated once by Render and kept secret; production refuses to start without a strong key.
+      - key: SECRET_KEY
+        generateValue: true
+      # Copy this value into the GitHub secret CRON_SECRET used by .github/workflows/alerts-cron.yml.
+      - key: CRON_SECRET
+        generateValue: true
+      # Set in the Render dashboard (not committed): VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY,
+      # DATABASE_URL (Supabase Postgres), STORAGE_BACKEND=supabase, SUPABASE_URL, SUPABASE_SERVICE_KEY,
+      # ANTHROPIC_API_KEY.

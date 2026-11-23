@@ -46,7 +46,7 @@ Configure parameters in `.env`:
 ```env
 APP_ENV=development
 DATABASE_URL=sqlite:///./data/leafai.db
-SECRET_KEY=leafai-super-secret-key-at-least-32-chars-long-development
+SECRET_KEY=<random string, >= 32 chars; required when APP_ENV=production>
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 FRONTEND_ORIGIN=http://localhost:5173
 MODEL_PATH=../model/best.pt
