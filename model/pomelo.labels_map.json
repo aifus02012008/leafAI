@@ -11,17 +11,17 @@
     "5": "Leaf_Leafminer",
     "6": "Leaf_Swallowtail"
   },
-  "trained_at": "2026-11-24T15:39:43+00:00",
+  "trained_at": "2026-11-24T17:55:31+00:00",
   "base_model": "yolo11s-cls.pt",
   "dataset_counts": {
     "train": {
-      "Leaf_Anthracnose": 425,
-      "Leaf_Canker": 435,
-      "Leaf_Curl": 444,
-      "Leaf_Greening": 432,
-      "Leaf_Healthy": 440,
-      "Leaf_Leafminer": 454,
-      "Leaf_Swallowtail": 440
+      "Leaf_Anthracnose": 1275,
+      "Leaf_Canker": 1303,
+      "Leaf_Curl": 1332,
+      "Leaf_Greening": 1296,
+      "Leaf_Healthy": 1320,
+      "Leaf_Leafminer": 1362,
+      "Leaf_Swallowtail": 1320
     },
     "val": {
       "Leaf_Anthracnose": 92,
@@ -43,31 +43,31 @@
     }
   },
   "test_metrics": {
-    "accuracy": 0.9486,
-    "macro_f1": 0.9486,
+    "accuracy": 0.9577,
+    "macro_f1": 0.9578,
     "per_class": {
       "Leaf_Anthracnose": {
-        "precision": 0.9892,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.9946,
+        "f1": 1.0,
         "support": 92
       },
       "Leaf_Canker": {
-        "precision": 0.9792,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.9895,
+        "f1": 1.0,
         "support": 94
       },
       "Leaf_Curl": {
-        "precision": 0.8791,
-        "recall": 0.8421,
-        "f1": 0.8602,
+        "precision": 0.9022,
+        "recall": 0.8737,
+        "f1": 0.8877,
         "support": 95
       },
       "Leaf_Greening": {
-        "precision": 0.9293,
+        "precision": 0.9583,
         "recall": 0.9892,
-        "f1": 0.9583,
+        "f1": 0.9735,
         "support": 93
       },
       "Leaf_Healthy": {
@@ -77,15 +77,15 @@
         "support": 95
       },
       "Leaf_Leafminer": {
-        "precision": 0.9255,
-        "recall": 0.8878,
-        "f1": 0.9062,
+        "precision": 0.9341,
+        "recall": 0.8673,
+        "f1": 0.8995,
         "support": 98
       },
       "Leaf_Swallowtail": {
-        "precision": 0.9362,
-        "recall": 0.9263,
-        "f1": 0.9312,
+        "precision": 0.9118,
+        "recall": 0.9789,
+        "f1": 0.9442,
         "support": 95
       }
     },
@@ -119,13 +119,13 @@
           0
         ],
         [
-          1,
-          1,
-          80,
-          4,
           0,
-          6,
-          3
+          0,
+          83,
+          3,
+          0,
+          5,
+          4
         ],
         [
           0,
@@ -151,19 +151,20 @@
           8,
           1,
           0,
-          87,
-          2
+          85,
+          4
         ],
         [
           0,
-          1,
-          3,
-          2,
           0,
           1,
-          88
+          0,
+          0,
+          1,
+          93
         ]
       ]
     }
-  }
+  },
+  "variant": "background-composite augmentation (ml/compose_backgrounds.py)"
 }

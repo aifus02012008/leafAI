@@ -87,8 +87,9 @@ crops:
     name_en: Pomelo
     scientific_name: Citrus maxima
     weights: model/pomelo.pt
-    # YOLO11s-cls trained on citrus (lemon) leaves: Mendeley DOI 10.17632/smz8ffbthy.3 (CC BY 4.0).
-    model_version: pomelo-cls-v1
+    # YOLO11s-cls trained on citrus (lemon) leaves: Mendeley DOI 10.17632/smz8ffbthy.3 (CC BY 4.0),
+    # train set augmented by pasting leaves on field backgrounds (test acc 95.8%, macro-F1 0.958).
+    model_version: pomelo-cls-v2
     img_size: 288
     base_confidence: 0.10
     default_threshold: 0.45
