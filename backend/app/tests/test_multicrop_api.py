@@ -74,7 +74,7 @@ def test_list_crops(client):
     res = client.get("/api/crops")
     assert res.status_code == 200
     crops = {c["code"]: c for c in res.json()}
-    assert set(crops) == {"tea", "durian", "mangosteen", "rambutan"}
+    assert set(crops) == {"tea", "durian", "mangosteen", "rambutan", "guava", "pomelo"}
     assert crops["tea"]["is_available"] is True
     assert crops["tea"]["name_vi"]
     assert crops["durian"]["disease_count"] >= 1
@@ -98,7 +98,7 @@ def test_diseases_filtered_by_crop(client):
 
 def test_diseases_without_filter_returns_all_crops(client):
     all_items = client.get("/api/diseases").json()
-    assert {d["crop_code"] for d in all_items} == {"tea", "durian", "mangosteen", "rambutan"}
+    assert {d["crop_code"] for d in all_items} == {"tea", "durian", "mangosteen", "rambutan", "guava", "pomelo"}
 
 
 def test_diseases_unknown_crop_is_rejected(client):

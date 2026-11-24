@@ -64,6 +64,44 @@ crops:
       Algal_Leaf_Spot: "Đốm rong măng cụt (Mangosteen algal leaf spot)"
       Sooty_Mold: "Bồ hóng măng cụt (Mangosteen sooty mold)"
 
+  - code: guava
+    name_vi: Ổi
+    name_en: Guava
+    scientific_name: Psidium guajava
+    weights: model/guava.pt
+    # YOLO11s-cls: Mendeley DOI 10.17632/fspx44mwfp.1 (CC BY 4.0), original leaf photos only.
+    model_version: guava-cls-v1
+    img_size: 288
+    base_confidence: 0.10
+    default_threshold: 0.45
+    healthy_threshold: 0.45
+    healthy_labels: [Leaf_Healthy, Healthy]
+    label_map:
+      Leaf_Anthracnose: "Thán thư ổi (Guava anthracnose)"
+      Leaf_Canker: "Loét lá ổi (Guava canker)"
+      Leaf_Dot: "Đốm lá ổi (Guava leaf dot)"
+      Leaf_Rust: "Gỉ sắt ổi (Guava rust)"
+
+  - code: pomelo
+    name_vi: Bưởi
+    name_en: Pomelo
+    scientific_name: Citrus maxima
+    weights: model/pomelo.pt
+    # YOLO11s-cls trained on citrus (lemon) leaves: Mendeley DOI 10.17632/smz8ffbthy.3 (CC BY 4.0).
+    model_version: pomelo-cls-v1
+    img_size: 288
+    base_confidence: 0.10
+    default_threshold: 0.45
+    healthy_threshold: 0.45
+    healthy_labels: [Leaf_Healthy, Healthy]
+    label_map:
+      Leaf_Anthracnose: "Thán thư bưởi (Pomelo anthracnose)"
+      Leaf_Canker: "Loét lá bưởi (Citrus canker)"
+      Leaf_Greening: "Vàng lá gân xanh bưởi (Citrus greening / HLB)"
+      Leaf_Leafminer: "Sâu vẽ bùa hại bưởi (Citrus leafminer)"
+      Leaf_Curl: "Xoăn lá bưởi do chích hút (Citrus leaf curl)"
+      Leaf_Swallowtail: "Sâu xanh bướm phượng ăn lá bưởi (Swallowtail caterpillar)"
+
   - code: rambutan
     name_vi: Chôm chôm
     name_en: Rambutan

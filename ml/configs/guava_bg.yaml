@@ -1,0 +1,37 @@
+# Guava leaf disease classifier (YOLO11-cls).
+# Dataset: "Image Dataset for Detection and classification of Diseases of Guava Fruits and Leaves",
+# Mendeley Data, DOI 10.17632/fspx44mwfp.1, licence CC BY 4.0 (Data in Brief 59, 111378, 2025).
+# Only ORIGINAL leaf photos are used (2,063); healthy capped to 500 for balance; split leak-free by ml/prepare_dataset.py.
+# (GLDAD, DOI 10.17632/rp2csdzxgr.1, was rejected: 66,000 files but only 43 distinct photos.)
+crop: guava_bg
+task: classify
+data: datasets/guava_b/cls_bg
+source:
+  zip: "datasets/guava_b/raw/Guava Fruits_Dataset.zip"
+  prefix: "Guava Fruits_Dataset/ORGINAL/Guava Fruits and leaves Dataset/Guava_Leaf/"
+  max_per_class: 500
+  max_side: 640
+  class_map:
+    Disease/Anthracnose: Leaf_Anthracnose
+    Disease/Canker: Leaf_Canker
+    Disease/Dot: Leaf_Dot
+    Disease/Rust: Leaf_Rust
+    Healthy: Leaf_Healthy
+base_model: yolo11s-cls.pt
+imgsz: 288
+epochs: 100
+patience: 25
+batch: 48
+seed: 42
+augment:
+  hsv_h: 0.02
+  hsv_s: 0.5
+  hsv_v: 0.4
+  degrees: 25
+  translate: 0.1
+  scale: 0.4
+  fliplr: 0.5
+  flipud: 0.3
+  erasing: 0.25
+  auto_augment: randaugment
+output: ml/candidates/guava_bg.pt

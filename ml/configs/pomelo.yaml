@@ -1,0 +1,36 @@
+# Pomelo (Citrus maxima) leaf disease classifier (YOLO11-cls), trained on CITRUS (lemon) leaves.
+# No public pomelo leaf dataset exists; canker, greening (HLB), leafminer, anthracnose and leaf curl look
+# alike across Citrus species. Dataset: "Lemon Leaf Dataset: Images of Citrus Diseases and Healthy Leaves
+# from Bangladesh", Mendeley Data, DOI 10.17632/smz8ffbthy.3, licence CC BY 4.0. 4,394 images, 7 classes.
+crop: pomelo
+task: classify
+data: datasets/pomelo/cls
+source:
+  zip: "datasets/pomelo/raw/Lemon Leaf Dataset.zip"
+  prefix: ""
+  class_map:
+    Anthracnose: Leaf_Anthracnose
+    Citrus_Canker: Leaf_Canker
+    Citrus_Greening_Huanglongbing: Leaf_Greening
+    Citrus_Leaf_Curl: Leaf_Curl
+    Citrus_Leafminer: Leaf_Leafminer
+    Healthy Lemon Leaf: Leaf_Healthy
+    Swallowtail Larval Herbivory (Deficiency): Leaf_Swallowtail
+base_model: yolo11s-cls.pt
+imgsz: 288
+epochs: 100
+patience: 25
+batch: 48
+seed: 42
+augment:
+  hsv_h: 0.02
+  hsv_s: 0.5
+  hsv_v: 0.4
+  degrees: 25
+  translate: 0.1
+  scale: 0.4
+  fliplr: 0.5
+  flipud: 0.3
+  erasing: 0.25
+  auto_augment: randaugment
+output: model/pomelo.pt

@@ -15,6 +15,7 @@ const PRESET_AREAS: { label: string; point: GeoPoint }[] = [
   { label: 'Lục Ngạn, Bắc Giang (vải thiều)', point: { lat: 21.3833, lng: 106.65 } },
   { label: 'Tân Cương, Thái Nguyên (chè)', point: { lat: 21.5594, lng: 105.7708 } },
   { label: 'Krông Pắc, Đắk Lắk (sầu riêng)', point: { lat: 12.6944, lng: 108.3253 } },
+  { label: 'Bình Minh, Vĩnh Long (bưởi Năm Roi)', point: { lat: 10.0369, lng: 105.8217 } },
 ];
 
 const LEVEL_META: Record<RiskLevel, { label: string; className: string }> = {

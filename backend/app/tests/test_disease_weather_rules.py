@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from app.db.seed import durian, mangosteen, rambutan, tea
+from app.db.seed import durian, guava, mangosteen, pomelo, rambutan, tea
 from app.services import disease_weather_rules as rules
 from app.services.radar_rules import DayWeather, NearbyCases, assess_risk
 
@@ -33,6 +33,15 @@ HUMID_NIGHTS = Day(humid_hours=6, t_min=21, t_max=29, precip_mm=0)
         (mangosteen.SOOTY_MOLD, rules.DRY_HOT),
         (mangosteen.PESTALOTIOPSIS, rules.LEAF_SPOT),
         (rambutan.POWDERY_MILDEW, rules.POWDERY),
+        (pomelo.CANKER, rules.CANKER),
+        (guava.RUST, rules.RUST),
+        (guava.DOT, rules.LEAF_SPOT),
+        (guava.CANKER, rules.CANKER),
+        (pomelo.LEAFMINER, rules.DRY_HOT),
+        (pomelo.GREENING, rules.DRY_HOT),
+        (pomelo.SWALLOWTAIL, rules.DRY_HOT),
+        (pomelo.LEAF_CURL, rules.DRY_HOT),
+        (pomelo.ANTHRACNOSE, rules.ANTHRACNOSE),
         ("Gỉ sắt lá chè (Leaf rust of tea)", rules.RUST),
         ("Lá chè bị nhện đỏ gây hại (Red spider mite infested tea leaf)", rules.DRY_HOT),
         ("Một bệnh chưa biết", rules.DEFAULT),
@@ -43,7 +52,7 @@ def test_profile_matching(disease, profile):
 
 
 def test_every_library_disease_has_a_specific_profile():
-    for module, attr in ((durian, "DURIAN_DISEASES"), (mangosteen, "MANGOSTEEN_DISEASES"), (rambutan, "RAMBUTAN_DISEASES"), (tea, "TEA_DISEASES")):
+    for module, attr in ((durian, "DURIAN_DISEASES"), (mangosteen, "MANGOSTEEN_DISEASES"), (rambutan, "RAMBUTAN_DISEASES"), (pomelo, "POMELO_DISEASES"), (guava, "GUAVA_DISEASES"), (tea, "TEA_DISEASES")):
         for entry in getattr(module, attr, []):
             assert rules.profile_for(entry["class_name"]) is not rules.DEFAULT, entry["class_name"]
 

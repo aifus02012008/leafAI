@@ -69,16 +69,22 @@ LEAF_SPOT = WeatherProfile(
     "leaf_spot", "wet", min_humid_hours=6, min_rain_mm=5, temp_low=20, temp_high=32,
     note="ẩm độ cao, lá ướt lâu thuận lợi cho nấm gây đốm/cháy lá",
 )
+CANKER = WeatherProfile(
+    "canker", "wet", min_humid_hours=8, min_rain_mm=10, temp_low=24, temp_high=34,
+    note="mưa lớn kèm gió làm vi khuẩn loét bắn sang lá non",
+)
 DRY_HOT = WeatherProfile(
     "dry_hot", "dry_hot",
-    note="khô nóng thuận lợi cho rầy, nhện, bọ xít và nấm bồ hóng đi kèm",
+    note="khô nóng, ra lộc non thuận lợi cho rầy, sâu vẽ bùa, nhện, bọ xít và nấm bồ hóng đi kèm",
 )
 DEFAULT = WeatherProfile("default", "wet", note="ẩm độ cao, mưa nhiều thuận lợi cho bệnh lây lan")
 
 # Order matters: the first matching keyword group wins.
 _KEYWORDS: tuple[tuple[tuple[str, ...], WeatherProfile], ...] = (
     (("phytophthora",), PHYTOPHTHORA),
-    (("rầy", "nhện", "bọ xít", "bọ trĩ", "psyllid", "leafhopper", "mite", "bug", "thrips", "bồ hóng", "sooty"), DRY_HOT),
+    (("loét", "canker"), CANKER),
+    (("rầy", "nhện", "bọ xít", "bọ trĩ", "psyllid", "leafhopper", "mite", "bug", "thrips", "bồ hóng", "sooty",
+      "sâu vẽ bùa", "leafminer", "sâu xanh", "caterpillar", "vàng lá gân xanh", "greening", "xoăn lá", "leaf curl"), DRY_HOT),
     (("phấn trắng", "powdery"), POWDERY),
     (("gỉ sắt", "rust"), RUST),
     (("rong", "algal"), ALGAL),

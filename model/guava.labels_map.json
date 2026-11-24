@@ -1,0 +1,119 @@
+{
+  "crop": "guava",
+  "task": "classify",
+  "imgsz": 288,
+  "names": {
+    "0": "Leaf_Anthracnose",
+    "1": "Leaf_Canker",
+    "2": "Leaf_Dot",
+    "3": "Leaf_Healthy",
+    "4": "Leaf_Rust"
+  },
+  "trained_at": "2026-11-24T16:19:05+00:00",
+  "base_model": "yolo11s-cls.pt",
+  "dataset_counts": {
+    "train": {
+      "Leaf_Anthracnose": 165,
+      "Leaf_Canker": 134,
+      "Leaf_Dot": 153,
+      "Leaf_Healthy": 350,
+      "Leaf_Rust": 109
+    },
+    "val": {
+      "Leaf_Anthracnose": 36,
+      "Leaf_Canker": 29,
+      "Leaf_Dot": 33,
+      "Leaf_Healthy": 75,
+      "Leaf_Rust": 24
+    },
+    "test": {
+      "Leaf_Anthracnose": 36,
+      "Leaf_Canker": 29,
+      "Leaf_Dot": 33,
+      "Leaf_Healthy": 75,
+      "Leaf_Rust": 24
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.8376,
+    "macro_f1": 0.8262,
+    "per_class": {
+      "Leaf_Anthracnose": {
+        "precision": 0.8056,
+        "recall": 0.8056,
+        "f1": 0.8056,
+        "support": 36
+      },
+      "Leaf_Canker": {
+        "precision": 0.8519,
+        "recall": 0.7931,
+        "f1": 0.8214,
+        "support": 29
+      },
+      "Leaf_Dot": {
+        "precision": 0.8214,
+        "recall": 0.697,
+        "f1": 0.7541,
+        "support": 33
+      },
+      "Leaf_Healthy": {
+        "precision": 0.8333,
+        "recall": 0.9333,
+        "f1": 0.8805,
+        "support": 75
+      },
+      "Leaf_Rust": {
+        "precision": 0.9091,
+        "recall": 0.8333,
+        "f1": 0.8696,
+        "support": 24
+      }
+    },
+    "confusion": {
+      "labels": [
+        "Leaf_Anthracnose",
+        "Leaf_Canker",
+        "Leaf_Dot",
+        "Leaf_Healthy",
+        "Leaf_Rust"
+      ],
+      "matrix": [
+        [
+          29,
+          0,
+          1,
+          6,
+          0
+        ],
+        [
+          2,
+          23,
+          1,
+          1,
+          2
+        ],
+        [
+          4,
+          0,
+          23,
+          6,
+          0
+        ],
+        [
+          0,
+          3,
+          2,
+          70,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          1,
+          20
+        ]
+      ]
+    }
+  }
+}

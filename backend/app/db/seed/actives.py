@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from types import MappingProxyType
 
-from app.db.seed import durian, mangosteen, rambutan
+from app.db.seed import durian, guava, mangosteen, pomelo, rambutan
 
 
 def _a(code, name, kind, scheme, moa, banned=False, note=None) -> dict:
@@ -54,6 +54,8 @@ ACTIVE_INGREDIENTS: tuple[dict, ...] = (
     _a("flonicamid", "Flonicamid", "insecticide", "IRAC", "29"),
     _a("pymetrozine", "Pymetrozine", "insecticide", "IRAC", "9B"),
     _a("spirotetramat", "Spirotetramat", "insecticide", "IRAC", "23"),
+    _a("spinetoram", "Spinetoram", "insecticide", "IRAC", "5"),
+    _a("bacillus_thuringiensis", "Bacillus thuringiensis (Bt, sinh học)", "insecticide", "IRAC", "11A"),
     _a("mineral_oil", "Dầu khoáng (Mineral oil)", "insecticide", "IRAC", None,
        note="Tác động vật lý (làm ngạt), ít nguy cơ kháng."),
     _a("hexythiazox", "Hexythiazox", "acaricide", "IRAC", "10A"),
@@ -86,6 +88,16 @@ DISEASE_ACTIVES = MappingProxyType({
     ("mangosteen", mangosteen.PESTALOTIOPSIS): ("mancozeb", "propineb", "azoxystrobin", "difenoconazole", "copper_hydroxide"),
     ("mangosteen", mangosteen.ALGAL): _ALGAL,
     ("mangosteen", mangosteen.SOOTY_MOLD): _SOOTY,
+    ("guava", guava.ANTHRACNOSE): _FUNGAL_LEAF,
+    ("guava", guava.CANKER): ("copper_hydroxide", "mancozeb", "azoxystrobin", "difenoconazole"),
+    ("guava", guava.DOT): ("mancozeb", "propineb", "azoxystrobin", "difenoconazole"),
+    ("guava", guava.RUST): ("hexaconazole", "propiconazole", "azoxystrobin", "mancozeb", "sulfur"),
+    ("pomelo", pomelo.ANTHRACNOSE): _FUNGAL_LEAF,
+    ("pomelo", pomelo.CANKER): ("copper_hydroxide", "copper_oxychloride"),
+    ("pomelo", pomelo.GREENING): ("thiamethoxam", "dinotefuran", "imidacloprid", "mineral_oil"),
+    ("pomelo", pomelo.LEAFMINER): ("abamectin", "spinetoram", "emamectin_benzoate", "mineral_oil"),
+    ("pomelo", pomelo.LEAF_CURL): ("thiamethoxam", "pymetrozine", "abamectin", "hexythiazox", "spinetoram", "mineral_oil"),
+    ("pomelo", pomelo.SWALLOWTAIL): ("bacillus_thuringiensis", "spinetoram", "emamectin_benzoate"),
     ("rambutan", rambutan.POWDERY_MILDEW): ("sulfur", "hexaconazole", "difenoconazole", "azoxystrobin"),
     ("rambutan", rambutan.ANTHRACNOSE): _FUNGAL_LEAF,
     ("rambutan", rambutan.ALGAL): _ALGAL,

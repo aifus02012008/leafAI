@@ -1,0 +1,169 @@
+{
+  "crop": "pomelo",
+  "task": "classify",
+  "imgsz": 288,
+  "names": {
+    "0": "Leaf_Anthracnose",
+    "1": "Leaf_Canker",
+    "2": "Leaf_Curl",
+    "3": "Leaf_Greening",
+    "4": "Leaf_Healthy",
+    "5": "Leaf_Leafminer",
+    "6": "Leaf_Swallowtail"
+  },
+  "trained_at": "2026-11-24T15:39:43+00:00",
+  "base_model": "yolo11s-cls.pt",
+  "dataset_counts": {
+    "train": {
+      "Leaf_Anthracnose": 425,
+      "Leaf_Canker": 435,
+      "Leaf_Curl": 444,
+      "Leaf_Greening": 432,
+      "Leaf_Healthy": 440,
+      "Leaf_Leafminer": 454,
+      "Leaf_Swallowtail": 440
+    },
+    "val": {
+      "Leaf_Anthracnose": 92,
+      "Leaf_Canker": 94,
+      "Leaf_Curl": 95,
+      "Leaf_Greening": 93,
+      "Leaf_Healthy": 95,
+      "Leaf_Leafminer": 98,
+      "Leaf_Swallowtail": 95
+    },
+    "test": {
+      "Leaf_Anthracnose": 92,
+      "Leaf_Canker": 94,
+      "Leaf_Curl": 95,
+      "Leaf_Greening": 93,
+      "Leaf_Healthy": 95,
+      "Leaf_Leafminer": 98,
+      "Leaf_Swallowtail": 95
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.9486,
+    "macro_f1": 0.9486,
+    "per_class": {
+      "Leaf_Anthracnose": {
+        "precision": 0.9892,
+        "recall": 1.0,
+        "f1": 0.9946,
+        "support": 92
+      },
+      "Leaf_Canker": {
+        "precision": 0.9792,
+        "recall": 1.0,
+        "f1": 0.9895,
+        "support": 94
+      },
+      "Leaf_Curl": {
+        "precision": 0.8791,
+        "recall": 0.8421,
+        "f1": 0.8602,
+        "support": 95
+      },
+      "Leaf_Greening": {
+        "precision": 0.9293,
+        "recall": 0.9892,
+        "f1": 0.9583,
+        "support": 93
+      },
+      "Leaf_Healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 95
+      },
+      "Leaf_Leafminer": {
+        "precision": 0.9255,
+        "recall": 0.8878,
+        "f1": 0.9062,
+        "support": 98
+      },
+      "Leaf_Swallowtail": {
+        "precision": 0.9362,
+        "recall": 0.9263,
+        "f1": 0.9312,
+        "support": 95
+      }
+    },
+    "confusion": {
+      "labels": [
+        "Leaf_Anthracnose",
+        "Leaf_Canker",
+        "Leaf_Curl",
+        "Leaf_Greening",
+        "Leaf_Healthy",
+        "Leaf_Leafminer",
+        "Leaf_Swallowtail"
+      ],
+      "matrix": [
+        [
+          92,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          94,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          1,
+          80,
+          4,
+          0,
+          6,
+          3
+        ],
+        [
+          0,
+          0,
+          0,
+          92,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          95,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          1,
+          0,
+          87,
+          2
+        ],
+        [
+          0,
+          1,
+          3,
+          2,
+          0,
+          1,
+          88
+        ]
+      ]
+    }
+  }
+}

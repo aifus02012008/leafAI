@@ -7,7 +7,7 @@ from app.core.crops import (
     list_crops,
 )
 
-EXPECTED_CODES = {"tea", "durian", "mangosteen", "rambutan"}
+EXPECTED_CODES = {"tea", "durian", "mangosteen", "rambutan", "guava", "pomelo"}
 
 
 def test_registry_lists_all_supported_crops():

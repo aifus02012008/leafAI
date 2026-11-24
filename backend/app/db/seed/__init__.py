@@ -7,7 +7,9 @@ from types import MappingProxyType
 from sqlalchemy.orm import Session
 
 from app.db.seed.durian import DURIAN_DISEASES
+from app.db.seed.guava import GUAVA_DISEASES
 from app.db.seed.mangosteen import MANGOSTEEN_DISEASES
+from app.db.seed.pomelo import POMELO_DISEASES
 from app.db.seed.rambutan import RAMBUTAN_DISEASES
 from app.db.seed.tea import TEA_DISEASES
 from app.models.disease import Disease
@@ -19,6 +21,8 @@ SEED_BY_CROP = MappingProxyType({
     "durian": tuple(DURIAN_DISEASES),
     "mangosteen": tuple(MANGOSTEEN_DISEASES),
     "rambutan": tuple(RAMBUTAN_DISEASES),
+    "pomelo": tuple(POMELO_DISEASES),
+    "guava": tuple(GUAVA_DISEASES),
 })
 
 SEED_FIELDS = (
