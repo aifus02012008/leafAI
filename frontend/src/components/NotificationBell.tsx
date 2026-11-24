@@ -48,6 +48,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (!open) return;
+    load(); // opening the bell always shows the latest alerts, not the last poll
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
@@ -58,7 +59,7 @@ export function NotificationBell() {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, load]);
 
   const openItem = async (n: AppNotification) => {
     if (!n.read_at) {
