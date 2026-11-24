@@ -1,0 +1,17 @@
+{
+  "name": "LEAF_AI — Chẩn đoán bệnh lá cây trồng",
+  "short_name": "LEAF_AI",
+  "description": "Chẩn đoán bệnh lá bằng AI, radar dịch bệnh và theo dõi hiệu quả điều trị.",
+  "lang": "vi",
+  "start_url": "./dashboard",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F6F1",
+  "theme_color": "#0F2A20",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
